@@ -1,0 +1,4 @@
+exportPattern("^[[:alpha:]]+")
+import("magrittr")
+importFrom("rlang", ".data")
+importFrom("stats", "as.formula", "cor.test", "sd", "t.test")

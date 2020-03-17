@@ -1,0 +1,30 @@
+Package: rNuggets
+Title: Package of useful helper functions for data analysis
+Version: 0.1.0
+Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
+                  role = c("aut", "cre"))
+Description: This package contains a set of functions that I have written
+    to facilitate my personal data analysis workflow (mostly for research
+    in social psychology and related teaching). If anyone else finds them 
+    helpful, I'd be delighted and then be grateful for any bug reports.
+Encoding: UTF-8
+LazyData: true
+License: CC BY-SA 4.0
+BugReports: https://github.com/LukasWallrich/rNuggets/issues
+Imports: 
+    tibble,
+    purrr,
+    magrittr,
+    dplyr,
+    ggplot2,
+    psych,
+    data.table,
+    rlang,
+    stringr,
+    tidyr,
+    knitr,
+    kableExtra
+Suggests:
+    survey,
+    srvyr
+RoxygenNote: 7.1.0
