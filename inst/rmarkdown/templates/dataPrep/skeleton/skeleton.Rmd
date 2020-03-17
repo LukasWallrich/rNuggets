@@ -1,0 +1,27 @@
+---
+title: "Data prep"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: kable
+    code_folding: hide
+    theme: paper
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(magrittr)
+#library(rNuggets)
+```
+
+# Start
+
+```{r}
+
+```
+
+
