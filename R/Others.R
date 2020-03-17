@@ -90,7 +90,7 @@ corstars <-
 
     #Compute correlation matrix
     x <- as.matrix(x)
-    correlation_matrix <- psych::corr.test(x, type = method[1])
+    correlation_matrix <- psych::corr.test(x, method = method[1])
     r <- correlation_matrix$r # Matrix of correlation coeficients
     p <- correlation_matrix$p # Matrix of p-value
 
