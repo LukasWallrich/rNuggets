@@ -11,6 +11,7 @@ Encoding: UTF-8
 LazyData: true
 License: CC BY-SA 4.0
 BugReports: https://github.com/LukasWallrich/rNuggets/issues
+URL: https://github.com/LukasWallrich/rNuggets
 Imports: 
     tibble,
     purrr,
