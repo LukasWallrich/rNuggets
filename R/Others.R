@@ -128,10 +128,13 @@ corstars <-
         tibble::rownames_to_column("variable") %>% dplyr::mutate(
           M_SD = paste0(round(.data$mean,2), " (",round(.data$sd, 2), ")")) %>%
           dplyr::select(.data$variable, .data$M_SD)
+      rownames(r_new) <- NULL
+      return(cbind(desc_stat, r_new))
     }
-
     ## Bind descriptives and return the correlation matrix
-    cbind(desc_stat, r_new[1:(ncol(r_new)-1)])
+
+    r_new
+
   }
 
 #' Geosedic distance between two points.
