@@ -233,9 +233,9 @@ svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_ti
 
     # Print scale descriptives
     cat(paste0("Descriptive stats for ", scale_title, "\n", "Cronbach's alpha:", round(survey::svycralpha(as.formula(.scale_formula(scale_items_num)),
-        df, na.rm = T), 2), "\nMean: ", round(srvyr::survey_mean(as.formula(paste0("~", scale_name)),
-        df, na.rm = T)[1], 2), "  SD: ", round(srvyr::survey_sd(as.formula(paste0("~", scale_name)),
-        df, na.rm = T)[1], 2)))
+        df, na.rm = T), 2), "\nMean: ", round(survey::svymean(as.formula(paste0("~", scale_name)),
+        df, na.rm = T)[1], 2), "  SD: ", round(sqrt(survey::svyvar(as.formula(paste0("~", scale_name)),
+        df, na.rm = T)[1]), 2)))
 
     # Print histograms of items and scale
     if (print_hist) {
