@@ -1,6 +1,27 @@
+#' Create a correlation table from survey data with summary statistics in APA style
+#'
+#' This function, based on apaTables' \code{apa.cor.table()}, creates (and
+#' optionally saves) a correlation table with summary statistics.
+#'
+#' @param cor.matrix A survey correlation matrix, usually returned from \code{
+#' survey_cor_matrix()}
+#' @inheritParams apaTables::apa.cor.table
+#' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
+#' accept survey correlation matrix
+#' @return A table that can be printed to the console. The function is typically
+#' more useful for saving a table to file, using the respective argument.
+#'
 apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
           landscape = TRUE)
 {
+  req_packages <- c("apaTables", "jtools", "survey", "srvyr")
+  if (suppressWarnings(all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+    stop(paste0("Some required packages are not installed. Make sure you have
+               these packages: ", paste0(req_packages, collapse = ", ")),
+         call. = FALSE)
+  }
+
+
   table_number <- table.number
   cor_matrix <- cor.matrix
   if (is.na(filename)) {
@@ -100,11 +121,44 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
   return(tbl.console)
 }
 
+#' Create a correlation matrix from survey data with summary statistics
+#'
+#' This function wraps jtools::svycor() so that it works in a srvyr-pipeline,
+#' runs bootstrapped significance-tests and calculates weighted summary
+#' statistics. Only numeric variables are included in the result.
+#'
+#' @param svy_df A survey object created with the survey or srvyr package. Only
+#' numeric variables will be included in the result.
+#' @return A correlation matrix list in the format provided by
+#' \code{jtools::svycor()} with the addition of a \code{desc}-element with means
+#' and standard deviations of the variables.
+#' and standard deviations of the variables.
+#'
+#'
+
 survey_cor_matrix <- function(svy_df) {
+  req_packages <- c("jtools", "survey", "srvyr")
+  if (suppressWarnings(all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+    stop(paste0("Some required packages are not installed. Make sure you have
+               these packages: ", paste0(req_packages, collapse = ", ")),
+         call. = FALSE)
+  }
   cor_matrix <- jtools::svycor(~., svy_df, na.rm = TRUE, sig.stats = TRUE)
 
-  cor_matrix$desc <- svy_df %>% summarise_all(.funs=list(`1M` = survey_mean, `1SD`=survey_var), na.rm = TRUE) %>% select(!matches("_se")) %>% gather(key = "key", value = "value") %>%
-    separate(key, into = c("var", "statistic"), sep = "_1") %>% spread(statistic, value) %>% mutate(SD = sqrt(SD)) %>% arrange(match(var, rownames(cor_matrix[[1]])))
+cor_matrix$desc <- svy_df %>%
+  srvyr::select_if(is.numeric) %>%
+  srvyr::summarise_all(.funs = list(`1M` = srvyr::survey_mean, `1SD` = srvyr::survey_var), na.rm = TRUE) %>%
+  dplyr::select(!dplyr::matches("_se")) %>%
+  tidyr::gather(key = "key", value = "value") %>%
+  tidyr::separate(.data$key, into = c("var", "statistic"), sep = "_1") %>%
+  tidyr::spread(.data$statistic, .data$value) %>%
+  dplyr::mutate(SD = sqrt(.data$SD)) %>%
+  dplyr::arrange(match(.data$var, rownames(cor_matrix[[1]])))
+
+  if (nrow(cor_matrix$desc)==0) {
+    stop("No numeric columns found - check your input and that you have
+         installed the most recent dplyr version.",  call. = FALSE)
+  }
 
   cor_matrix
   }
