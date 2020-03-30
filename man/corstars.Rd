@@ -46,5 +46,7 @@ optionally includes a column with means and standard deviations of the
 variables.
 }
 \details{
-
+Correlation stars are created with the \code{\link{sigstars}} function.
+To change the symbols, the \code{stars} argument can be included here and will
+be passed on.
 }

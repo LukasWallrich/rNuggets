@@ -31,7 +31,7 @@ paired_t_test_d <- function(df, x, y) {
 #' @param pair Character vector of length 2. Levels of iv to
 #'    be compared in t.test
 #' @param ttest Logical. Should t.test be run and displayed? Otherwise, only
-#'   Cohen's d is calculated.
+#'   Cohen's d is calculated. Defaults to TRUE.
 #' @return Invisibly returns a list including the t.test() output and
 #'   Cohen's d
 
@@ -66,6 +66,7 @@ svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
 #' @param cats Character vector of factor levels to be included in the
 #' pairwise tests. If set to NULL, all levels are used.
 #' @inheritDotParams svy_cohen_d_pair -pair
+#' @inheritParams svy_cohen_d_pair
 #' @return Invisibly returns a names lists of lists including the t.test()
 #'   output and Cohen's D for each pair
 
@@ -73,7 +74,7 @@ svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
 ### allow this to run without printing all results
 ### improve return with broom
 
-svy_pairwise.t.test <- function(cats, ...) {
+svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
     if (is.null(cats))
         cats <- eval(parse(text = paste0("levelsdf$variables$", iv)))
 
@@ -85,4 +86,5 @@ svy_pairwise.t.test <- function(cats, ...) {
     x <- purrr::map(purrr::pmap(df2, c), function(x) svy_cohen_d_pair(pair = x, ...))
 
     names(x) <- tidyr::unite(df2, .data$new_col)[[1]]
+    x
 }

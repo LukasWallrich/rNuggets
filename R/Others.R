@@ -12,6 +12,7 @@
 #'  indicated above and for non-significant values (can of course be "   "). This
 #'  argument makes most sense when marginal significance should not be indicated
 #'  or when non-significant values should explicitly be labeled (e.g., as ns)
+#'
 #' @encoding UTF-8
 #' @param p A \emph{p}-value or (more commonly) a vector of \emph{p}-values
 #' @param stars A character vector to change the significance symbols (see details)
@@ -37,7 +38,7 @@ sigstars <- function(p, stars = NULL) {
 #' variables.
 #'
 #' Correlation stars are created with the \code{\link{sigstars}} function.
-#' To change the symbols, the \{stars} argument can included here and will
+#' To change the symbols, the \code{stars} argument can be included here and will
 #' be passed on.
 #'
 #' @param x Dataframe of variables that can be coerced to numeric.

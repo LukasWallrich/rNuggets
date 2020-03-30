@@ -27,5 +27,7 @@ Imports:
     kableExtra
 Suggests:
     survey,
-    srvyr
+    srvyr,
+    apaTables,
+    jtools
 RoxygenNote: 7.1.0

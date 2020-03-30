@@ -37,10 +37,11 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 #' but could potentially lead to downstream issues.
 #'
 #' @param df Data for modeling
-#' @inheritDotParams lm
+#' @inheritParams stats::lm
+#' @inheritDotParams stats::lm
 
 run_lm <- function(df, formula, ...) {
-  x<-lm(data=df, formula, ...)
+  x<-stats::lm(data=df, formula, ...)
   x$call[2] <- deparse(formula)
   x
 }

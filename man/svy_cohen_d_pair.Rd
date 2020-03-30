@@ -17,7 +17,7 @@ svy_cohen_d_pair(df, dv, iv, pair, ttest = T)
 be compared in t.test}
 
 \item{ttest}{Logical. Should t.test be run and displayed? Otherwise, only
-Cohen's d is calculated.}
+Cohen's d is calculated. Defaults to TRUE.}
 }
 \value{
 Invisibly returns a list including the t.test() output and

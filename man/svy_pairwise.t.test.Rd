@@ -4,20 +4,23 @@
 \alias{svy_pairwise.t.test}
 \title{Pairwise t.tests with effect sizes and survey weights}
 \usage{
-svy_pairwise.t.test(cats, ...)
+svy_pairwise.t.test(df, dv, iv, cats, ...)
 }
 \arguments{
+\item{df}{A dataframe}
+
+\item{dv}{Character. Name of the dependent variable for the t.test (numeric)}
+
+\item{iv}{Character. Name of the grouping variable for the t.test (factor)}
+
 \item{cats}{Character vector of factor levels to be included in the
 pairwise tests. If set to NULL, all levels are used.}
 
 \item{...}{
   Arguments passed on to \code{\link[=svy_cohen_d_pair]{svy_cohen_d_pair}}
   \describe{
-    \item{\code{df}}{A dataframe}
-    \item{\code{dv}}{Character. Name of the dependent variable for the t.test (numeric)}
-    \item{\code{iv}}{Character. Name of the grouping variable for the t.test (factor)}
     \item{\code{ttest}}{Logical. Should t.test be run and displayed? Otherwise, only
-Cohen's d is calculated.}
+Cohen's d is calculated. Defaults to TRUE.}
   }}
 }
 \value{
