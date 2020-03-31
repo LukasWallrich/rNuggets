@@ -32,17 +32,46 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 #' Within a dplyr-pipe, running lm() is often complicated be the placing of the
 #' data argument. This wrapper places data first.
 #'
-#' Note that the model formula is replaced by a string in the model object -
-#' this is a quick fix for a bug that led to the fomula not being displayed
-#' but could potentially lead to downstream issues.
+#' Note that the model call in the lm-object is replaced by the call to this
+#' function - that means that \code{update()} cannot be used.
 #'
 #' @param df Data for modeling
 #' @inheritParams stats::lm
 #' @inheritDotParams stats::lm
+#' @source After experiencing an issue with passing weights, I rewrote this
+#' based on the code suggested by "Vandenman" here \{link}
+#' https://stackoverflow.com/questions/38683076/ellipsis-trouble-passing-to-lm
 
 run_lm <- function(df, formula, ...) {
-  x<-stats::lm(data=df, formula, ...)
-  x$call[2] <- deparse(formula)
-  x
-}
+    # get names of stuff in ...
+    argNames = sapply(substitute(list(...))[-1L], deparse)
+    # look for identical names in df
+    m = match(names(df), argNames, 0L)
+
+    # store other arguments from ... in a list, if any
+    dot_args <- eval(parse(text = argNames[-m]))
+    if (is.null(dot_args)) {args <- list()
+    } else {
+      args <- list(dot_args)
+      # name the list
+      names(args) = names(argNames[-m])
+      }
+
+    # store complete values in args, instead of just references to columns
+    # the unlist code is rather ugly, the goal is to create a list where every
+    # element is a column of interest
+    args[names(argNames)[m]] = unlist(apply(df[, as.logical(m), drop = FALSE],
+                                            2, list), recursive = FALSE)
+    # also put other stuff in there
+    args$formula = formula
+    args$data = df
+    # do lm
+   mod <- do.call(lm, args)
+   mod$call <- sys.call()
+   mod
+   }
+
+
+
+
 
