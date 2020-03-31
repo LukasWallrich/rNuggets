@@ -172,3 +172,67 @@ within_km <- function(df, start_longitude, start_latitude, km) {
     {purrr::map2(.data$longitude, .data$latitude, gcd.hf, start_longitude, start_latitude)}  %>%
     unlist() %>% {.data < km}
 }
+
+#' Cut a continuous variable into given proportions
+#'
+#' \code{cut()} and similar functions can cut continous variables by quantile;
+#' other helper functions exist to cut variables into groups of the same size
+#' or width. This function cuts a contiuous variable into given proportions.
+#'
+#' Ties within the continuous variable are allocated randomly - so this function
+#' should not be used if there are many ties. The number of observations per
+#' group is rounded up for even-numbered levels (second, fourth, etc) and
+#' rounded down for others (expect for the last level that is used to balance).
+#' For large numbers of observations, the distribution will be very close to
+#' what is desired, for very small numbers of observations, it should be checked.
+#'
+#' @param x A numeric variable that is to be cut into categories
+#' @param p The proportion of cases to be allocated to each category, in
+#' ascending order. Should add up to one, otherwise, it will be scaled accordingly
+#' @param ties.method Currently accepts only "random" - could be expanded in the
+#' future, though it is unclear what a better method would be
+#' @param fct_levels Character vector with names for levels. If it is NULL, the
+#' groups will be labeled with their number and the cut-points employed.
+#' @return Factor variable with x cut into length(p) categories in given
+#' proportions
+
+cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
+  if (!ties.method == "random") stop('Currently, only "random" is accepted as ties.method.', call. = FALSE)
+  if (sum(p) != 1) {
+    message("p should be probabilities that add up to 1 - will be scaled accordingly")
+    p <- p / sum(p)
+  }
+  ranks <- rank(x, na.last = "keep", ties.method)
+  start <- min(x)
+  end <- x[match(.floor_ceiling(p[1]*length(x), 1), ranks)]
+  out <- rep(paste0("Group ",1," (", start, " to ", end, ")"), ceiling(p[1]*length(x)))
+  for (i in seq.int(2,length(p)-1, 1)) {
+    start <- x[match(.floor_ceiling(cumsum(p)[i-1]*length(x)+1, i-1), ranks)]
+    end <- x[match(.floor_ceiling(cumsum(p)[i]*length(x), i), ranks)]
+    out <- c(out, rep(paste0("Group ",i," (", start, " to ", end, ")"), .floor_ceiling(p[i]*length(x), i)))
+  }
+  start <- x[match(.floor_ceiling(cumsum(p)[length(p)-1]*length(x)+1, length(p)-1), ranks)]
+  end <- max(x)
+  out <- c(out, rep(paste0("Group ",length(p)," (", start, " to ", end, ")"), length(x)-length(out)))
+
+  out <- factor(out)
+
+  if (!is.null(fct_levels)) {
+    if(!length(fct_levels)==length(p)) stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    levels(out) <- fct_levels
+  }
+
+  out[ranks]
+}
+
+#' Helper function to round up and down in turn
+#'
+#' Iterates between floor() and ceiling()
+#'
+#' @param x Numeric, to be rounded
+#' @param i Iterator. floor() will be used on x for odd i, ceiling() for even i
+
+.floor_ceiling <- function(x, i) {
+  if (i %% 2 == 1) return(ceiling(x))
+  floor(x)
+}
