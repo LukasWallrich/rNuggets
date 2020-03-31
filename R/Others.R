@@ -202,6 +202,10 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
     message("p should be probabilities that add up to 1 - will be scaled accordingly")
     p <- p / sum(p)
   }
+
+ xNA <- x
+ x<-x[!is.na(x)]
+
   ranks <- rank(x, na.last = "keep", ties.method)
   start <- min(x)
   end <- x[match(.floor_ceiling(p[1]*length(x), 1), ranks)]
@@ -222,7 +226,13 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
     levels(out) <- fct_levels
   }
 
-  out[ranks]
+  xNA[!is.na(xNA)] <- out[ranks]
+  xNA <- factor(xNA)
+  if (!is.null(fct_levels)) {
+    if(!length(fct_levels)==length(p)) stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    levels(xNA) <- fct_levels
+  }
+  xNA
 }
 
 #' Helper function to round up and down in turn
