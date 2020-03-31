@@ -246,3 +246,14 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
   if (i %% 2 == 1) return(ceiling(x))
   floor(x)
 }
+
+#' Formats a number to print as percentage
+#'
+#'Takes a number and returns it as a formatted string expressing the percentage
+#'
+#' @param x A number
+#' @param digits The number of digits after the percentage point. Defaults to 1
+
+p_pct <- function(x, digits = 1) {
+  paste0(format(round(x*100, digits), nsmall = 2), "%")
+}
