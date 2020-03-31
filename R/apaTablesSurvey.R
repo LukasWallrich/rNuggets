@@ -15,7 +15,7 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
           landscape = TRUE)
 {
   req_packages <- c("apaTables", "jtools", "survey", "srvyr")
-  if (suppressWarnings(all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+  if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
                these packages: ", paste0(req_packages, collapse = ", ")),
          call. = FALSE)
@@ -138,7 +138,7 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
 
 survey_cor_matrix <- function(svy_df) {
   req_packages <- c("jtools", "survey", "srvyr")
-  if (suppressWarnings(all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+  if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
                these packages: ", paste0(req_packages, collapse = ", ")),
          call. = FALSE)
