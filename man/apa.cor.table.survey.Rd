@@ -12,7 +12,8 @@ apa.cor.table.survey(
   cor.matrix,
   filename = NA,
   table.number = NA,
-  landscape = TRUE
+  landscape = TRUE,
+  note = ""
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ survey_cor_matrix()}}
 \item{table.number}{Integer to use in table number output line}
 
 \item{landscape}{(TRUE/FALSE) Make RTF file landscape}
+
+\item{note}{Additional notes to show under the table.}
 }
 \value{
 A table that can be printed to the console. The function is typically

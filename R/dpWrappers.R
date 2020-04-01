@@ -37,9 +37,9 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 #'
 #' @param df Data for modeling
 #' @inheritParams stats::lm
-#' @inheritDotParams stats::lm
+#' @inheritDotParams stats::lm -data
 #' @source After experiencing an issue with passing weights, I rewrote this
-#' based on the code suggested by "Vandenman" here \{link}
+#' based on the code suggested by "Vandenman" here
 #' https://stackoverflow.com/questions/38683076/ellipsis-trouble-passing-to-lm
 
 run_lm <- function(df, formula, ...) {

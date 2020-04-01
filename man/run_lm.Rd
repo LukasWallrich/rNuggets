@@ -3,6 +3,11 @@
 \name{run_lm}
 \alias{run_lm}
 \title{lm() for pipes - data as first argument}
+\source{
+After experiencing an issue with passing weights, I rewrote this
+based on the code suggested by "Vandenman" here
+https://stackoverflow.com/questions/38683076/ellipsis-trouble-passing-to-lm
+}
 \usage{
 run_lm(df, formula, ...)
 }
@@ -17,11 +22,6 @@ run_lm(df, formula, ...)
 \item{...}{
   Arguments passed on to \code{\link[stats:lm]{stats::lm}}
   \describe{
-    \item{\code{data}}{an optional data frame, list or environment (or object
-    coercible by \code{\link{as.data.frame}} to a data frame) containing
-    the variables in the model.  If not found in \code{data}, the
-    variables are taken from \code{environment(formula)},
-    typically the environment from which \code{lm} is called.}
     \item{\code{subset}}{an optional vector specifying a subset of observations
     to be used in the fitting process.}
     \item{\code{weights}}{an optional vector of weights to be used in the fitting
@@ -71,7 +71,6 @@ Within a dplyr-pipe, running lm() is often complicated be the placing of the
 data argument. This wrapper places data first.
 }
 \details{
-Note that the model formula is replaced by a string in the model object -
-this is a quick fix for a bug that led to the fomula not being displayed
-but could potentially lead to downstream issues.
+Note that the model call in the lm-object is replaced by the call to this
+function - that means that \code{update()} cannot be used.
 }

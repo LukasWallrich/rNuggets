@@ -14,7 +14,6 @@ numeric variables will be included in the result.}
 A correlation matrix list in the format provided by
 \code{jtools::svycor()} with the addition of a \code{desc}-element with means
 and standard deviations of the variables.
-and standard deviations of the variables.
 }
 \description{
 This function wraps jtools::svycor() so that it works in a srvyr-pipeline,
