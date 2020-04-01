@@ -1,4 +1,7 @@
 
+.onAttach <- function(libname, pkgname) {
+  packageStartupMessage("Most functions in this package are alpha-versions - please treat results with care and report bugs.")
+}
 
 #' Significance stars for p-values
 #'
@@ -256,4 +259,22 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
 
 p_pct <- function(x, digits = 1) {
   paste0(format(round(x*100, digits), nsmall = 2), "%")
+}
+
+
+#' Round all numeric columns in dataframe
+#'
+#' Rounds all numeric columns in dataframe, using the R default "half to even"
+#'
+#' @param df Dataframe to be rounded
+#' @param digits Number of digits, defaults to 2
+#' @source https://stackoverflow.com/questions/9063889/how-to-round-a-data-frame-in-r-that-contains-some-character-variables
+
+
+round_df <- function(df, digits = 2) {
+  nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
+
+  df[,nums] <- round(df[,nums], digits = digits)
+
+  (df)
 }
