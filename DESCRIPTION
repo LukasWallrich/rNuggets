@@ -29,5 +29,7 @@ Suggests:
     survey,
     srvyr,
     apaTables,
-    jtools
+    jtools,
+    mice,
+    mitools
 RoxygenNote: 7.1.0

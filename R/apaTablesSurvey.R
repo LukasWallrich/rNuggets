@@ -5,6 +5,7 @@
 #'
 #' @param cor.matrix A survey correlation matrix, usually returned from \code{
 #' survey_cor_matrix()}
+#' @param note Additional notes to show under the table.
 #' @inheritParams apaTables::apa.cor.table
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
 #' accept survey correlation matrix
@@ -12,7 +13,7 @@
 #' more useful for saving a table to file, using the respective argument.
 #'
 apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
-          landscape = TRUE)
+          landscape = TRUE, note = "")
 {
   req_packages <- c("apaTables", "jtools", "survey", "srvyr")
   if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
@@ -20,6 +21,8 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
                these packages: ", paste0(req_packages, collapse = ", ")),
          call. = FALSE)
   }
+
+
 
 
   table_number <- table.number
@@ -98,7 +101,8 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
   df_temp <- data.frame(output_matrix_console, stringsAsFactors = FALSE)
   rownames(output_matrix_console) <- rep(" ", length((rownames(output_matrix_console))))
   table_body <- output_matrix_console
-    table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval.\nSignificance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016).\n* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n"
+  if("svycor" %in% class(cor.matrix) & note == "") note <- "Significance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016).\n"
+    table_note <- paste("Note. M and SD are used to represent mean and standard deviation, respectively.", "Values in square brackets indicate the 95% confidence interval.",note, "* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n", sep = "\n")
   tbl.console <- list(table.number = table_number, table.title = table_title,
                       table.body = table_body, table.note = table_note)
   class(tbl.console) <- "apa.table"
@@ -109,7 +113,9 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
     blankLine <- rep("", number_columns)
     output_matrix_rtf <- rbind(blankLine, output_matrix_rtf)
       table_title <- "Means, standard deviations, and correlations with confidence intervals"
-      table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation. Significance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016). * indicates {\\i p} < .05. ** indicates {\\i p} < .01. *** indicates {\\i p} < .001."
+      table_note <- paste0("Note. M and SD are used to represent mean and standard deviation, respectively.", "Values in square brackets indicate the 95% confidence interval.",note, "* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n", sep = "\n")
+
+      table_note <- paste("{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation.", note, " * indicates {\\i p} < .05. ** indicates {\\i p} < .01. *** indicates {\\i p} < .001.")
     rtfTable <- apaTables:::RtfTable$new(isHeaderRow = TRUE)
     rtfTable$setTableContent(output_matrix_rtf)
     rtfTable$setRowFirstColumnJustification("left")
@@ -131,7 +137,6 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
 #' numeric variables will be included in the result.
 #' @return A correlation matrix list in the format provided by
 #' \code{jtools::svycor()} with the addition of a \code{desc}-element with means
-#' and standard deviations of the variables.
 #' and standard deviations of the variables.
 #'
 #'
@@ -161,4 +166,93 @@ cor_matrix$desc <- svy_df %>%
   }
 
   cor_matrix
+}
+
+#' Create a correlation matrix from multiply imputed data with weights
+#'
+#' This function takes an imputationList with a vector of weights and returns
+#' a correlation matrix for all numeric variables as well as a list of
+#' descriptives that pools the results across all imputations.
+#'
+#' Variables starting with . are dropped, as these are likely to be .imp and .id
+#' from mice. If you want correlations for such variables, rename them.
+#'
+#' @param mi_list A list of dataframes of multiple imputation results
+#' @param weights A variable within mi_list that gives the survey weights
+#' @return A correlation matrix list similar to the format provided by
+#' \code{jtools::svycor()} with the addition of a \code{desc}-element with means
+#' and standard deviations of the variables.
+#' @source Takes some code from the \code{miceadds::micombine.cor} function,
+#' but adapted to use weights and return in the format accepted by
+#' \code{apa.cor.table.survey}
+#'
+
+wtd_cor_matrix_mi <- function(mi_list, weights) {
+  req_packages <- c("survey", "srvyr", "mitools", "mice")
+  if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+    stop(paste0("Some required packages are not installed. Make sure you have
+               these packages: ", paste0(req_packages, collapse = ", ")),
+         call. = FALSE)
   }
+  weights <- rlang::enquo(weights)
+
+  mi_list <- purrr::map(mi_list, dplyr::select_if, is.numeric)
+
+  mi_list <- purrr::map(mi_list, dplyr::select, !!weights, dplyr::everything(), -dplyr::matches("^\\."))
+
+  variables <- names(mi_list[[1]])
+  variables <- variables[-1]
+  ct <- length(variables)
+
+  df <- NULL
+
+  for (i in 1:(ct-1)) {
+    for (j in (i + 1):ct) {
+      if (i != j) {
+        ii <- variables[i]
+        jj <- variables[j]
+          mi_selected <- purrr::map(mi_list, magrittr::extract, c(jj, ii, dplyr::as_label(weights)))
+          mi_selected <- purrr::map(mi_selected, dplyr::rename, x = 1, y = 2)
+          #browser()
+          cor.ii.jj <- purrr::map(mi_selected, do.call, what=.wtd_cor_test_lm)
+          df <- rbind(df, data.frame(x=ii, y=jj, mice::pool(cor.ii.jj)%>%summary()%>%magrittr::extract(c("estimate", "p.value", "std.error", "statistic")) %>% magrittr::extract(2,)))
+
+          }
+        }
+      }
+
+
+  to_matrix <- function(df, names, value) {
+    m <- matrix(0, length(names), length(names))
+    m[as.matrix(df %>% magrittr::extract(c("row", "column")))] <- df[[value]]
+    rownames(m) <- names
+    colnames(m) <- names
+    diag(m)<-1
+    empty <- lower.tri(m)
+    m[empty] <- t(m)[empty]
+    m
+  }
+
+  df %<>% dplyr::mutate(row = match(.data$x, variables), column = match(.data$y, variables))
+  cors <- to_matrix(df, variables, "estimate")
+  std.err <- to_matrix(df, variables, "std.error")
+  p.values <- to_matrix(df, variables, "p.value")
+  t.values <- to_matrix(df, variables, "statistic")
+
+  imp_svy <- survey::svydesign(~1, weights = as.formula(paste0("~", dplyr::as_label(weights))), data = mitools::imputationList(mi_list))
+
+
+  desc <- NULL
+  for (i in 1:ct) {
+    M <- mitools::MIcombine(with(imp_svy, svymean(as.formula(paste0("~", variables[i])), design = .design)))[[1]]
+    SD <- sqrt(mitools::MIcombine(with(imp_svy, svyvar(as.formula(paste0("~", variables[i])), design = .design)))[[1]])
+    desc <- rbind(desc, data.frame(var = variables[i], M = M, SD = SD))
+    }
+
+  list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, desc = desc, tests=df)
+
+}
+
+.wtd_cor_test_lm <- function(x, y, wt, ...) {
+  lm(scale(y)~scale(x), weights = wt)
+}
