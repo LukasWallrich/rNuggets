@@ -50,9 +50,11 @@ spearman_brown <- function(df, items, name = "", SB_only = F) {
 make_scale <- function(df, scale_items, scale_name, reverse = c("auto",
     "none", "spec"), reverse_items = NULL, two_items_reliability = c("spearman_brown", "cron_alpha",
     "r"), print_hist = T, print_desc = T, return_list = F) {
-    scale_vals <- df %>% dplyr::select(dplyr::one_of(scale_items)) %>% {
-        as.data.frame(purrr::map(.data, as.integer))
-    }
+scale_vals <- df %>%
+  dplyr::select(dplyr::one_of(scale_items)) %>%
+  {
+    as.data.frame(purrr::map(.data, as.integer))
+  }
     if ((reverse != "spec")[1]) {
         check.keys <- ifelse(reverse == "none", F, T)
         alpha_obj <- suppressWarnings(scale_vals %>% psych::alpha(na.rm = TRUE, check.keys = check.keys))
@@ -280,7 +282,7 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = F) {
         collapse = ", ")
     means <- eval(parse(text = paste0("df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
         cmd, ")")))
-    if(!quietly)
+    if (!quietly)
         means %>% knitr::kable(caption = tbl_title, digits = 2) %>%
         kableExtra::kable_styling(full_width = F, position = "left") %>%
         print()

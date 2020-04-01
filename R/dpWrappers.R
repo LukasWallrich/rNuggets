@@ -44,34 +44,29 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 
 run_lm <- function(df, formula, ...) {
     # get names of stuff in ...
-    argNames = sapply(substitute(list(...))[-1L], deparse)
+    arg_names <- sapply(substitute(list(...))[-1L], deparse)
     # look for identical names in df
-    m = match(names(df), argNames, 0L)
+    m <- match(names(df), arg_names, 0L)
 
     # store other arguments from ... in a list, if any
-    dot_args <- eval(parse(text = argNames[-m]))
+    dot_args <- eval(parse(text = arg_names[-m]))
     if (is.null(dot_args)) {args <- list()
     } else {
       args <- list(dot_args)
       # name the list
-      names(args) = names(argNames[-m])
+      names(args) = names(arg_names[-m])
       }
 
     # store complete values in args, instead of just references to columns
     # the unlist code is rather ugly, the goal is to create a list where every
     # element is a column of interest
-    args[names(argNames)[m]] = unlist(apply(df[, as.logical(m), drop = FALSE],
+    args[names(arg_names)[m]] <- unlist(apply(df[, as.logical(m), drop = FALSE],
                                             2, list), recursive = FALSE)
     # also put other stuff in there
-    args$formula = formula
-    args$data = df
+    args$formula <- formula
+    args$data <- df
     # do lm
    mod <- do.call(lm, args)
    mod$call <- sys.call()
    mod
    }
-
-
-
-
-

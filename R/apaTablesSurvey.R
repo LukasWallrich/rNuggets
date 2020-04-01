@@ -3,18 +3,18 @@
 #' This function, based on apaTables' \code{apa.cor.table()}, creates (and
 #' optionally saves) a correlation table with summary statistics.
 #'
-#' @param cor.matrix A survey correlation matrix, usually returned from \code{
+#' @param cor_matrix A survey correlation matrix, usually returned from \code{
 #' survey_cor_matrix()}
 #' @param note Additional notes to show under the table.
+#' @param table_number Integer to use in table number output line
 #' @inheritParams apaTables::apa.cor.table
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
 #' accept survey correlation matrix
 #' @return A table that can be printed to the console. The function is typically
 #' more useful for saving a table to file, using the respective argument.
 #'
-apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
-          landscape = TRUE, note = "")
-{
+apa_cor_table_survey <- function (cor_matrix, filename = NA, table_number = NA,
+          landscape = TRUE, note = "") {
   req_packages <- c("apaTables", "jtools", "survey", "srvyr")
   if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
@@ -22,11 +22,6 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
          call. = FALSE)
   }
 
-
-
-
-  table_number <- table.number
-  cor_matrix <- cor.matrix
   if (is.na(filename)) {
     make_file_flag <- FALSE
   }
@@ -45,13 +40,13 @@ apa.cor.table.survey <- function (cor.matrix, filename = NA, table.number = NA,
   output_variable_names <- paste(as.character(1:number_variables),
                                  ". ", rownames(cor_matrix[[1]]), sep = "")
   for (i in 1:number_variables) {
-    output_descriptives[i, 1] <- apaTables:::txt.number(cor_matrix$desc[i,2]) #Mean
-    output_descriptives[i, 2] <- apaTables:::txt.number(cor_matrix$desc[i,3]) #SD
+    output_descriptives[i, 1] <- apaTables:::txt.number(cor_matrix$desc[i, 2]) #Mean
+    output_descriptives[i, 2] <- apaTables:::txt.number(cor_matrix$desc[i, 3]) #SD
     for (j in 1:number_variables) {
       if ((j < i)) {
-        cor.r <- cor_matrix$cors[i,j]
-        cor.p <- cor_matrix$p.values[i,j]
-        cor.se <- cor_matrix$std.err[i,j]
+        cor.r <- cor_matrix$cors[i, j]
+        cor.p <- cor_matrix$p.values[i, j]
+        cor.se <- cor_matrix$std.err[i, j]
         cor_string <- paste(apaTables:::strip.leading.zero(sprintf("%1.2f",
                                                   cor.r)), sigstars(cor.p))
         output_cor[i, j] <- cor_string
@@ -215,7 +210,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights) {
           mi_selected <- purrr::map(mi_selected, dplyr::rename, x = 1, y = 2)
           #browser()
           cor.ii.jj <- purrr::map(mi_selected, do.call, what=.wtd_cor_test_lm)
-          df <- rbind(df, data.frame(x=ii, y=jj, mice::pool(cor.ii.jj)%>%summary()%>%magrittr::extract(c("estimate", "p.value", "std.error", "statistic")) %>% magrittr::extract(2,)))
+          df <- rbind(df, data.frame(x = ii, y = jj, mice::pool(cor.ii.jj) %>% summary()%>%magrittr::extract(c("estimate", "p.value", "std.error", "statistic")) %>% magrittr::extract(2,)))
 
           }
         }
@@ -244,8 +239,8 @@ wtd_cor_matrix_mi <- function(mi_list, weights) {
 
   desc <- NULL
   for (i in 1:ct) {
-    M <- mitools::MIcombine(with(imp_svy, svymean(as.formula(paste0("~", variables[i])), design = .design)))[[1]]
-    SD <- sqrt(mitools::MIcombine(with(imp_svy, svyvar(as.formula(paste0("~", variables[i])), design = .design)))[[1]])
+    M <- mitools::MIcombine(with(imp_svy, survey::svymean(as.formula(paste0("~", variables[i])), design = .design)))[[1]]
+    SD <- sqrt(mitools::MIcombine(with(imp_svy, survey::svyvar(as.formula(paste0("~", variables[i])), design = .design)))[[1]])
     desc <- rbind(desc, data.frame(var = variables[i], M = M, SD = SD))
     }
 

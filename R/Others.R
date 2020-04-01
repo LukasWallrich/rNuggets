@@ -26,7 +26,7 @@
 #'
 
 sigstars <- function(p, stars = NULL) {
-  if (is.null(stars)) stars = c("*** ", "**  ", "*    ", "\U2020    ", "    ")
+  if (is.null(stars)) stars <- c("*** ", "**  ", "*    ", "\U2020    ", "    ")
   ifelse(p < .001, stars[1],
                                  ifelse(p < .01, stars[2],
                                         ifelse(p < .05, stars[3],
@@ -65,7 +65,7 @@ corstars <-
            adjust = "none",
            ...) {
 
-    #Compute correlation matrix
+    # Compute correlation matrix
     x <- as.matrix(x)
     correlation_matrix <- psych::corr.test(x, method = method[1])
     r <- correlation_matrix$r # Matrix of correlation coeficients
@@ -100,18 +100,21 @@ corstars <-
       r_new <- cbind(r_new[1:nrow(r_new) - 1, 2:length(r_new)])
     }
 
-    if(desc_col) {
-      desc_stat <- x %>% psych::describe() %>% data.frame() %>%
-        tibble::rownames_to_column("variable") %>% dplyr::mutate(
-          M_SD = paste0(round(.data$mean,2), " (",round(.data$sd, 2), ")")) %>%
-          dplyr::select(.data$variable, .data$M_SD)
+    if (desc_col) {
+      desc_stat <- x %>%
+        psych::describe() %>%
+        data.frame() %>%
+        tibble::rownames_to_column("variable") %>%
+        dplyr::mutate(
+          M_SD = paste0(round(.data$mean, 2), " (", round(.data$sd, 2), ")")
+        ) %>%
+        dplyr::select(.data$variable, .data$M_SD)
       rownames(r_new) <- NULL
       return(cbind(desc_stat, r_new))
     }
     ## Bind descriptives and return the correlation matrix
 
     r_new
-
   }
 
 #' Geosedic distance between two points.
@@ -140,8 +143,8 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
   delta.long <- (long2 - long1)
   delta.lat <- (lat2 - lat1)
   a <- sin(delta.lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta.long/2)^2
-  c <- 2 * asin(min(1,sqrt(a)))
-  d = R * c
+  c <- 2 * asin(min(1, sqrt(a)))
+  d <- R * c
   return(d) # Distance in km
 }
 
@@ -169,11 +172,14 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
 #'  \code{km} from starting point
 
 within_km <- function(df, start_longitude, start_latitude, km) {
-  if(!all(c("latitude", "longitude") %in% colnames(df)))
+  if (!all(c("latitude", "longitude") %in% colnames(df))) {
     stop("Dataframe needs to contain `latitude`` and `longitude` variables")
-  df %>% dplyr::select(.data$longitude, .data$latitude) %>%
-    {purrr::map2(.data$longitude, .data$latitude, gcd.hf, start_longitude, start_latitude)}  %>%
-    unlist() %>% {.data < km}
+  }
+  df %>%
+    dplyr::select(.data$longitude, .data$latitude) %>%
+    {purrr::map2(.data$longitude, .data$latitude, gcd.hf, start_longitude, start_latitude)} %>%
+    unlist() %>%
+    {.data < km}
 }
 
 #' Cut a continuous variable into given proportions
@@ -206,33 +212,35 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
     p <- p / sum(p)
   }
 
- xNA <- x
- x<-x[!is.na(x)]
+  xNA <- x
+  x <- x[!is.na(x)]
 
   ranks <- rank(x, na.last = "keep", ties.method)
   start <- min(x)
-  end <- x[match(.floor_ceiling(p[1]*length(x), 1), ranks)]
-  out <- rep(paste0("Group ",1," (", start, " to ", end, ")"), ceiling(p[1]*length(x)))
-  for (i in seq.int(2,length(p)-1, 1)) {
-    start <- x[match(.floor_ceiling(cumsum(p)[i-1]*length(x)+1, i-1), ranks)]
-    end <- x[match(.floor_ceiling(cumsum(p)[i]*length(x), i), ranks)]
-    out <- c(out, rep(paste0("Group ",i," (", start, " to ", end, ")"), .floor_ceiling(p[i]*length(x), i)))
+  end <- x[match(.floor_ceiling(p[1] * length(x), 1), ranks)]
+  out <- rep(paste0("Group ", 1, " (", start, " to ", end, ")"), ceiling(p[1] * length(x)))
+  for (i in seq.int(2, length(p) - 1, 1)) {
+    start <- x[match(.floor_ceiling(cumsum(p)[i - 1] * length(x) + 1, i - 1), ranks)]
+    end <- x[match(.floor_ceiling(cumsum(p)[i] * length(x), i), ranks)]
+    out <- c(out, rep(paste0("Group ", i, " (", start, " to ", end, ")"), .floor_ceiling(p[i] * length(x), i)))
   }
-  start <- x[match(.floor_ceiling(cumsum(p)[length(p)-1]*length(x)+1, length(p)-1), ranks)]
+  start <- x[match(.floor_ceiling(cumsum(p)[length(p) - 1] * length(x) + 1, length(p) - 1), ranks)]
   end <- max(x)
-  out <- c(out, rep(paste0("Group ",length(p)," (", start, " to ", end, ")"), length(x)-length(out)))
+  out <- c(out, rep(paste0("Group ", length(p), " (", start, " to ", end, ")"), length(x) - length(out)))
 
   out <- factor(out)
 
   if (!is.null(fct_levels)) {
-    if(!length(fct_levels)==length(p)) stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    if (!length(fct_levels) == length(p))
+      stop("Arguments fct_levels and p need to have same length", call. = FALSE)
     levels(out) <- fct_levels
   }
 
   xNA[!is.na(xNA)] <- out[ranks]
   xNA <- factor(xNA)
   if (!is.null(fct_levels)) {
-    if(!length(fct_levels)==length(p)) stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    if (!length(fct_levels) == length(p))
+      stop("Arguments fct_levels and p need to have same length", call. = FALSE)
     levels(xNA) <- fct_levels
   }
   xNA
@@ -274,7 +282,6 @@ p_pct <- function(x, digits = 1) {
 round_df <- function(df, digits = 2) {
   nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
 
-  df[,nums] <- round(df[,nums], digits = digits)
-
+  df[, nums] <- round(df[, nums], digits = digits)
   (df)
 }
