@@ -1,6 +1,6 @@
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("Most functions in this package are alpha-versions - please treat results with care and report bugs.")
+  packageStartupMessage("Note re rNuggets: Most functions in this package are alpha-versions - please treat results with care and report bugs.")
 }
 
 #' Significance stars for p-values
