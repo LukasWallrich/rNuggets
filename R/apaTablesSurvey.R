@@ -96,7 +96,7 @@ apa_cor_table_survey <- function (cor_matrix, filename = NA, table_number = NA,
   df_temp <- data.frame(output_matrix_console, stringsAsFactors = FALSE)
   rownames(output_matrix_console) <- rep(" ", length((rownames(output_matrix_console))))
   table_body <- output_matrix_console
-  if("svycor" %in% class(cor.matrix) & note == "") note <- "Significance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016).\n"
+  if("svycor" %in% class(cor_matrix) & note == "") note <- "Significance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016).\n"
     table_note <- paste("Note. M and SD are used to represent mean and standard deviation, respectively.", "Values in square brackets indicate the 95% confidence interval.",note, "* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n", sep = "\n")
   tbl.console <- list(table.number = table_number, table.title = table_title,
                       table.body = table_body, table.note = table_note)
