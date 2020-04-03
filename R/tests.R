@@ -88,3 +88,58 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
     names(x) <- tidyr::unite(df2, .data$new_col)[[1]]
     x
 }
+
+#' lm() with standardised continuous variables - no data argument
+#'
+#' This runs lm() after standardising all continuous variables, while leaving
+#' factors intact. It does not take a data argument, so should be used with
+#' with() - if a data argument is needed, use `run_lm()` instead.
+#'
+#' @inheritParams stats::lm
+#' @param rename_std Logical. Should standardised variables be indicated by _sd
+#' suffix
+#' @inheritDotParams stats::lm -data
+#' @references See (Fox, 2015) for an argument why dummy variables should never
+#' be standardised. If you want to run a model with all variables standardised,
+#' one option is `QuantPsyc::lm.beta()`
+
+lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
+    parent <- parent.frame()
+    here <- environment()
+    vars <- all.vars(formula)
+
+    vars_num <- vars[purrr::map_lgl(vars, ~is.numeric(get(.x, parent)))]
+
+    if (rename_std) {
+        vars_num_sc <- paste0(vars_num, "_sd")
+    } else {
+        vars_num_sc <- vars_num
+    }
+
+    assign_scaled <- function(x, y) {
+        assign(y, scale_blank(get(x, parent)), pos = here)
+    }
+
+    purrr::map2(vars_num, vars_num_sc, assign_scaled)
+
+    other_vars <- setdiff(vars, vars_num)
+
+    purrr::map(other_vars, ~assign(.x, get(.x, parent), pos = here))
+
+    if (!is.null(weights)) weights <- weights
+    formula <- Reduce(paste, deparse(formula))
+
+    if (rename_std) {
+    repl <- paste0(vars_num, "_sc")
+    names(repl) <- vars_num
+   formula <- formula %>%
+        stringr::str_replace_all(c(repl))
+    }
+    formula <- as.formula(formula) #Rebuilds formula in current environment
+
+    mod <- lm(formula, weights = weights, ...)
+    mod$call <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+    mod
+
+}
+

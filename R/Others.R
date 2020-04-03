@@ -285,3 +285,17 @@ round_df <- function(df, digits = 2) {
   df[, nums] <- round(df[, nums], digits = digits)
   (df)
 }
+
+#'Scales a vector and returns it without attributes
+#'
+#'The `base::scale()` function adds attributes to the output that can lead to
+#'problems later on. This function scales a vector and strips the attributes.
+#'
+#' @inheritParams base::scale
+#'
+
+scale_blank <- function(x, center = TRUE, scale = TRUE) {
+  as.numeric(scale(x))
+}
+
+

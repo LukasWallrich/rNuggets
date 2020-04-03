@@ -36,37 +36,78 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 #' function - that means that \code{update()} cannot be used.
 #'
 #' @param df Data for modeling
+#' @param std Logical. Should variables be standardised? This is only applied to
+#' numeric variables, factors are left unchanged so that their coefficients
+#' remain interpretable.
+#' @param rename_std Logical. Should standardised variables be indicated by _sd
+#' suffix
 #' @inheritParams stats::lm
 #' @inheritDotParams stats::lm -data
 #' @source After experiencing an issue with passing weights, I rewrote this
 #' based on the code suggested by "Vandenman" here
 #' https://stackoverflow.com/questions/38683076/ellipsis-trouble-passing-to-lm
+#' @references See (Fox, 2015) for an argument why dummy variables should never
+#' be standardised. If you want to run a model with all variables standardised,
+#' one option is `QuantPsyc::lm.beta()`
 
-run_lm <- function(df, formula, ...) {
-    # get names of stuff in ...
-    arg_names <- sapply(substitute(list(...))[-1L], deparse)
-    # look for identical names in df
-    m <- match(names(df), arg_names, 0L)
+run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
 
-    # store other arguments from ... in a list, if any
-    dot_args <- eval(parse(text = arg_names[-m]))
-    if (is.null(dot_args)) {args <- list()
+  if (std) {
+    vars <- all.vars(formula)
+    vars_num <- vars[purrr::map_lgl(vars, .is.numeric_col, df=df)]
+
+    if (rename_std) {
+      df <- df %>% dplyr::mutate_at(vars_num, list(sd = scale_blank))
+
+
+    repl <- paste0(vars_num, "_sd")
+    names(repl) <- vars_num
+    formula <- Reduce(paste, deparse(formula)) %>%
+      stringr::str_replace_all(c(repl)) %>%
+      as.formula()
     } else {
-      args <- list(dot_args)
-      # name the list
-      names(args) = names(arg_names[-m])
-      }
+      df <- df %>% dplyr::mutate_at(vars_num, list(scale_blank))    }
+  }
 
-    # store complete values in args, instead of just references to columns
-    # the unlist code is rather ugly, the goal is to create a list where every
-    # element is a column of interest
-    args[names(arg_names)[m]] <- unlist(apply(df[, as.logical(m), drop = FALSE],
-                                            2, list), recursive = FALSE)
-    # also put other stuff in there
-    args$formula <- formula
-    args$data <- df
-    # do lm
-   mod <- do.call(lm, args)
-   mod$call <- sys.call()
-   mod
-   }
+  # get names of stuff in ...
+  arg_names <- sapply(substitute(list(...))[-1L], deparse)
+  # look for identical names in df
+  m <- match(names(df), arg_names, 0L)
+
+  # store other arguments from ... in a list, if any
+  dot_args <- eval(parse(text = arg_names[-m]))
+  if (is.null(dot_args)) {
+    args <- list()
+  } else {
+    args <- list(dot_args)
+    # name the list
+    names(args) <- names(arg_names[-m])
+  }
+
+  # store complete values in args, instead of just references to columns
+  # the unlist code is rather ugly, the goal is to create a list where every
+  # element is a column of interest
+  args[names(arg_names)[m]] <- unlist(apply(
+    df[, as.logical(m), drop = FALSE],
+    2, list
+  ), recursive = FALSE)
+  # also put other stuff in there
+  args$formula <- formula
+  args$data <- df
+  # do lm
+  mod <- do.call(lm, args)
+  if (std) {
+  mod$call <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+  } else {
+    mod$call <- c(sys.call())
+  }
+  mod
+}
+
+#' Tests whether a column in df, specificied by string, is numeric
+
+.is.numeric_col <- function(col, df) {
+is.numeric(magrittr::extract2(df, col))
+  }
+
+
