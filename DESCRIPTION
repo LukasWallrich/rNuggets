@@ -31,5 +31,8 @@ Suggests:
     apaTables,
     jtools,
     mice,
-    mitools
+    mitools,
+    generics,
+    gt,
+    modelsummary
 RoxygenNote: 7.1.0

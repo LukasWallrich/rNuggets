@@ -105,6 +105,9 @@ run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
 }
 
 #' Tests whether a column in df, specificied by string, is numeric
+#'
+#' @param col Character indicating column name
+#' @param df Dataframe that contains `col`
 
 .is.numeric_col <- function(col, df) {
 is.numeric(magrittr::extract2(df, col))

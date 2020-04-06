@@ -251,3 +251,41 @@ wtd_cor_matrix_mi <- function(mi_list, weights) {
 .wtd_cor_test_lm <- function(x, y, wt, ...) {
   lm(scale(y)~scale(x), weights = wt)
 }
+
+
+#' Creates a summary table comparing standardised and non-standardised linear models
+#'
+#' This function creates a summary table for lm models (including mice::mira objects
+#' containing lm-models) that shows a standardised and non-standardised version of the model
+#' side-by-side.
+#'
+#' @param mod A lm-model/mira object of lm models, with variables not standardised
+#' @param std_mod A lm-model/mira object of lm models, with standardised variables. Can be
+#' created with \code{\link{lm_std}}
+#' @param conf_level Confidence level to use for confidence intervals, defaults to .95
+#' @param filename the file name to create on disk. Ensure that an extension compatible with the output types is provided ('.html', '.tex', '.ltx', '.rtf'). Read '?gt::gtsave' for further details.
+#' @inheritParams modelsummary::modelsummary
+#' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
+
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, ...) {
+  req_packages <- c("modelsummary", "gt")
+  if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
+    stop(paste0("Some required packages are not installed. Make sure you have
+               these packages: ", paste0(req_packages, collapse = ", ")),
+         call. = FALSE)
+  }
+  mod_tidy <- generics::tidy(mod)
+  SEs <- paste0("(",sprintf(fmt, mod_tidy$std.error),")", trimws(sigstars(mod_tidy$p.value)))
+  names(SEs) <- mod_tidy$term
+  std_mod_tidy <- generics::tidy(std_mod)
+  CIs <- paste0("[", sprintf(fmt,std_mod_tidy$conf.low), ", ", sprintf(fmt,std_mod_tidy$conf.high), "]")
+  names(CIs) <- std_mod_tidy$term
+  list(SEs, CIs)
+  tab <- modelsummary::msummary(list("*B (SE)*" = mod, "*\U03B2 [95% CI]*" = std_mod), statistic_override = list(SEs, CIs), statistic_vertical = statistic_vertical, ...) %>% modelsummary:::fmt_labels_md()
+  if (!is.null(filename)) {
+    gt::gtsave(tab, filename)
+  }
+  else {
+    return(tab)
+  }
+}

@@ -6,6 +6,11 @@
 \usage{
 .is.numeric_col(col, df)
 }
+\arguments{
+\item{col}{Character indicating column name}
+
+\item{df}{Dataframe that contains `col`}
+}
 \description{
 Tests whether a column in df, specificied by string, is numeric
 }
