@@ -4,4 +4,5 @@ importFrom("rlang", ".data")
 importFrom("stats", "as.formula", "cor.test", "sd", "t.test", "lm")
 importFrom("generics", "tidy")
 importFrom("generics", "glance")
+S3method(summary, rN_lm)
 

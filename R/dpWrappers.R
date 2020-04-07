@@ -96,12 +96,29 @@ run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
   args$data <- df
   # do lm
   mod <- do.call(lm, args)
+  class(mod) <- c(class(mod), "rN_lm")
   if (std) {
-  mod$call <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+  mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+  class(mod) <- c(class(mod), "rN_std")
   } else {
-    mod$call <- c(sys.call())
+    mod$call_fmt <- c(sys.call())
   }
   mod
+}
+
+#' Summary of an lm object created with run_lm() wrapper
+#'
+#' Using \code{\link{run_lm}} creates a very unwieldy call to lm(). This
+#' function replaces it by a more legible call in the `summary()`-output
+#'
+#' @param object A model with class `rN_lm`
+#' @param ... Parameters passed down to summary and print
+#' @inheritDotParams stats::summary.lm
+#'
+summary.rN_lm <- function (object, ...) {
+  out<-stats::summary.lm(object, ...)
+  out$call <- object$call_fmt
+  out
 }
 
 #' Tests whether a column in df, specificied by string, is numeric

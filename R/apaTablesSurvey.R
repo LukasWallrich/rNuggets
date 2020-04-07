@@ -1,126 +1,88 @@
-#' Create a correlation table from survey data with summary statistics in APA style
+#' Create a correlation table with summary statistics in APA style
 #'
-#' This function, based on apaTables' \code{apa.cor.table()}, creates (and
-#' optionally saves) a correlation table with summary statistics.
+#' This function, creates (and #' optionally saves) a correlation table with
+#' summary statistics. It accepts
 #'
-#' @param cor_matrix A survey correlation matrix, usually returned from \code{
-#' survey_cor_matrix()}
-#' @param note Additional notes to show under the table.
-#' @param table_number Integer to use in table number output line
-#' @inheritParams apaTables::apa.cor.table
+#' @param cor_matrix A correlation matrix, for example returned from \code{
+#' survey_cor_matrix()}, \code{wtd_cor_matrix()}
+#' @param notes List of additional notes to show under the table.
+#' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
-#' accept survey correlation matrix
-#' @return A table that can be printed to the console. The function is typically
-#' more useful for saving a table to file, using the respective argument.
+#' accept weighted correlation matrices and work with the `gt` package instead`
+#' @return A table that can be printed in the RStudio console to be shown in the
+#' viewer. Unless it is to be post-processed with further `gt` functions, it should
+#' usually be saved by passing a filename argument.
 #'
-apa_cor_table_survey <- function (cor_matrix, filename = NA, table_number = NA,
-          landscape = TRUE, note = "") {
-  req_packages <- c("apaTables", "jtools", "survey", "srvyr")
+apa_cor_table <- function (cor_matrix, filename = NULL,
+          notes = list(NULL)) {
+  req_packages <- c("gt")
   if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
                these packages: ", paste0(req_packages, collapse = ", ")),
          call. = FALSE)
   }
 
-  if (is.na(filename)) {
-    make_file_flag <- FALSE
-  }
-  else {
-    make_file_flag <- TRUE
-  }
   df_col <- dim(cor_matrix[[1]])[2]
   number_variables <- df_col
   number_columns <- df_col - 1
   output_cor <- matrix(" ", number_variables, number_columns)
-  output_cor_rtf <- matrix(" ", number_variables, number_columns)
   output_ci <- matrix(" ", number_variables, number_columns)
-  output_ci_rtf <- matrix(" ", number_variables, number_columns)
   output_descriptives <- matrix(" ", number_variables,
-                                2)
+                                1)
   output_variable_names <- paste(as.character(1:number_variables),
                                  ". ", rownames(cor_matrix[[1]]), sep = "")
+
   for (i in 1:number_variables) {
-    output_descriptives[i, 1] <- apaTables:::txt.number(cor_matrix$desc[i, 2]) #Mean
-    output_descriptives[i, 2] <- apaTables:::txt.number(cor_matrix$desc[i, 3]) #SD
+    output_descriptives[i, 1] <- paste0(sprintf("%.2f", cor_matrix$desc[i, 2]),
+                                        " (", sprintf("%.2f", cor_matrix$desc[i, 3]), ")")
     for (j in 1:number_variables) {
       if ((j < i)) {
         cor.r <- cor_matrix$cors[i, j]
         cor.p <- cor_matrix$p.values[i, j]
         cor.se <- cor_matrix$std.err[i, j]
-        cor_string <- paste(apaTables:::strip.leading.zero(sprintf("%1.2f",
-                                                  cor.r)), sigstars(cor.p))
-        output_cor[i, j] <- cor_string
-        output_cor_rtf[i, j] <- cor_string
-        cor_ci_string <- apaTables:::txt.ci.brackets(cor.r-2*cor.se, cor.r+2*cor.se)
-        output_ci[i, j] <- cor_ci_string
-        output_ci_rtf[i, j] <- paste("{\\fs20",
-                                     cor_ci_string, "}", sep = "")
+        output_cor[i, j] <- paste(.fmt_cor(cor.r), sigstars(cor.p))
+        cor_ci_string <- paste0(cor.r-2*cor.se , cor.r+2*cor.se)
+        output_ci[i, j] <- paste0('<span style="font-size:80%">',
+          "[", .fmt_cor(cor.r-2*cor.se), ", ", .fmt_cor(cor.r+2*cor.se), "]",
+          "</span>")
       }
     }
   }
-  left_padding <- c(" ", " ", " ")
-  first_line <- c(output_variable_names[1], output_descriptives[1,
-                                                                ], output_cor[1, ])
-  first_line_rtf <- c(output_variable_names[1], output_descriptives[1,
-                                                                    ], output_cor_rtf[1, ])
-  second_line <- c(left_padding, output_ci[1, ])
-  second_line_rtf <- c(left_padding, output_ci_rtf[1, ])
-  third_line <- rep(" ", length(second_line))
-  output_matrix_console <- rbind(first_line, second_line)
-  output_matrix_rtf <- rbind(first_line_rtf, second_line_rtf)
-  for (i in 2:number_variables) {
-    first_line <- c(output_variable_names[i], output_descriptives[i,
-                                                                  ], output_cor[i, ])
-    first_line_rtf <- c(output_variable_names[i], output_descriptives[i,
-                                                                      ], output_cor_rtf[i, ])
-    second_line <- c(left_padding, output_ci[i, ])
-    second_line_rtf <- c(left_padding, output_ci_rtf[i, ])
-    third_line <- rep(" ", length(second_line))
-      new_lines <- rbind(first_line, second_line, third_line)
-      new_lines <- rbind(first_line, second_line, third_line)
-      new_lines_rtf <- rbind(first_line_rtf, second_line_rtf,
-                             third_line)
-    output_matrix_console <- rbind(output_matrix_console,
-                                   new_lines)
-    output_matrix_rtf <- rbind(output_matrix_rtf, new_lines_rtf)
-  }
-  rownames(output_matrix_console) <- 1:nrow(output_matrix_console)
-  colnames(output_matrix_console) <- c(c("Variable",
-                                         "M", "SD"), as.character(1:number_columns))
-  rownames(output_matrix_rtf) <- rownames(output_matrix_console)
-  colnames(output_matrix_rtf) <- colnames(output_matrix_console)
 
-    table_title <- "Means, standard deviations, and correlations with confidence intervals\n"
+  cor_cells <- paste(output_cor, output_ci)
+  dim(cor_cells) <- dim(output_cor)
 
-  row_with_colnames <- colnames(output_matrix_console)
-  df_temp <- data.frame(output_matrix_console, stringsAsFactors = FALSE)
-  rownames(output_matrix_console) <- rep(" ", length((rownames(output_matrix_console))))
-  table_body <- output_matrix_console
-  if("svycor" %in% class(cor_matrix) & note == "") note <- "Significance levels and confidence intervals are based on 1000 bootstrap resamples taking into account survey weights (Pasek, 2016).\n"
-    table_note <- paste("Note. M and SD are used to represent mean and standard deviation, respectively.", "Values in square brackets indicate the 95% confidence interval.",note, "* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n", sep = "\n")
-  tbl.console <- list(table.number = table_number, table.title = table_title,
-                      table.body = table_body, table.note = table_note)
-  class(tbl.console) <- "apa.table"
-  if (make_file_flag == TRUE) {
-    colnames(output_matrix_rtf) <- c(c("Variable",
-                                       "{\\i M}", "{\\i SD}"), as.character(1:number_columns))
-    number_columns <- dim(output_matrix_rtf)[2]
-    blankLine <- rep("", number_columns)
-    output_matrix_rtf <- rbind(blankLine, output_matrix_rtf)
-      table_title <- "Means, standard deviations, and correlations with confidence intervals"
-      table_note <- paste0("Note. M and SD are used to represent mean and standard deviation, respectively.", "Values in square brackets indicate the 95% confidence interval.",note, "* indicates p < .05. ** indicates p < .01. *** indicates p < .001.\n", sep = "\n")
+  cells <- cbind(matrix(output_variable_names, ncol = 1),
+                        output_descriptives, cor_cells)
 
-      table_note <- paste("{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation.", note, " * indicates {\\i p} < .05. ** indicates {\\i p} < .01. *** indicates {\\i p} < .001.")
-    rtfTable <- apaTables:::RtfTable$new(isHeaderRow = TRUE)
-    rtfTable$setTableContent(output_matrix_rtf)
-    rtfTable$setRowFirstColumnJustification("left")
-    txt_body <- rtfTable$getTableAsRTF(FALSE, FALSE)
-    apaTables:::write.rtf.table(filename = filename, txt.body = txt_body,
-                    table.title = table_title, table.note = table_note,
-                    landscape = landscape, table.number = table_number)
-  }
-  return(tbl.console)
+  colnames(cells) <- c("Variable", "M (SD)",seq_len(length(output_variable_names)-1))
+
+  cells_df <- tibble::as_tibble(cells)
+
+  tab <- cells_df %>% gt::gt() %>% gt::fmt_markdown(columns = gt::everything())
+
+  notes %<>% c("*M* and *SD* are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation.")
+
+
+notes %<>% c(.make_stars_note())
+
+notes <- Filter(Negate(is.null), notes)
+for (i in seq_along(notes)) {
+  tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
 }
+
+tab <- tab %>% gt::tab_header(
+  title = "Means, standard deviations, and correlations with confidence intervals"
+)
+if (!is.null(filename)) {
+  gt::gtsave(tab, filename)
+}
+else {
+  return(tab)
+}
+}
+
+
 
 #' Create a correlation matrix from survey data with summary statistics
 #'
@@ -130,13 +92,15 @@ apa_cor_table_survey <- function (cor_matrix, filename = NA, table_number = NA,
 #'
 #' @param svy_df A survey object created with the survey or srvyr package. Only
 #' numeric variables will be included in the result.
+#' @param var_names Named character vector to rename variables to - most helpful
+#' if return is to be passed to some print function
 #' @return A correlation matrix list in the format provided by
 #' \code{jtools::svycor()} with the addition of a \code{desc}-element with means
 #' and standard deviations of the variables.
 #'
 #'
 
-survey_cor_matrix <- function(svy_df) {
+survey_cor_matrix <- function(svy_df, var_names) {
   req_packages <- c("jtools", "survey", "srvyr")
   if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
@@ -160,6 +124,19 @@ cor_matrix$desc <- svy_df %>%
          installed the most recent dplyr version.",  call. = FALSE)
   }
 
+if (!is.null(var_names)) {
+  cor_matrix[c(1,4:6)] <- purrr::map(cor_matrix[c(1,4:6)], function(x) {
+    rownames(x) <- rownames(x) %>% stringr::str_replace_all(var_names)
+    colnames(x) <- colnames(x) %>% stringr::str_replace_all(var_names)
+    x
+  })
+  used_vars <- intersect(var_names, rownames(cor_matrix[[1]]))
+  cor_matrix[c(1,4:6)] <- purrr::map(cor_matrix[c(1,4:6)], function(x) x[used_vars, used_vars])
+  cor_matrix$desc$var %<>% stringr::str_replace_all(var_names)
+  cor_matrix$desc %<>% extract(used_vars,)
+}
+
+
   cor_matrix
 }
 
@@ -174,6 +151,9 @@ cor_matrix$desc <- svy_df %>%
 #'
 #' @param mi_list A list of dataframes of multiple imputation results
 #' @param weights A variable within mi_list that gives the survey weights
+#' @param var_names A named character vector with the names that should be displayed
+#' for variables. To facilitate post-processing, correlations with original variable
+#' names are returned in the `tests` element.
 #' @return A correlation matrix list similar to the format provided by
 #' \code{jtools::svycor()} with the addition of a \code{desc}-element with means
 #' and standard deviations of the variables.
@@ -182,7 +162,7 @@ cor_matrix$desc <- svy_df %>%
 #' \code{apa.cor.table.survey}
 #'
 
-wtd_cor_matrix_mi <- function(mi_list, weights) {
+wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
   req_packages <- c("survey", "srvyr", "mitools", "mice")
   if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
     stop(paste0("Some required packages are not installed. Make sure you have
@@ -244,7 +224,22 @@ wtd_cor_matrix_mi <- function(mi_list, weights) {
     desc <- rbind(desc, data.frame(var = variables[i], M = M, SD = SD))
     }
 
-  list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, desc = desc, tests=df)
+  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, desc = desc, tests=df)
+
+  if (!is.null(var_names)) {
+    corM[1:4] <- purrr::map(corM[1:4], function(x) {
+      rownames(x) <- rownames(x) %>% stringr::str_replace_all(var_names)
+      colnames(x) <- colnames(x) %>% stringr::str_replace_all(var_names)
+      x
+    })
+    used_vars <- intersect(var_names, rownames(corM[[1]]))
+    corM[1:4] <- purrr::map(corM[1:4], function(x) x[used_vars, used_vars])
+    rownames(corM$desc) <- rownames(corM$desc) %>% stringr::str_replace_all(var_names)
+    corM$desc$var %<>% stringr::str_replace_all(var_names)
+    corM$desc %<>% extract(used_vars,)
+  }
+
+  corM
 
 }
 
@@ -257,35 +252,193 @@ wtd_cor_matrix_mi <- function(mi_list, weights) {
 #'
 #' This function creates a summary table for lm models (including mice::mira objects
 #' containing lm-models) that shows a standardised and non-standardised version of the model
-#' side-by-side.
+#' side-by-side. Several pairs of such models can be compared side-by-side.
 #'
-#' @param mod A lm-model/mira object of lm models, with variables not standardised
+#' @param mod A lm-model/mira object of lm models, with variables not standardised (or a list of such models)
 #' @param std_mod A lm-model/mira object of lm models, with standardised variables. Can be
-#' created with \code{\link{lm_std}}
+#' created with \code{\link{lm_std}} (or a list of such models)
 #' @param conf_level Confidence level to use for confidence intervals, defaults to .95
-#' @param filename the file name to create on disk. Ensure that an extension compatible with the output types is provided ('.html', '.tex', '.ltx', '.rtf'). Read '?gt::gtsave' for further details.
+#' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
+#' @param model_names If several pairs of models are to be plotted side by side, indicate the label for each *pair* here
+#' @param show_m Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
+#' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 
-lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, ...) {
-  req_packages <- c("modelsummary", "gt")
-  if (suppressWarnings(!all(lapply(req_packages, requireNamespace, quietly=TRUE)))) {
-    stop(paste0("Some required packages are not installed. Make sure you have
-               these packages: ", paste0(req_packages, collapse = ", ")),
-         call. = FALSE)
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_m = FALSE, notes = list(NULL), ...) {
+
+ .check_req_packages(c("modelsummary", "gt"))
+
+  if ((is.list(mod) | is.list(std_mod)) & !(length(mod) == length(std_mod))) {
+    stop("Same number of models need to be included in mod and std_mod arguments")
   }
-  mod_tidy <- generics::tidy(mod)
-  SEs <- paste0("(",sprintf(fmt, mod_tidy$std.error),")", trimws(sigstars(mod_tidy$p.value)))
-  names(SEs) <- mod_tidy$term
-  std_mod_tidy <- generics::tidy(std_mod)
-  CIs <- paste0("[", sprintf(fmt,std_mod_tidy$conf.low), ", ", sprintf(fmt,std_mod_tidy$conf.high), "]")
-  names(CIs) <- std_mod_tidy$term
-  list(SEs, CIs)
-  tab <- modelsummary::msummary(list("*B (SE)*" = mod, "*\U03B2 [95% CI]*" = std_mod), statistic_override = list(SEs, CIs), statistic_vertical = statistic_vertical, ...) %>% modelsummary:::fmt_labels_md()
+
+  if (!is.null(model_names) & !length(model_names) == length(mod)) {
+    stop("Length of model names needs to be the same as length of model")
+  }
+
+  if (!is.list(mod)) mod <- list(mod)
+  if (!is.list(std_mod)) std_mod <- list(std_mod)
+
+
+  gof_map <- tibble::tribble(
+    ~raw, ~clean, ~fmt, ~omit,
+
+    "nobs", "*N*", "%.0f", FALSE,
+    "r.squared", "R<sup>2</sup>", "%.3f", FALSE,
+    "adj.r.squared", "Adj.R<sup>2</sup>", "%.3f", FALSE,
+    "AIC", "AIC", "%.1f", TRUE,
+    "BIC", "BIC", "%.1f", TRUE,
+    "logLik", "Log.Lik.", "%.3f", TRUE,
+    "deviance", "Deviance", "%.2f", TRUE,
+    "df.residual", "DF Resid", "%.0f", TRUE,
+    "df.null", "DF Null", "%.0f", TRUE,
+    "sigma", "Sigma", "%.3f", TRUE,
+    "statistic", "Statistics", "%.3f", TRUE,
+    "p.value", "p", "%.3f", TRUE,
+    "df", "DF", "%.0f", TRUE,
+    "null.deviance", "Deviance Null", "%.2f", TRUE,
+    "m", "No of Imputations", "%.0f", TRUE,
+  )
+
+
+
+  if (show_m) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
+
+  gof <- purrr::map(mod, modelsummary:::extract_gof, fmt, gof_map)
+  gof_map$omit <- TRUE
+
+  SEs <- list()
+  CIs <- list()
+  mods <- list()
+  mod_tidy <- list()
+  std_mod_tidy <- list()
+  stat_list <- list()
+
+  for (i in seq_len(length(mod))) {
+    mod_tidy[[i]] <- generics::tidy(mod[[i]])
+    SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")", trimws(sigstars(mod_tidy[[i]]$p.value)))
+    names(SEs[[i]]) <- mod_tidy[[i]]$term
+
+    std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
+    CIs[[i]] <- paste0("[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "]")
+    names(CIs[[i]]) <- std_mod_tidy[[i]]$term
+
+    mods[[i * 2 - 1]] <- mod[[i]]
+    stat_list[[i * 2 - 1]] <- SEs[[i]]
+    mods[[i * 2]] <- std_mod[[i]]
+    stat_list[[i * 2]] <- CIs[[i]]
+  }
+
+  names(mods) <- paste0("Model", seq_len(length(mods)))
+
+  col_labels <- rep(list(gt::md("*B (SE)*"), gt::md("*&beta; [95% CI]*")), times = length(mod)) %>% stats::setNames(names(mods))
+
+
+  if ("rN_std" %in% class(std_mod[[1]]) | ("mira" %in% class(std_mod[[1]]) & "rN_std" %in% class(std_mod[[1]][[1]]))) {
+    notes %<>% c("Given that dummy variables loose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable.")
+  }
+
+  notes %<>% c(.make_stars_note())
+
+  notes <- Filter(Negate(is.null), notes)
+
+
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, gof_omit = c("*N*"), ...) %>%
+    modelsummary:::fmt_labels_md("row") %>%
+    gt::cols_label(.list = col_labels)
+
+  for (i in seq_along(notes)) {
+    tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
+  }
+
+  if (length(mod) > 1) {
+    if (is.null(model_names)) model_names <- paste0("Model", seq_len(length(mod)))
+    for (i in seq_len(length(mod))) {
+      tab <- tab %>% gt::tab_spanner(model_names[i], columns = (2 * i):(2 * i + 1))
+    }
+  }
+
+  browser()
+
+  F_row <- '<tr>
+    <td class="gt_col_heading gt_center gt_columns_bottom_border" rowspan="2" colspan="1">       </td>'
+
+
+
   if (!is.null(filename)) {
     gt::gtsave(tab, filename)
   }
   else {
     return(tab)
+  }
+}
+
+.lm_F_test <- function(mod) {
+  model_summary <- summary(mod)
+  f.stat <- model_summary$fstatistic[1]
+  DoF <- model_summary$fstatistic[2]
+  DoF_residual <- model_summary$fstatistic[3]
+
+  p_value <- stats::pf(f.stat, DoF, DoF_residual,
+    lower.tail = FALSE
+  )
+
+  fmt <- "%.2f"
+  fmt_0 <- "%.0f"
+
+  paste0(
+    "*F*(", DoF, ", ", DoF_residual, ") = ", sprintf(fmt, f.stat), ", *p* = ",
+    fmt_p(p_value)
+  )
+}
+#'Report F-test for significance of multiply imputed lm models
+#'
+#'Takes a mira object (list of lm models based on mice imputations) and returns
+#'an F-test for their significance, based on \code{\link[miceadds]{micombine.F}}
+#'
+#' @param mod A mira object (list of lm models in `analyses` element)
+#' @param return_list Logical. Should items of test be returned in a list?
+#' Otherwise, a string for reporting is returned, with Markdown formatting.
+#'
+mira.lm_F_test <- function(mod, return_list = FALSE) {
+  .check_req_packages(c("miceadds"))
+
+
+   extract_F <- function(x) {
+    summary(x) %>%
+      magrittr::extract2("fstatistic") %>%
+      magrittr::extract(1)
+  }
+  F <- purrr::map_dbl(mod$analyses, extract_F)
+
+  DoF <- summary(mod$analyses[[1]])$fstatistic[2]
+
+  f.statistics <- miceadds::micombine.F(F, df1 = DoF, display = FALSE)
+  f.stat <- f.statistics["D.numdf"]
+
+  DoF_residual <- summary(mod$analyses[[1]])$fstatistic[3]
+
+  p_value <- f.statistics["p.numdf"]
+
+  if (return_list)
+    return(list(F = f.stat, DoF = DoF, DoF_residual = DoF_residual, p.value = p_value))
+
+  fmt <- "%.2f"
+  fmt_0 <- "%.0f"
+
+  paste0(
+    "*F*(", DoF, ", ", DoF_residual, ") = ", sprintf(fmt, f.stat), ", *p* = ",
+    fmt_p(p_value)
+  )
+}
+
+.check_req_packages <- function(x) {
+
+  if (suppressWarnings(!all(lapply(x, requireNamespace, quietly = TRUE)))) {
+    stop(paste0("Some required packages are not installed. Make sure you have
+               these packages: ", paste0(x, collapse = ", ")),
+         call. = FALSE
+    )
   }
 }

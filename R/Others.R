@@ -26,12 +26,21 @@
 #'
 
 sigstars <- function(p, stars = NULL) {
-  if (is.null(stars)) stars <- c("*** ", "**  ", "*    ", "\U2020    ", "    ")
-  ifelse(p < .001, stars[1],
-                                 ifelse(p < .01, stars[2],
-                                        ifelse(p < .05, stars[3],
-                                               ifelse(p < .1, stars[4], stars[5])
-  )))
+  if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
+  for (n in names(stars)) {
+    est$stars <- ifelse(est$p.value < stars[n], n, est$stars)
+  }
+}
+
+
+.make_stars_note <- function (stars = NULL)
+{
+  if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
+  out <- stars
+  out <- paste0(names(out), " p < ", out)
+  out <- paste0(out, collapse = ", ")
+
+  return(out)
 }
 
 #' Calculates correlation matrix with significance stars and descriptives
@@ -298,4 +307,64 @@ scale_blank <- function(x, center = TRUE, scale = TRUE) {
   as.numeric(scale(x))
 }
 
+#'Converts a tibble to tribble code
+#'
+#'Tribbles are an easy way to legibly input data, and therefore helpful for teaching and interactive work. This function takes
+#'a tibble and returns code that can recreate it.
+#'
+#' @param x The tibble to be converted into tribble code
+#' @param show Logical. Print code (otherwise, returned - print with `cat()` to get linebreaks etc)
+#'
+## TODO:
+## Use padding to show tribble code with aligned columns
+
+to_tribble <- function(x, show = FALSE) {
+  no_cols <- ncol(x)
+  #lengths <- purrr::map_int(x, ~max(nchar(.x)))
+  #if(sum(lengths)+no_cols*3) > 80) message("Some entries are too long for the tibble code to be well formatted")
+  vars <- names(x)
+  x %<>% dplyr::mutate_if(is.character, function(x) paste0('"', x, '"'))
+
+  code <- "tribble(
+  "
+
+  for (i in seq_len(length(vars))) {
+    code %<>% paste0("~", vars[i], ", ")
+  }
+  code %<>% paste0("\n\n")
+  for (j in seq_len(nrow(x))) {
+    for (i in seq_len(length(vars))) {
+     code %<>% paste0(x[j, i], ", ")
+    }
+    code %<>% paste0("\n")
+  }
+  code %<>% substr(1, nchar(.data)-2) %>% paste0("\n)")
+  if (show) cat(code)
+  code
+}
+
+#'Format p-value in line with APA standard (no leading 0)
+#'
+#'Formats p-value in line with APA standard, returning it without leading 0 and
+#'as < .001 when it is that small.
+#'
+#' @param p_value Numeric, or a vector of numbers
+#' @param sig_dig Number of signficant digits, defaults to 3
+
+fmt_p <- function(p_value, sig_dig = 3) {
+  fmt <- paste0("%.", sig_dig, "f")
+  fmt_p <- function(x) paste0("= ", sprintf(fmt, x)) %>%
+  stringr::str_replace(" 0.", " .")
+  exact <- ifelse(p_value < .001, FALSE, TRUE)
+  out <- p_value
+  out[exact] <- purrr::map_chr(out[exact], fmt_p)
+  out[!exact] <- "< .001"
+  out
+}
+
+.fmt_cor <- function(cor_value, sig_dig = 2) {
+  fmt <- paste0("%.", sig_dig, "f")
+  sprintf(fmt, cor_value) %>%
+    stringr::str_replace("0.", ".")
+}
 

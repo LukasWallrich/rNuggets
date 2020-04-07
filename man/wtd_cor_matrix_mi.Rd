@@ -9,12 +9,16 @@ but adapted to use weights and return in the format accepted by
 \code{apa.cor.table.survey}
 }
 \usage{
-wtd_cor_matrix_mi(mi_list, weights)
+wtd_cor_matrix_mi(mi_list, weights, var_names = NULL)
 }
 \arguments{
 \item{mi_list}{A list of dataframes of multiple imputation results}
 
 \item{weights}{A variable within mi_list that gives the survey weights}
+
+\item{var_names}{A named character vector with the names that should be displayed
+for variables. To facilitate post-processing, correlations with original variable
+names are returned in the `tests` element.}
 }
 \value{
 A correlation matrix list similar to the format provided by

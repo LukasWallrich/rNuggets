@@ -11,14 +11,17 @@ lm_with_std(
   fmt = "\%.2f",
   statistic_vertical = FALSE,
   filename = NULL,
+  model_names = NULL,
+  show_m = FALSE,
+  notes = list(NULL),
   ...
 )
 }
 \arguments{
-\item{mod}{A lm-model/mira object of lm models, with variables not standardised}
+\item{mod}{A lm-model/mira object of lm models, with variables not standardised (or a list of such models)}
 
 \item{std_mod}{A lm-model/mira object of lm models, with standardised variables. Can be
-created with \code{\link{lm_std}}}
+created with \code{\link{lm_std}} (or a list of such models)}
 
 \item{conf_level}{Confidence level to use for confidence intervals, defaults to .95}
 
@@ -30,7 +33,13 @@ use exponential notation. See `?sprintf` for more options.}
 \item{statistic_vertical}{TRUE if statistics should be printed below
 estimates. FALSE if statistics should be printed beside estimates.}
 
-\item{filename}{the file name to create on disk. Ensure that an extension compatible with the output types is provided ('.html', '.tex', '.ltx', '.rtf'). Read '?gt::gtsave' for further details.}
+\item{filename}{the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)}
+
+\item{model_names}{If several pairs of models are to be plotted side by side, indicate the label for each *pair* here}
+
+\item{show_m}{Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic}
+
+\item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
@@ -47,7 +56,6 @@ from the table (using `stringr::str_detect`).}
 the table (using `stringr::str_detect`).}
     \item{\code{title}}{string}
     \item{\code{subtitle}}{string}
-    \item{\code{notes}}{list of notes to append to the bottom of the table.}
     \item{\code{add_rows}}{list of character vectors, each of length equal to the number
 of models + 1.}
     \item{\code{add_rows_location}}{integer or NULL. custom rows will be added to the
@@ -58,5 +66,5 @@ this integer.}
 \description{
 This function creates a summary table for lm models (including mice::mira objects
 containing lm-models) that shows a standardised and non-standardised version of the model
-side-by-side.
+side-by-side. Several pairs of such models can be compared side-by-side.
 }

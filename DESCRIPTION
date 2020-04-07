@@ -1,6 +1,6 @@
 Package: rNuggets
 Title: Package of useful helper functions for data analysis
-Version: 0.1.0
+Version: 0.1.5
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: This package contains a set of functions that I have written
@@ -24,15 +24,15 @@ Imports:
     stringr,
     tidyr,
     knitr,
-    kableExtra
+    kableExtra,
+    generics
 Suggests:
     survey,
     srvyr,
-    apaTables,
     jtools,
     mice,
     mitools,
-    generics,
     gt,
-    modelsummary
+    modelsummary,
+    miceadds
 RoxygenNote: 7.1.0

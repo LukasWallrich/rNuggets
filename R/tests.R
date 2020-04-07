@@ -138,7 +138,8 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
     formula <- as.formula(formula) #Rebuilds formula in current environment
 
     mod <- lm(formula, weights = weights, ...)
-    mod$call <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+    mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+    class(mod) <- c(class(mod), "rN_std")
     mod
 
 }
