@@ -16,6 +16,7 @@
 #'   add a note above the output of another function.
 #' @source Inspired by the magrittr \code{\%T>\%} operator that promises similar
 #'   functionality but often didn't quite fit my needs
+#' @export
 #' @examples
 #' library(magrittr)
 #' x <- 1:5 %>% tunnel(mean, note="Mean") %>% tunnel(sd, note="SD")
@@ -49,6 +50,7 @@ tunnel <- function(df, fun, ..., note=NULL, return=T) {
 #' @references See (Fox, 2015) for an argument why dummy variables should never
 #' be standardised. If you want to run a model with all variables standardised,
 #' one option is `QuantPsyc::lm.beta()`
+#' @export
 
 run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
 
@@ -114,7 +116,8 @@ run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
 #' @param object A model with class `rN_lm`
 #' @param ... Parameters passed down to summary and print
 #' @inheritDotParams stats::summary.lm
-#'
+#' @export
+
 summary.rN_lm <- function (object, ...) {
   out<-stats::summary.lm(object, ...)
   out$call <- object$call_fmt

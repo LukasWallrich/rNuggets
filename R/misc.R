@@ -1,38 +1,33 @@
 
-.onAttach <- function(libname, pkgname) {
-  packageStartupMessage("Note re rNuggets: Most functions in this package are alpha-versions - please treat results with care and report bugs.")
-}
 
 #' Significance stars for p-values
 #'
 #' Function returns significance stars for \emph{p}-values, most likely for use
 #' in tables that report the results of multiple statistical tests.
 #'
-#' Symbols and tresholds are *** \emph{p} < .001,  ** \emph{p} < .01, * \emph{p}
-#'  < .05 and † p < .1. The symbols can be changed by passing a 5-element
-#'  character vector to the \code{stars} argument. For alignment, each should
-#'  have the same length, they should indicate the signs for the four categories
-#'  indicated above and for non-significant values (can of course be "   "). This
-#'  argument makes most sense when marginal significance should not be indicated
-#'  or when non-significant values should explicitly be labeled (e.g., as ns)
+#'  Symbols and tresholds are *** \emph{p} < .001,  ** \emph{p} < .01, * \emph{p}
+#'  < .05 and † \emph{p} < .1. The symbols can be changed by named character vector sorted
+#'  descendingly to the \code{stars} argument. For the default, the argument would be
+#' \code{stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)}
 #'
 #' @encoding UTF-8
 #' @param p A \emph{p}-value or (more commonly) a vector of \emph{p}-values
-#' @param stars A character vector to change the significance symbols (see details)
+#' @param stars A character vector to change the significance symbols (see details in `sigstars`)
 #' @return A character vector of significance stars for each \emph{p}-value,
 #' each padded with spaces to be four characters long
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
-#'
+#' @export
 
 sigstars <- function(p, stars = NULL) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
-  for (n in names(stars)) {
-    p <- ifelse(p < stars[n], n, p)
-  }
-  p
-}
+  out <- rep("", length(p))
 
+  for (n in names(stars)) {
+    out <- ifelse(p < stars[n], n, out)
+  }
+  out
+}
 
 .make_stars_note <- function (stars = NULL)
 {
@@ -44,88 +39,7 @@ sigstars <- function(p, stars = NULL) {
   return(out)
 }
 
-#' Calculates correlation matrix with significance stars and descriptives
-#'
-#' Calculates the correlation matrix between a given set of variables and
-#' optionally includes a column with means and standard deviations of the
-#' variables.
-#'
-#' Correlation stars are created with the \code{\link{sigstars}} function.
-#' To change the symbols, the \code{stars} argument can be included here and will
-#' be passed on.
-#'
-#' @param x Dataframe of variables that can be coerced to numeric.
-#' @param remove_triangle Given that the upper and lower triangles of the
-#' correlation matrix contain the same information, either should be dropped.
-#' This parameter specific which.
-#' @param desc_col Logical value that indicates whether a column with means
-#' and standard deviations should be added in front of the correlations
-#' @inheritParams psych::corr.test
-#' @inheritDotParams sigstars stars
-#' @return A dataframe including the correlation matrix
-#' @source Adapted from
-#'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
-#'
 
-corstars <-
-  function(x,
-           method = c("pearson", "spearman", "kendall"),
-           remove_triangle = c("upper", "lower"),
-           desc_col = T,
-           adjust = "none",
-           ...) {
-
-    # Compute correlation matrix
-    x <- as.matrix(x)
-    correlation_matrix <- psych::corr.test(x, method = method[1])
-    r <- correlation_matrix$r # Matrix of correlation coeficients
-    p <- correlation_matrix$p # Matrix of p-value
-
-    ## Define notions for significance levels; spacing is important.
-    mystars <- sigstars(p, ...)
-
-    ## trunctuate the correlation matrix to two decimal
-    r <- format(round(cbind(rep(-1.11, ncol(
-      x
-    )), r), 2))[, -1]
-
-    ## build a new matrix that includes the correlations with their apropriate stars
-    r_new <- matrix(paste(r, mystars, sep = ""), ncol = ncol(x))
-    diag(r_new) <- paste(diag(r), " ", sep = "")
-    rownames(r_new) <- colnames(x)
-    colnames(r_new) <- paste(colnames(x), "", sep = "")
-    ## remove upper triangle of correlation matrix
-    if (remove_triangle[1] == "upper") {
-      r_new <- as.matrix(r_new)
-      r_new[!lower.tri(r_new, diag = TRUE)] <- ""
-      r_new <- as.data.frame(r_new)
-      r_new <- cbind(r_new[1:length(r_new) - 1])
-    }
-
-    ## remove lower triangle of correlation matrix
-    else if (remove_triangle[1] == "lower") {
-      r_new <- as.matrix(r_new)
-      r_new[!upper.tri(r_new, diag = TRUE)] <- ""
-      r_new <- as.data.frame(r_new)
-      r_new <- cbind(r_new[1:nrow(r_new) - 1, 2:length(r_new)])
-    }
-
-    if (desc_col) {
-      desc_stat <- x %>%
-        psych::describe() %>%
-        data.frame() %>%
-        tibble::rownames_to_column("variable") %>%
-        dplyr::mutate(
-          M_SD = paste0(round(.data$mean, 2), " (", round(.data$sd, 2), ")")
-        ) %>%
-        dplyr::select(.data$variable, .data$M_SD)
-      rownames(r_new) <- NULL
-      return(cbind(desc_stat, r_new))
-    }
-    ## Bind descriptives and return the correlation matrix
-
-    r_new
-  }
 
 #' Geosedic distance between two points.
 #'
@@ -161,6 +75,7 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
 .deg2rad <- function(deg) return(deg*pi/180)
 
 
+
 #' Identify rows of dataframe with observations in certain distance from point
 #'
 #' \code{within_km} tests for each line of a dataframe with longitude and
@@ -180,6 +95,7 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
 #' @param km Distance from starting point to filter line by
 #' @return Logical vector indicating which rows of \code{df} are within
 #'  \code{km} from starting point
+#'  @export
 
 within_km <- function(df, start_longitude, start_latitude, km) {
   if (!all(c("latitude", "longitude") %in% colnames(df))) {
@@ -214,6 +130,7 @@ within_km <- function(df, start_longitude, start_latitude, km) {
 #' groups will be labeled with their number and the cut-points employed.
 #' @return Factor variable with x cut into length(p) categories in given
 #' proportions
+#' @export
 
 cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
   if (!ties.method == "random") stop('Currently, only "random" is accepted as ties.method.', call. = FALSE)
@@ -274,6 +191,7 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
 #'
 #' @param x A number
 #' @param digits The number of digits after the percentage point. Defaults to 1
+#' @export
 
 p_pct <- function(x, digits = 1) {
   paste0(format(round(x*100, digits), nsmall = 2), "%")
@@ -287,6 +205,7 @@ p_pct <- function(x, digits = 1) {
 #' @param df Dataframe to be rounded
 #' @param digits Number of digits, defaults to 2
 #' @source https://stackoverflow.com/questions/9063889/how-to-round-a-data-frame-in-r-that-contains-some-character-variables
+#' @export
 
 
 round_df <- function(df, digits = 2) {
@@ -302,10 +221,38 @@ round_df <- function(df, digits = 2) {
 #'problems later on. This function scales a vector and strips the attributes.
 #'
 #' @inheritParams base::scale
-#'
+#' @export
 
 scale_blank <- function(x, center = TRUE, scale = TRUE) {
   as.numeric(scale(x))
+}
+
+
+
+#'Format p-value in line with APA standard (no leading 0)
+#'
+#'Formats p-value in line with APA standard, returning it without leading 0 and
+#'as < .001 when it is that small.
+#'
+#' @param p_value Numeric, or a vector of numbers
+#' @param sig_dig Number of signficant digits, defaults to 3
+#' @export
+
+fmt_p <- function(p_value, sig_dig = 3) {
+  fmt <- paste0("%.", sig_dig, "f")
+  fmt_p <- function(x) paste0("= ", sprintf(fmt, x)) %>%
+  stringr::str_replace(" 0.", " .")
+  exact <- ifelse(p_value < .001, FALSE, TRUE)
+  out <- p_value
+  out[exact] <- purrr::map_chr(out[exact], fmt_p)
+  out[!exact] <- "< .001"
+  out
+}
+
+.fmt_cor <- function(cor_value, sig_dig = 2) {
+  fmt <- paste0("%.", sig_dig, "f")
+  sprintf(fmt, cor_value) %>%
+    stringr::str_replace("0.", ".")
 }
 
 #'Converts a tibble to tribble code
@@ -315,6 +262,7 @@ scale_blank <- function(x, center = TRUE, scale = TRUE) {
 #'
 #' @param x The tibble to be converted into tribble code
 #' @param show Logical. Print code (otherwise, returned - print with `cat()` to get linebreaks etc)
+#' @export
 #'
 ## TODO:
 ## Use padding to show tribble code with aligned columns
@@ -335,7 +283,7 @@ to_tribble <- function(x, show = FALSE) {
   code %<>% paste0("\n\n")
   for (j in seq_len(nrow(x))) {
     for (i in seq_len(length(vars))) {
-     code %<>% paste0(x[j, i], ", ")
+      code %<>% paste0(x[j, i], ", ")
     }
     code %<>% paste0("\n")
   }
@@ -344,28 +292,50 @@ to_tribble <- function(x, show = FALSE) {
   code
 }
 
-#'Format p-value in line with APA standard (no leading 0)
+#' Collapse factor levels into "Other"
 #'
-#'Formats p-value in line with APA standard, returning it without leading 0 and
-#'as < .001 when it is that small.
+#' This function duplicates \code{forcats::fct_other}. It is therefore
+#' deprecated and should not be used. At present, I need it for compatibility.
+#' It will be removed in the future.
 #'
-#' @param p_value Numeric, or a vector of numbers
-#' @param sig_dig Number of signficant digits, defaults to 3
+#'@param large_factor The existing factor
+#'@param cats The levels to keep
+#'@param other The name of the new "other"-level
+#'@export
 
-fmt_p <- function(p_value, sig_dig = 3) {
-  fmt <- paste0("%.", sig_dig, "f")
-  fmt_p <- function(x) paste0("= ", sprintf(fmt, x)) %>%
-  stringr::str_replace(" 0.", " .")
-  exact <- ifelse(p_value < .001, FALSE, TRUE)
-  out <- p_value
-  out[exact] <- purrr::map_chr(out[exact], fmt_p)
-  out[!exact] <- "< .001"
-  out
+simplify_factor <- function(large_factor, cats, other = "Other") {
+  .Deprecated("fct_other in the forcats package")
+  cats %<>% c(NA)
+  levels(large_factor) <- c(levels(large_factor), other)
+  large_factor[!(large_factor %in% cats)] <- other
+  droplevels(large_factor)
 }
 
-.fmt_cor <- function(cor_value, sig_dig = 2) {
-  fmt <- paste0("%.", sig_dig, "f")
-  sprintf(fmt, cor_value) %>%
-    stringr::str_replace("0.", ".")
+#' Show group counts and group means in srvyr data
+#'
+#' This function groups srvyr data by a grouping variable and then calculates
+#' and displays group means and counts with standard errors.
+#'
+#' @param df A srvyr survey object
+#' @param gr Character. The name of the grouping variable in df.
+#' @param mean_vars Character vector. Names of one or more variables in df to calculate means for.
+#' @param tbl_title Character. Title for summary table to be printed.
+#' @param quietly Logical. Calculate means without displaying them?
+#' @return Dataframe with group counts and means
+
+svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = F) {
+  if (!requireNamespace("survey", quietly = TRUE)) {
+    stop("Package \"survey\" needed for this function to work. Please install it.",
+         call. = FALSE)
+  }
+  cmd <- paste(purrr::map(mean_vars, function(x) paste0("Mean_", x, " = survey_mean(", x, ")")),
+               collapse = ", ")
+  means <- eval(parse(text = paste0("df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
+                                    cmd, ")")))
+  if (!quietly)
+    means %>% knitr::kable(caption = tbl_title, digits = 2) %>%
+    kableExtra::kable_styling(full_width = F, position = "left") %>%
+    print()
+  return(means)
 }
 

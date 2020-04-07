@@ -8,6 +8,7 @@
 #' @param df A dataframe
 #' @param x,y Character strings indicating the names of the two variables
 #' @return Invisibly returns a list including the t.test() output and Cohen's D
+#' @export
 
 paired_t_test_d <- function(df, x, y) {
     t.test_result <- t.test(x = df[[x]], y = df[[y]], paired = T)
@@ -34,6 +35,7 @@ paired_t_test_d <- function(df, x, y) {
 #'   Cohen's d is calculated. Defaults to TRUE.
 #' @return Invisibly returns a list including the t.test() output and
 #'   Cohen's d
+#' @export
 
 svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
     df <- eval(parse(text = paste0("update(df, filt = factor(df$variables$",
@@ -69,6 +71,7 @@ svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
 #' @inheritParams svy_cohen_d_pair
 #' @return Invisibly returns a names lists of lists including the t.test()
 #'   output and Cohen's D for each pair
+#' @export
 
 ## ToDos:
 ### allow this to run without printing all results
@@ -92,7 +95,7 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' lm() with standardised continuous variables - no data argument
 #'
 #' This runs lm() after standardising all continuous variables, while leaving
-#' factors intact. It does not take a data argument, so should be used with
+#' factors intact. It does not take a data argument, so it is intended to be used with
 #' with() - if a data argument is needed, use `run_lm()` instead.
 #'
 #' @inheritParams stats::lm
@@ -102,6 +105,7 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' @references See (Fox, 2015) for an argument why dummy variables should never
 #' be standardised. If you want to run a model with all variables standardised,
 #' one option is `QuantPsyc::lm.beta()`
+#' @export
 
 lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
     parent <- parent.frame()

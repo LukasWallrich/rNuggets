@@ -11,11 +11,12 @@
 #' a number or a dataframe that also includes the scale name and correlation.
 #' @return Either the Spearman-Brown coefficient as a single number, or a
 #'   dataframe including the Pearson correlation coefficient and the scale name
+#' @export
+#' @source https://www.r-bloggers.com/five-ways-to-calculate-internal-consistency/
 #'
-spearman_brown <- function(df, items, name = "", SB_only = F) {
+spearman_brown <- function(df, items, name = "", SB_only = FALSE) {
     cor_value <- cor.test(df[, items[1]], df[, items[2]], na.rm = T)$estimate
     SB_value <- (abs(cor_value) * 2)/(1 + abs(cor_value))
-    # https://www.r-bloggers.com/five-ways-to-calculate-internal-consistency/
     if (SB_only)
         return(SB_value)
     result <- data.frame(correlation = cor_value, spearman_brown = SB_value, row.names = name)
@@ -40,16 +41,20 @@ spearman_brown <- function(df, items, name = "", SB_only = F) {
 #' @param two_items_reliability How should the reliability of two-item scales be
 #'   reported? "spearman_brown" is the recommended default, but "cronbachs_alpha"
 #'   and Pearson's "r" are also supported.
+#' @param r_key (optional) Numeric. Set to the possible maximum value of the scale
+#' if the whole scale should be reversed, or to -1 to reverse the scale based on
+#' the observed maximum
 #' @param print_hist Logical. Should histograms for items and resulting scale be printed?
 #' @param print_desc Logical. Should descriptives for scales be printed?
 #' @param return_list Logical. Should only scale values be returned, or descriptives as well?
 #' @return Depends on \code{return_list} argument. Either just the scale values,
 #'   or a list of scale values and descriptives.
+#' @export
 #'
 
 make_scale <- function(df, scale_items, scale_name, reverse = c("auto",
     "none", "spec"), reverse_items = NULL, two_items_reliability = c("spearman_brown", "cron_alpha",
-    "r"), print_hist = T, print_desc = T, return_list = F) {
+    "r"), r_key = NULL, print_hist = T, print_desc = T, return_list = F) {
 scale_vals <- df %>%
   dplyr::select(dplyr::one_of(scale_items)) %>%
   {
@@ -62,6 +67,11 @@ scale_vals <- df %>%
         alpha_obj <- suppressWarnings(scale_vals %>% psych::alpha(na.rm = TRUE, keys = reverse_items))
     }
 
+    if (r_key == -1) {
+      alpha_obj$scores <- psych::reverse.code(-1, alpha_obj$scores)
+      } else if (r_key > 0) {
+        alpha_obj$scores <- psych::reverse.code(-1, alpha_obj$scores, maxi = r_key)
+    }
     reversed <- names(alpha_obj$keys[alpha_obj$keys == -1])
     if (length(scale_items) == 2) {
         if (two_items_reliability[1] == "spearman_brown") {
@@ -121,6 +131,7 @@ scale_vals <- df %>%
 #'   each vector contains the items to be reverse-coded for that scale
 #' @inheritParams make_scale
 #' @inheritDotParams make_scale print_desc print_hist
+#' @export
 
 make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability = c("spearman_brown",
     "cronbachs_alpha", "r"), ...) {
@@ -191,11 +202,15 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
 #' @param scale_title Character. Name of scale for printing. Defaults to scale_name
 #' @param reversed (optional) A characters vector containing the items that should be reverse-coded (
 #'   subset of scale_items)
-#' @param r_key (optional) Numeric. Set to -1 if the whole scale should be reversed.
+#' @param r_key (optional) Numeric. Set to the possible maximum value of the scale
+#' if the whole scale should be reversed, or to -1 to reverse the scale based on
+#' the observed maximum
 #' @return The survey object with the scale added as an additional variable.
+#' @export
 
 ## TODO
 ### Merge/align with standard make_scale functions
+
 
 svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_title = scale_name,
     reversed = NULL, r_key = NULL) {
@@ -228,9 +243,12 @@ svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_ti
     df <- eval(parse(text = paste0("update(df,", scale_name, " = rowMeans(df[,scale_items_num]$variables, na.rm=T))")))
 
     # Reverse full scale
-    if (!is.null(r_key)) {
+    if (r_key == -1) {
         df <- eval(parse(text = paste0("update(df,", scale_name, " = psych::reverse.code(",
             r_key, ", df$variables$", scale_name, "))")))
+    } else if (r_key > 0) {
+      df <- eval(parse(text = paste0("update(df,", scale_name, " = psych::reverse.code(",
+                                     -1, ", df$variables$", scale_name, ", maxi = ",r_key,"))")))
     }
 
     # Print scale descriptives
@@ -261,47 +279,3 @@ svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_ti
     stringr::str_sub(x, 1, stringr::str_length(x) - 2)
 }
 
-#' Show group counts and group means in srvyr data
-#'
-#' This function groups srvyr data by a grouping variable and then calculates
-#' and displays group means and counts with standard errors.
-#'
-#' @param df A srvyr survey object
-#' @param gr Character. The name of the grouping variable in df.
-#' @param mean_vars Character vector. Names of one or more variables in df to calculate means for.
-#' @param tbl_title Character. Title for summary table to be printed.
-#' @param quietly Logical. Calculate means without displaying them?
-#' @return Dataframe with group counts and means
-
-svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = F) {
-    if (!requireNamespace("survey", quietly = TRUE)) {
-        stop("Package \"survey\" needed for this function to work. Please install it.",
-             call. = FALSE)
-    }
-    cmd <- paste(purrr::map(mean_vars, function(x) paste0("Mean_", x, " = survey_mean(", x, ")")),
-        collapse = ", ")
-    means <- eval(parse(text = paste0("df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
-        cmd, ")")))
-    if (!quietly)
-        means %>% knitr::kable(caption = tbl_title, digits = 2) %>%
-        kableExtra::kable_styling(full_width = F, position = "left") %>%
-        print()
-    return(means)
-}
-
-#' Collapse factor levels into "Other"
-#'
-#' This function duplicates \code{forcats::fct_other}. It is therefore
-#' deprecated and should not be used. At present, I need it for compatibility
-#'
-#'@param large_factor The existing factor
-#'@param cats The levels to keep
-#'@param other The name of the new "other"-level
-
-simplify_factor <- function(large_factor, cats, other = "Other") {
-    .Deprecated("fct_other in the forcats package")
-    cats %<>% c(NA)
-    levels(large_factor) <- c(levels(large_factor), other)
-    large_factor[!(large_factor %in% cats)] <- other
-    droplevels(large_factor)
-}
