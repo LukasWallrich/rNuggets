@@ -28,8 +28,9 @@
 sigstars <- function(p, stars = NULL) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
   for (n in names(stars)) {
-    est$stars <- ifelse(est$p.value < stars[n], n, est$stars)
+    p <- ifelse(p < stars[n], n, p)
   }
+  p
 }
 
 
