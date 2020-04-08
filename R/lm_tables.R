@@ -1,9 +1,4 @@
 
-
-
-
-
-
 #' Creates a summary table comparing standardised and non-standardised linear models
 #'
 #' This function creates a summary table for lm models (including mice::mira objects
@@ -23,7 +18,10 @@
 #' @export
 
 lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_m = FALSE, notes = list(NULL), ...) {
-  .check_req_packages(c("modelsummary", "gt"))
+  .check_req_packages(c("modelsummary", "gt", "htmltools", "readr"))
+
+  tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
+  glance.mira <- getFromNamespace("glance.mira", "modelsummary")
 
   if ((is.list(mod) | is.list(std_mod)) & !(length(mod) == length(std_mod))) {
     stop("Same number of models need to be included in mod and std_mod arguments")
@@ -33,8 +31,8 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
     stop("Length of model names needs to be the same as length of model")
   }
 
-  if (!is.list(mod)) mod <- list(mod)
-  if (!is.list(std_mod)) std_mod <- list(std_mod)
+  if (!("list" %in% class(mod))) mod <- list(mod)
+  if (!("list" %in% class(std_mod))) std_mod <- list(std_mod)
 
 
   gof_map <- tibble::tribble(
@@ -54,15 +52,15 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
     "p.value", "p", "%.3f", TRUE,
     "df", "DF", "%.0f", TRUE,
     "null.deviance", "Deviance Null", "%.2f", TRUE,
-    "m", "No of Imputations", "%.0f", TRUE,
+    "nimp", "No of Imputations", "%.0f", TRUE,
   )
 
 
 
   if (show_m) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
-
   gof <- purrr::map(mod, modelsummary:::extract_gof, fmt, gof_map)
   gof_map$omit <- TRUE
+  gof_map$omit[1] <- FALSE
 
   SEs <- list()
   CIs <- list()
@@ -73,7 +71,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   for (i in seq_len(length(mod))) {
     mod_tidy[[i]] <- generics::tidy(mod[[i]])
-    SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")", trimws(sigstars(mod_tidy[[i]]$p.value)))
+    SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
     names(SEs[[i]]) <- mod_tidy[[i]]$term
 
     std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
@@ -88,7 +86,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   names(mods) <- paste0("Model", seq_len(length(mods)))
 
-  col_labels <- rep(list(gt::md("*B (SE)*"), gt::md("*&beta; [95% CI]*")), times = length(mod)) %>% stats::setNames(names(mods))
+  col_labels <- rep(list(gt::md("*<center>B (SE)</center>*"), gt::md("*<center>&beta; [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
 
 
   if ("rN_std" %in% class(std_mod[[1]]) | ("mira" %in% class(std_mod[[1]]) & "rN_std" %in% class(std_mod[[1]][[1]]))) {
@@ -99,38 +97,68 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, gof_omit = c("*N*"), ...) %>%
-    modelsummary:::fmt_labels_md("row") %>%
-    gt::cols_label(.list = col_labels)
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, gof_omit = c("\\*N\\*"), ...) %>%
+    gt::fmt_markdown(columns = dplyr::everything()) %>%
+    gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 
   for (i in seq_along(notes)) {
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
   }
 
+
   if (length(mod) > 1) {
     if (is.null(model_names)) model_names <- paste0("Model", seq_len(length(mod)))
     for (i in seq_len(length(mod))) {
-      tab <- tab %>% gt::tab_spanner(model_names[i], columns = (2 * i):(2 * i + 1))
+      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], ""**"")), columns = (2 * i):(2 * i + 1))
     }
   }
 
-  browser()
-
-  F_row <- '<tr>
-    <td class="gt_col_heading gt_center gt_columns_bottom_border" rowspan="2" colspan="1">       </td>'
+  code <- character()
 
 
+  row <- '<tr style="border-top-style: solid; border-top-width: 2px;">
+    <td class="gt_row gt_left" rowspan="1" colspan="1">  <em>N     </td>'
+
+  sums <- paste(purrr::map(gof, function(x) {
+    glue::glue('<td class="gt_row gt_center" rowspan="1" colspan="2"> {x$value[x$term=="*N*"]}   </td>')
+  }), collapse = " ")
+
+  code %<>% paste(row, sums, "</tr>", collapse = "")
+
+  row <- '<tr>
+    <td class="gt_row gt_left" rowspan="1" colspan="1">  <em>R<sup>2</sup>     </td>'
+
+  sums <- paste(purrr::map(gof, function(x) {
+    glue::glue('<td class="gt_row gt_center" rowspan="1" colspan="2"> {.fmt_cor(as.numeric(x$value[x$term=="R<sup>2</sup>"]))}   </td>')
+  }), collapse = " ")
+
+  code %<>% paste(row, sums, "</tr>", collapse = "")
+
+  Fs <- purrr::map(mod, .lm_F_test)
+
+  row <- '<tr>
+    <td class="gt_row gt_left" rowspan="1" colspan="1"><em>F</em>-tests</td>'
+
+  sums <- paste(purrr::map(Fs, function(x) {
+    glue::glue('<td class="gt_row gt_center" rowspan="1" colspan="2"> {gt:::md_to_html(x)}   </td>')
+  }), collapse = " ")
+
+  code %<>% paste(row, sums, "</tr>", collapse = "")
+
+  temp_file <- tempfile()
+  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  code <- readr::read_file(temp_file) %>% stringr::str_replace("</tbody>", paste(code, "</tbody>"))
 
   if (!is.null(filename)) {
-    gt::gtsave(tab, filename)
+    readr::write_file(code, filename)
   }
   else {
-    return(tab)
+    return(list(gt_tab = tab, html_code = code))
   }
 }
 
 .lm_F_test <- function(mod) {
+  if("lm" %in% class(mod$analyses[[1]])) return(mira.lm_F_test(mod))
   model_summary <- summary(mod)
   f.stat <- model_summary$fstatistic[1]
   DoF <- model_summary$fstatistic[2]
@@ -160,8 +188,6 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
 mira.lm_F_test <- function(mod, return_list = FALSE) {
   .check_req_packages(c("miceadds"))
-
-
   extract_F <- function(x) {
     summary(x) %>%
       magrittr::extract2("fstatistic") %>%
@@ -191,9 +217,9 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
   )
 }
 
-.check_req_packages <- function(x) {
+.check_req_packages <- function(x, note = "") {
   if (suppressWarnings(!all(lapply(x, requireNamespace, quietly = TRUE)))) {
-    stop(paste0("Some required packages are not installed. Make sure you have
+    stop(paste0(note, "Some required packages are not installed. Make sure you have
                these packages: ", paste0(x, collapse = ", ")),
       call. = FALSE
     )

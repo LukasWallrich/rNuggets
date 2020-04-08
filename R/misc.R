@@ -13,15 +13,29 @@
 #' @encoding UTF-8
 #' @param p A \emph{p}-value or (more commonly) a vector of \emph{p}-values
 #' @param stars A character vector to change the significance symbols (see details in `sigstars`)
+#' @param pad_html Should all results be padded right to the same width with HTML non-breaking spaces?
 #' @return A character vector of significance stars for each \emph{p}-value,
 #' each padded with spaces to be four characters long
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 #' @export
 
-sigstars <- function(p, stars = NULL) {
+sigstars <- function(p, stars = NULL, pad_html = FALSE) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
-  out <- rep("", length(p))
+  ns <- ""
+  if (pad_html) {
+    .check_req_packages(c("xml2"), note = "Trying to add HTML-padding to sigstars.")
+    stars2 <- names(stars)
+    if (any(stringr::str_detect(names(stars), "&"))) stars2 <- purrr::map_chr(names(stars), .unescape_html)
+    nchars <- purrr::map_int(stars2, nchar)
+    len <- max(nchars)
+    stars3 <- purrr::map_chr(stars2, .pad, len)
+    stars3 %>% stringr::str_replace_all(stringr::fixed(stars2), names(stars))
+    names(stars) = stars3
+    ns <- paste0(rep("&nbsp;", len), collapse = "")
+  }
+
+  out <- rep(ns, length(p))
 
   for (n in names(stars)) {
     out <- ifelse(p < stars[n], n, out)
@@ -39,7 +53,15 @@ sigstars <- function(p, stars = NULL) {
   return(out)
 }
 
+.pad <- function(x, len, padding = "&nbsp;") {
+  x<-as.character(x)
+  n <- nchar(x)
+  if(n<len) return(paste0(x, paste0(rep(padding, len-n), collapse = "")))
+  x}
 
+.unescape_html <- function(str){
+  xml2::xml_text(xml2::read_html(paste0("<x>", str, "</x>")))
+}
 
 #' Geosedic distance between two points.
 #'

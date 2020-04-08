@@ -25,7 +25,9 @@ Imports:
     tidyr,
     knitr,
     kableExtra,
-    generics
+    generics, 
+    broom,
+    glue
 Suggests:
     survey,
     srvyr,
@@ -34,5 +36,8 @@ Suggests:
     mitools,
     gt,
     modelsummary,
-    miceadds
+    miceadds,
+    htmltools,
+    readr,
+    xml2
 RoxygenNote: 7.1.0

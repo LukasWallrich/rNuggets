@@ -9,4 +9,6 @@
 #' @importFrom stats as.formula cor.test sd t.test lm
 #' @importFrom generics tidy
 #' @importFrom generics glance
+#' @importFrom broom glance
+#' @importFrom utils getFromNamespace
 "_PACKAGE"
