@@ -8,6 +8,7 @@
 #' @param notes List of additional notes to show under the table.
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @inheritParams sigstars
+#' @param add_title Logical. Should title be added to table?
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
 #' accept weighted correlation matrices and work with the `gt` package instead`
 #' @return A table that can be printed in the RStudio console to be shown in the
@@ -16,7 +17,7 @@
 #' @export
 
 apa_cor_table <- function(cor_matrix, filename = NULL,
-                          notes = list(NULL), stars = NULL) {
+                          notes = list(NULL), stars = NULL, add_title = TRUE) {
 
   .check_req_packages("gt")
 
@@ -80,9 +81,11 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
   }
 
+  if(add_title) {
   tab <- tab %>% gt::tab_header(
     title = "Means, standard deviations, and correlations with confidence intervals"
   )
+  }
 
   tab <- tab %>% gt::cols_label(desc = gt::md("*M (SD)*"))
   if (!is.null(filename)) {
@@ -198,7 +201,7 @@ survey_cor_matrix <- function(svy_df, var_names) {
     used_vars <- intersect(var_names, rownames(cor_matrix[[1]]))
     cor_matrix[c(1, 4:6)] <- purrr::map(cor_matrix[c(1, 4:6)], function(x) x[used_vars, used_vars])
     cor_matrix$desc$var %<>% stringr::str_replace_all(var_names)
-    cor_matrix$desc <- cor_matrix$desc[match(cor_matrix$desc$var, used_vars), ]
+    cor_matrix$desc <- cor_matrix$desc[match(used_vars, cor_matrix$desc$var), ]
   }
 
   cor_matrix
@@ -295,7 +298,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
     corM[1:4] <- purrr::map(corM[1:4], function(x) x[used_vars, used_vars])
     rownames(corM$desc) <- rownames(corM$desc) %>% stringr::str_replace_all(var_names)
     corM$desc$var %<>% stringr::str_replace_all(var_names)
-    corM$desc <- corM$desc[match(corM$desc$var, used_vars), ]
+    corM$desc <- corM$desc[match(used_vars, corM$desc$var), ]
   }
 
   corM
