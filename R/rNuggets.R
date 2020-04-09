@@ -6,7 +6,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom magrittr %<>%
 #' @importFrom rlang .data
-#' @importFrom stats as.formula cor.test sd t.test lm
+#' @importFrom stats as.formula cor.test sd t.test lm p.adjust.methods
 #' @importFrom generics tidy
 #' @importFrom generics glance
 #' @importFrom broom glance

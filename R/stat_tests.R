@@ -148,3 +148,193 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
 
 }
 
+#' t-test() on multiply-imputed data (accepts survey weights)
+#'
+#' This runs t-test (based on lm(), therefore assuming equal variances) on multiple imputations,
+#' with the ability to take into account survey weights.
+#'
+#' @param mi_list A list of dataframes, each consisting of a multiply imputed dataset
+#' @param dv The dependent variable for the t.test (must be in mi_list)
+#' @param groups The grouping variable (must have only two values, be in mi_list)
+#' @param weights The variable containing survey weights, must be in mi_list
+#'
+#' @return A one-row tibble containing the result of the t-test
+
+t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
+    dv <- rlang::enquo(dv)
+    groups <- rlang::enquo(groups)
+    weights <- rlang::enquo(weights)
+
+    mi_list <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
+
+    .run_t_test_mi(mi_list)
+
+}
+
+.run_t_test_mi <- function(mi_list) {
+
+    tests <- purrr::map(mi_list, do.call, what = .wtd_t_test_lm) %>% mice::pool()
+
+    res <- summary(tests)
+
+     if (nrow(res)>2) stop("Group should only have two levels - subset data or use pairwise_t_test_mi instead")
+
+    groups <- mi_list[[1]]$g %>% unique() %>% as.character()
+
+    out <- tibble::tibble(x=groups[1], y=groups[2], mean_diff = res[2, "estimate"], t_value = res[2, "statistic"], df = res[2, "df"], p_value = res[2, "p.value"])
+
+    out
+}
+
+#' Pairwise t-tests() on multiply-imputed data (accepts survey weights)
+#'
+#' This runs pairwise t-tests (based on lm(), therefore assuming equal variances)
+#' on multiple imputations, with the ability to take into account survey weights.
+#'
+#' @inheritParams t_test_mi
+#' @param groups The grouping variable (each distinct value will be treated as a level)
+#' @param p.adjust.method The method to adjust p-values for multiple comparison (see \code{\link[stats]{p.adjust}})
+#' @return A tibble containing the results of the t-tests with one test per row
+
+pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.method = p.adjust.methods) {
+    dv <- rlang::enquo(dv)
+    groups <- rlang::enquo(groups)
+    weights <- rlang::enquo(weights)
+
+    pairs <- mi_list[[1]] %>% dplyr::select(!!groups) %>% dplyr::pull() %>% unique() %>% as.character()  %>% utils::combn(2) %>% split(col(.data))
+    mi_list_sel <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
+
+    out <- purrr::map_df(pairs, function(x) {
+        dat <- purrr::map(mi_list_sel, dplyr::filter, .data$g %in% x)
+        .run_t_test_mi(dat)
+    })
+
+ out$p_value %<>% stats::p.adjust(p.adjust.method)
+
+ out
+
+}
+
+.wtd_t_test_lm <- function(dv, g, wt = NULL, ...) {
+    lm(dv ~ g, weights = wt, ...)
+}
+
+#' Get letters to indicate results of multiple comparisons/post-hoc tests
+#'
+#' This takes the results of multiple comparisons and returns a set of letters
+#' that can be used to indicate which differences are significant. The difference
+#' between levels that are assigned the same letter are *not* statistically different.
+#'
+#' @param tests Either a tibble with the result of comparisons, including x and y
+#' (the levels/groups that were compared) and p_value for the comparison or an object
+#' of class pairwise.htest, for example returned from pairwise.t.test()
+#' @param alpha_level The level of significance for the test
+#' @param p.adjust.method One of p.adjust.methods, defaults to none as p-values will
+#' typically have been adjusted when carrying out the pairwise comparisons/post-hoc tests
+#'
+#' @return A tibble with columns that indicate which letter has been assigned to each
+#' group/level
+#' @source Algorithm based on https://www.tandfonline.com/doi/abs/10.1198/1061860043515
+#'
+#' @examples
+#' attach(airquality)
+#' month <- factor(Month, labels = month.abb[5:9])
+#' x<-pairwise.t.test(Ozone, Month)
+#' library(rNuggets)
+#' get_pairwise_letters(x)
+#' detach()
+
+
+get_pairwise_letters <- function(tests,
+                                 alpha_level = .05,
+                                 p.adjust.method = "none") {
+  if ("pairwise.htest" %in% class(tests)) {
+    tests <- tests$p.value
+    dat_levels <- c(colnames(tests), rownames(tests)) %>% unique()
+    n1 <- nrow(tests)
+    p <- cbind(rbind(NA, tests), NA)
+    diag(p) <- 1
+    p[upper.tri(p)] <- t(p)[upper.tri(p)]
+
+    colnames(p) <- dat_levels
+    rownames(p) <- dat_levels
+    tests <- dat_levels %>%
+      utils::combn(2) %>%
+      split(col(.data)) %>%
+      purrr::map_df(function(a) tibble::tibble(x = a[1], y = a[2]))
+
+    tests$p_value <- NA
+    tests <- purrr::pmap_dfr(tests, function(...) {
+      current <- tibble::tibble(...)
+      current %>% dplyr::mutate(p_value = p[.data$x, .data$y])
+    })
+  }
+
+
+
+  tests$p_value %<>% stats::p.adjust(p.adjust.method)
+
+  tests %<>% dplyr::filter(.data$p_value < alpha_level)
+
+
+  dat_letters <- tibble::tibble(dat_level = dat_levels)
+  dat_letters[2:(nrow(tests) + 2)] <- FALSE
+  dat_letters[2] <- TRUE
+
+  n <- 2
+
+  for (i in 1:nrow(tests)) {
+    for (j in 2:n) {
+      if (dat_letters[dat_letters$dat_level == tests$x[i], j] &
+        dat_letters[dat_letters$dat_level == tests$y[i], j]) {
+        n <- n + 1
+        #     print(paste0("Working on ", str_sub(x[1], start=-10), " and ", str_sub(x[2], start=-10), ". Copy column ", j, " to ", n,"."))
+        dat_letters[n] <- dat_letters[j]
+        dat_letters[dat_letters$dat_level == tests$x[i], j] <- FALSE
+        dat_letters[dat_letters$dat_level == tests$y[i], n] <- FALSE
+        # break
+        # browser()
+      }
+    }
+    # browser()
+  }
+
+  n <- 1
+  absorb <- numeric()
+
+  for (i in 2:(ncol(dat_letters) - 1)) {
+    for (j in (i + 1):ncol(dat_letters)) {
+      if (min(dat_letters[i] - dat_letters[j]) >= 0) {
+        absorb[n] <- j
+        n <- n + 1
+      }
+    }
+  }
+
+  if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
+
+
+  n <- 1
+  absorb <- numeric()
+
+  for (i in (ncol(dat_letters):3)) {
+    for (j in 2:(i - 1)) {
+      if (min(dat_letters[i] - dat_letters[j]) >= 0) {
+        absorb[n] <- j
+        n <- n + 1
+      }
+    }
+  }
+
+  if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
+
+  for (i in 2:ncol(dat_letters)) {
+    dat_letters[letters[i - 1]] <- NA_character_
+    dat_letters[letters[i - 1]][dat_letters[[i]], ] <-
+      letters[i - 1]
+  }
+
+  dat_letters %<>% dplyr::select(-dplyr::matches("^\\."))
+
+  return(dat_letters)
+}
