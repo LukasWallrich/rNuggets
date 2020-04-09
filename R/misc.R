@@ -344,12 +344,11 @@ simplify_factor <- function(large_factor, cats, other = "Other") {
 #' @param tbl_title Character. Title for summary table to be printed.
 #' @param quietly Logical. Calculate means without displaying them?
 #' @return Dataframe with group counts and means
+#' @export
 
-svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = F) {
-  if (!requireNamespace("survey", quietly = TRUE)) {
-    stop("Package \"survey\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
+svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
+  .check_req_packages("survey")
+
   cmd <- paste(purrr::map(mean_vars, function(x) paste0("Mean_", x, " = survey_mean(", x, ")")),
                collapse = ", ")
   means <- eval(parse(text = paste0("df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
@@ -361,3 +360,29 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = F) {
   return(means)
 }
 
+#' Show group counts and group means in multiply imputed and weighted data
+#'
+#' This function groups srvyr data by a grouping variable and then calculates
+#' and displays group means and counts with standard errors.
+#'
+#' @param mi_list A list of dataframes of multiple imputation results
+#' @param mean_var Variable in mi_list to calculate means for.
+#' @param gr Grouping variable in mi_list
+#' @param weights Variable within mi_list that gives the survey weights
+#'
+#' @return A tiblle with means (M), standard deviations (SD) and weighted counts (N) per group
+
+ wtd_group_means_mi <- function(mi_list, mean_var, gr, weights) {
+   fmla_weights <- as.formula(paste("~", substitute(weights)))
+   fmla_gr <- as.formula(paste("~", substitute(gr)))
+   fmla_mean_var <- as.formula(paste("~", substitute(mean_var)))
+
+   imp_svy <- survey::svydesign(~1, weights = fmla_weights, data = mitools::imputationList(mi_list))
+
+   M<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svymean)))
+   VAR<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svyvar)))
+   TOT<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svytotal)))
+
+   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients, SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M)
+
+}

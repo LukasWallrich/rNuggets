@@ -8,7 +8,13 @@ Based on the apaTables \code{apa.cor.table()} function, but adapted to
 accept weighted correlation matrices and work with the `gt` package instead`
 }
 \usage{
-apa_cor_table(cor_matrix, filename = NULL, notes = list(NULL), stars = NULL)
+apa_cor_table(
+  cor_matrix,
+  filename = NULL,
+  notes = list(NULL),
+  stars = NULL,
+  add_title = TRUE
+)
 }
 \arguments{
 \item{cor_matrix}{A correlation matrix, for example returned from \code{
@@ -19,6 +25,8 @@ survey_cor_matrix()}, \code{wtd_cor_matrix()}}
 \item{notes}{List of additional notes to show under the table.}
 
 \item{stars}{A character vector to change the significance symbols (see details in `sigstars`)}
+
+\item{add_title}{Logical. Should title be added to table?}
 }
 \value{
 A table that can be printed in the RStudio console to be shown in the

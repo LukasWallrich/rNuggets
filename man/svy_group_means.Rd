@@ -4,7 +4,7 @@
 \alias{svy_group_means}
 \title{Show group counts and group means in srvyr data}
 \usage{
-svy_group_means(df, gr, mean_vars, tbl_title, quietly = F)
+svy_group_means(df, gr, mean_vars, tbl_title, quietly = T)
 }
 \arguments{
 \item{df}{A srvyr survey object}

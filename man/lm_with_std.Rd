@@ -54,6 +54,8 @@ from the table (using `stringr::str_detect`).}
 `omit`. See `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `stringr::str_detect`).}
+    \item{\code{stars_note}}{logical include a note at the bottom of the table to describe
+the contents of the `stars` argument. The note will be omitted if `stars==NULL`}
     \item{\code{title}}{string}
     \item{\code{subtitle}}{string}
     \item{\code{add_rows}}{list of character vectors, each of length equal to the number
