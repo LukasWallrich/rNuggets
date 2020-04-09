@@ -384,6 +384,6 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
    VAR<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svyvar)))
    TOT<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svytotal)))
 
-   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients, SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M)
+   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients, SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M, group_var = substitute(gr))
 
 }
