@@ -171,6 +171,9 @@ t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
 
     .run_t_test_mi(mi_list)
 
+    out$group_var <- dplyr::as_label(groups)
+
+
 }
 
 .run_t_test_mi <- function(mi_list) {
@@ -205,7 +208,8 @@ pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.me
     groups <- rlang::enquo(groups)
     weights <- rlang::enquo(weights)
 
-    pairs <- mi_list[[1]] %>% dplyr::select(!!groups) %>% dplyr::pull() %>% unique() %>% as.character()  %>% utils::combn(2) %>% split(col(.data))
+    pairs <- mi_list[[1]] %>% dplyr::select(!!groups) %>% dplyr::pull() %>%
+      unique() %>% as.character()  %>% utils::combn(2) %>% split(col(.))
     mi_list_sel <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
 
     out <- purrr::map_df(pairs, function(x) {
@@ -214,6 +218,8 @@ pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.me
     })
 
  out$p_value %<>% stats::p.adjust(p.adjust.method)
+
+ out$group_var <- dplyr::as_label(groups)
 
  out
 
@@ -276,7 +282,7 @@ get_pairwise_letters <- function(tests,
     })
   }
 
-
+  dat_levels <- c(tests$x, tests$y) %>% as.character() %>% unique()
 
   tests$p_value %<>% stats::p.adjust(p.adjust.method)
 
@@ -340,7 +346,7 @@ get_pairwise_letters <- function(tests,
       letters[i - 1]
   }
 
-  dat_letters %<>% dplyr::select(-dplyr::matches("^\\."))
+  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -dat_level, sep="", remove = FALSE)
 
   return(dat_letters)
 }
