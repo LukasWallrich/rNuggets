@@ -35,4 +35,5 @@ x<-pairwise.t.test(Ozone, Month)
 library(rNuggets)
 get_pairwise_letters(x)
 detach()
+
 }

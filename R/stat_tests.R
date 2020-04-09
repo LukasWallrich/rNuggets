@@ -159,6 +159,8 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
 #' @param weights The variable containing survey weights, must be in mi_list
 #'
 #' @return A one-row tibble containing the result of the t-test
+#'
+#' @export
 
 t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
     dv <- rlang::enquo(dv)
@@ -195,6 +197,8 @@ t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
 #' @param groups The grouping variable (each distinct value will be treated as a level)
 #' @param p.adjust.method The method to adjust p-values for multiple comparison (see \code{\link[stats]{p.adjust}})
 #' @return A tibble containing the results of the t-tests with one test per row
+#'
+#' @export
 
 pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.method = p.adjust.methods) {
     dv <- rlang::enquo(dv)
@@ -243,6 +247,8 @@ pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.me
 #' library(rNuggets)
 #' get_pairwise_letters(x)
 #' detach()
+#'
+#' @export
 
 
 get_pairwise_letters <- function(tests,

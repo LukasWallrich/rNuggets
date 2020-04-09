@@ -371,6 +371,7 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
 #' @param weights Variable within mi_list that gives the survey weights
 #'
 #' @return A tiblle with means (M), standard deviations (SD) and weighted counts (N) per group
+#' @export
 
  wtd_group_means_mi <- function(mi_list, mean_var, gr, weights) {
    fmla_weights <- as.formula(paste("~", substitute(weights)))
