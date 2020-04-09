@@ -169,10 +169,11 @@ t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
 
     mi_list <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
 
-    .run_t_test_mi(mi_list)
+    out <- .run_t_test_mi(mi_list)
 
     out$group_var <- dplyr::as_label(groups)
 
+    out
 
 }
 
@@ -287,9 +288,11 @@ get_pairwise_letters <- function(tests,
   tests$p_value %<>% stats::p.adjust(p.adjust.method)
 
   tests %<>% dplyr::filter(.data$p_value < alpha_level)
-
-
   dat_letters <- tibble::tibble(dat_level = dat_levels)
+
+  if(nrow(tests) == 0) { #If no comparisons are significant
+    dat_letters[2] <- TRUE
+  }else {
   dat_letters[2:(nrow(tests) + 2)] <- FALSE
   dat_letters[2] <- TRUE
 
@@ -339,14 +342,14 @@ get_pairwise_letters <- function(tests,
   }
 
   if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
-
+}
   for (i in 2:ncol(dat_letters)) {
     dat_letters[letters[i - 1]] <- NA_character_
     dat_letters[letters[i - 1]][dat_letters[[i]], ] <-
       letters[i - 1]
   }
 
-  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -dat_level, sep="", remove = FALSE)
+  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -dat_level, sep="", remove = FALSE, na.rm = TRUE)
 
   return(dat_letters)
 }
