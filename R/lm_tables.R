@@ -11,13 +11,13 @@
 #' @param conf_level Confidence level to use for confidence intervals, defaults to .95
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @param model_names If several pairs of models are to be plotted side by side, indicate the label for each *pair* here
-#' @param show_m Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
+#' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_m = FALSE, notes = list(NULL), ...) {
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(NULL), ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr"))
 
   tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
@@ -55,12 +55,9 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
     "nimp", "No of Imputations", "%.0f", TRUE,
   )
 
-
-
-  if (show_m) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
+  if (show_nimp) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
   gof <- purrr::map(mod, modelsummary:::extract_gof, fmt, gof_map)
   gof_map$omit <- TRUE
-  gof_map$omit[1] <- FALSE
 
   SEs <- list()
   CIs <- list()
@@ -97,7 +94,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, gof_omit = c("\\*N\\*"), ...) %>%
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 

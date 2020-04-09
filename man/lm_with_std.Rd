@@ -12,7 +12,7 @@ lm_with_std(
   statistic_vertical = FALSE,
   filename = NULL,
   model_names = NULL,
-  show_m = FALSE,
+  show_nimp = FALSE,
   notes = list(NULL),
   ...
 )
@@ -37,7 +37,7 @@ estimates. FALSE if statistics should be printed beside estimates.}
 
 \item{model_names}{If several pairs of models are to be plotted side by side, indicate the label for each *pair* here}
 
-\item{show_m}{Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic}
+\item{show_nimp}{Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic}
 
 \item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
 
@@ -54,8 +54,6 @@ from the table (using `stringr::str_detect`).}
 `omit`. See `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `stringr::str_detect`).}
-    \item{\code{stars_note}}{logical include a note at the bottom of the table to describe
-the contents of the `stars` argument. The note will be omitted if `stars==NULL`}
     \item{\code{title}}{string}
     \item{\code{subtitle}}{string}
     \item{\code{add_rows}}{list of character vectors, each of length equal to the number
