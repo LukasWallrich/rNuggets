@@ -27,7 +27,8 @@ Imports:
     kableExtra,
     generics, 
     broom,
-    glue
+    glue,
+    forcats
 Suggests:
     survey,
     srvyr,

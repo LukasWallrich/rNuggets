@@ -479,7 +479,8 @@ get_rename_tribbles <- function(dat, ..., show = TRUE, which = c("both", "vars",
 #' @param level_names A tibble containing old `var` names and `level_old` and `level_new` names. If NULL, only variables are renamed.
 #'
 #' @return The dataframe or list of dataframes passed to dat, with variables and/or levels renamed
-#'
+#' @export
+
 rename_cat_variables <- function(dat, ..., var_names = NULL, level_names = NULL) {
   if (!"list" %in% class(dat)) dat <- list(dat)
   vars <- rlang::enquos(...)

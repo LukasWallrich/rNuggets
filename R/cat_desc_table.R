@@ -21,7 +21,8 @@
 #' @param dv_name Optional. A different name to use for the dependent variable in the automatic table footnote explaining the M(SD) column. Defaults to dv variable name.
 #'
 #' @return A list including a tibble of descriptive statistics (`descr`) and the `gt`-table (`tab`)
-#'
+#' @export
+
 cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_names = NULL, p.adjust = p.adjust.methods, alpha_level = .05, filename = NULL, notes = list(), dv_name = NULL) {
   mi_list <- rename_cat_variables(mi_list, ..., var_names = var_names, level_names = level_names)
   vars <- rlang::enquos(...)
