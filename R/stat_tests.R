@@ -205,9 +205,11 @@ t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
 #' @export
 
 pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.method = p.adjust.methods) {
+  if (!("quosure" %in% class(dv) | "name" %in% class(dv))) {
     dv <- rlang::enquo(dv)
     groups <- rlang::enquo(groups)
     weights <- rlang::enquo(weights)
+  }
 
     pairs <- mi_list[[1]] %>% dplyr::select(!!groups) %>% dplyr::pull() %>%
       unique() %>% as.character()  %>% utils::combn(2) %>% split(col(.))
@@ -273,7 +275,7 @@ get_pairwise_letters <- function(tests,
     rownames(p) <- dat_levels
     tests <- dat_levels %>%
       utils::combn(2) %>%
-      split(col(.data)) %>%
+      split(col(.)) %>%
       purrr::map_df(function(a) tibble::tibble(x = a[1], y = a[2]))
 
     tests$p_value <- NA
@@ -349,7 +351,7 @@ get_pairwise_letters <- function(tests,
       letters[i - 1]
   }
 
-  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -dat_level, sep="", remove = FALSE, na.rm = TRUE) %>% dplyr::rename(level = .data$dat_level)
+  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -.data$dat_level, sep="", remove = FALSE, na.rm = TRUE) %>% dplyr::rename(level = .data$dat_level)
 
   return(dat_letters)
 }

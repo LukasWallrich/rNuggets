@@ -271,6 +271,12 @@ fmt_p <- function(p_value, sig_dig = 3) {
   out
 }
 
+.fmt_pct <- function(x, digits = 1) {
+  fmt <- paste0("%1.", digits, "f%%")
+  sprintf("%1f", x*100)
+}
+
+
 .fmt_cor <- function(cor_value, sig_dig = 2) {
   fmt <- paste0("%.", sig_dig, "f")
   sprintf(fmt, cor_value) %>%
@@ -296,20 +302,21 @@ to_tribble <- function(x, show = FALSE) {
   vars <- names(x)
   x %<>% dplyr::mutate_if(is.character, function(x) paste0('"', x, '"'))
 
-  code <- "tribble(
+  code <- "tibble::tribble(
   "
 
   for (i in seq_len(length(vars))) {
     code %<>% paste0("~", vars[i], ", ")
   }
-  code %<>% paste0("\n\n")
+  code %<>% paste0("\n")
   for (j in seq_len(nrow(x))) {
     for (i in seq_len(length(vars))) {
       code %<>% paste0(x[j, i], ", ")
     }
-    code %<>% paste0("\n")
+    code %<>% paste0("\n  ")
   }
-  code %<>% substr(1, nchar(.data)-2) %>% paste0("\n)")
+
+  code %<>% substr(1, nchar(.)-2) %>% paste0("\n)\n")
   if (show) cat(code)
   code
 }
@@ -373,17 +380,131 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
 #' @return A tiblle with means (M), standard deviations (SD) and weighted counts (N) per group
 #' @export
 
- wtd_group_means_mi <- function(mi_list, mean_var, gr, weights) {
-   fmla_weights <- as.formula(paste("~", substitute(weights)))
-   fmla_gr <- as.formula(paste("~", substitute(gr)))
-   fmla_mean_var <- as.formula(paste("~", substitute(mean_var)))
+ wtd_group_means_mi <- function (mi_list, mean_var, gr, weights)
+ {
+   if ("quosure" %in% class(weights)) {
+     fmla_weights <- as.formula(paste0("~`", dplyr::as_label(weights),
+                                       "`"))
+     fmla_gr <- as.formula(paste0("~`", dplyr::as_label(gr), "`"))
+     fmla_mean_var <- as.formula(paste0("~`", dplyr::as_label(mean_var),
+                                        "`"))
+   }
+   else {
+     fmla_weights <- as.formula(paste0("~`", substitute(weights),
+                                       "`"))
+     fmla_gr <- as.formula(paste0("~`", substitute(gr), "`"))
+     fmla_mean_var <- as.formula(paste0("~`", substitute(mean_var),
+                                        "`"))
+   }
+   imp_svy <- survey::svydesign(~1, weights = fmla_weights,
+                                data = mitools::imputationList(mi_list))
+   M <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+                                                       fmla_gr, design = .design, FUN = survey::svymean)))
+   VAR <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+                                                         fmla_gr, design = .design, FUN = survey::svyvar)))
+   TOT <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+                                                         fmla_gr, design = .design, FUN = survey::svytotal)))
+   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients,
+                         SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M,
+                         group_var = dplyr::as_label(rlang::enquo(gr)))
+ }
 
-   imp_svy <- survey::svydesign(~1, weights = fmla_weights, data = mitools::imputationList(mi_list))
+ #' Get code to generate tibbles to rename categorical variables and their levels
+ #'
+ #' Renaming categorical variables and their levels, for instance for summary tables, can be fiddly. This
+ #' function generates code in which only the new names need to be modified, and which can then be passed
+ #' to either \code{\link{rename_cat_variables}} or directly to \code{\link{cat_var_table_mi}}
+ #'
+ #' Only categorical variables should be passed to the function if code for levels is
+ #' requested - if a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
+ #'
+ #'
+ #' @param dat A dataframe that contains the variables - only used to extract their possible levels.
+ #' @param ... The variables to be included in the rename tribbles.
+ #' @param show Logical - should the output be printed to the console. In any case, it is returned invisibly
+ #' @param which Should tribble code be generated for variables (\code{"vars"}), levels (\code{"levels"}) or both (\code{"both"}) (default)
+ #' @param max_levels The maximum number of levels before a variable is dropped from the levels_tribble. Defaults to 20
+ #'
+ #' @return Code to be edited and passed to tibble::tribble() to create var_names and level_names arguments for
+ #' \code{\link{rename_cat_variables}} and \code{\link{cat_var_table_mi}}
+ #'
+ #' @export
 
-   M<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svymean)))
-   VAR<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svyvar)))
-   TOT<-mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var, fmla_gr, design = .design, FUN = survey::svytotal)))
+get_rename_tribbles <- function(dat, ..., show = TRUE, which = c("both", "vars", "levels"), max_levels = 20) {
+  browser()
+  vars <- rlang::enquos(...)
+  vars_chr <- purrr::map_chr(vars, dplyr::as_label)
+  out <- list()
+  if (which[1] %in% c("both", "vars")) {
+    vars_tribble <- tibble::tibble(old = vars_chr, new = vars_chr) %>% to_tribble(show = show)
+    out <- c(out, vars_tribble)
+  }
+  if (which[1] %in% c("both", "levels")) {
+    get_levels <- function(x, dat) {
+      dat %>%
+        dplyr::select(!!x) %>%
+        dplyr::pull() %>%
+        factor() %>%
+        levels()
+    }
+    levels_list <- purrr::map(vars, get_levels, dat)
+    levels_list <- Filter(function(x) length(x)<=max_levels, levels_list)
+    if(length(levels_list)>=1) {
+        names(levels_list) <- vars_chr
 
-   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients, SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M, group_var = substitute(gr))
+    mt <- function(x, name) {
+      tibble::tibble(var = name, level_old = x, level_new = x)
+    }
+    levels_tribble <- purrr::lmap(levels_list, function(x) purrr::map(x, mt, names(x))) %>%
+      purrr::map_dfr(rbind) %>%
+      tibble::as_tibble() %>%
+      to_tribble(show = show)
+    out <- c(out, levels_tribble)
+  }}
 
+  out
+}
+
+
+#' Rename variables and/or their levels
+#'
+#' Renaming categorical variables and their levels, for instance for summary tables, can be fiddly. This
+#' function accepts tibbles containing the old and new names for arguments and levels, and returns a dataframe
+#' (or list of dataframes, if one is passed) with variables and levels renamed.
+#'
+#'
+#' @param dat A dataframe or list of dataframes (e.g., from multiple imputation) contains the variables. If a list is passed, it must have class "list"
+#' @param ... The variables to be renamed
+#' @param var_names A tibble containing `old` and `new` names for the variables. If NULL, only levels are renamed.
+#' @param level_names A tibble containing old `var` names and `level_old` and `level_new` names. If NULL, only variables are renamed.
+#'
+#' @return The dataframe or list of dataframes passed to dat, with variables and/or levels renamed
+#'
+rename_cat_variables <- function(dat, ..., var_names = NULL, level_names = NULL) {
+  if (!"list" %in% class(dat)) dat <- list(dat)
+  vars <- rlang::enquos(...)
+
+  if (!is.null(level_names)) {
+    level_names_lst <- split(level_names, level_names$var)
+
+    relevel <- function(dat, var, levels_old, levels_new) {
+      var <- var[1]
+      names(levels_old) <- levels_new
+      dat <- dat %>% dplyr::mutate(!!var := forcats::fct_recode(!!rlang::sym(var), !!!levels_old))
+      dat
+    }
+
+    for (i in seq_along(level_names_lst)) {
+      dat <- purrr::map(dat, relevel, level_names_lst[[i]]$var, level_names_lst[[i]]$level_old, level_names_lst[[i]]$level_new)
+    }
+  }
+
+  if (!is.null(var_names)) {
+    var_names_chr <- var_names$old
+    names(var_names_chr) <- var_names$new
+    dat <- purrr::map(dat, dplyr::rename, !!!var_names_chr)
+  }
+
+  if (length(dat) == 1) dat <- dat[[1]] # To return data.frame if dataframe was passed
+  dat
 }
