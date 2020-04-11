@@ -15,7 +15,8 @@ cat_var_table_mi(
   alpha_level = 0.05,
   filename = NULL,
   notes = list(),
-  dv_name = NULL
+  dv_name = NULL,
+  css_tags = list(.gt_group_heading = "font-weight: bold")
 )
 }
 \arguments{
@@ -40,9 +41,11 @@ cat_var_table_mi(
 \item{notes}{List of notes to append to bottom of table.}
 
 \item{dv_name}{Optional. A different name to use for the dependent variable in the automatic table footnote explaining the M(SD) column. Defaults to dv variable name.}
+
+\item{css_tags}{List of css tags to be added, each named with the class that the tag should be added to. Defaults to one tag to make variable names bold}
 }
 \value{
-A list including a tibble of descriptive statistics (`descr`) and the `gt`-table (`tab`)
+A list including a tibble of descriptive statistics (`descr`), the `gt`-table (`tab`) and the HTML code (`html`) with `css_tags` added
 }
 \description{
 This takes a set of categorical variables and a continuous dependent variable and

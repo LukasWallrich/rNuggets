@@ -19,11 +19,11 @@
 #' @inheritParams lm_with_std
 #' @param notes List of notes to append to bottom of table.
 #' @param dv_name Optional. A different name to use for the dependent variable in the automatic table footnote explaining the M(SD) column. Defaults to dv variable name.
-#'
-#' @return A list including a tibble of descriptive statistics (`descr`) and the `gt`-table (`tab`)
+#' @param css_tags List of css tags to be added, each named with the class that the tag should be added to. Defaults to one tag to make variable names bold
+#' @return A list including a tibble of descriptive statistics (`descr`), the `gt`-table (`tab`) and the HTML code (`html`) with `css_tags` added
 #' @export
 
-cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_names = NULL, p.adjust = p.adjust.methods, alpha_level = .05, filename = NULL, notes = list(), dv_name = NULL) {
+cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_names = NULL, p.adjust = p.adjust.methods, alpha_level = .05, filename = NULL, notes = list(), dv_name = NULL, css_tags = list(`.gt_group_heading` = "font-weight: bold")) {
   mi_list <- rename_cat_variables(mi_list, ..., var_names = var_names, level_names = level_names)
   vars <- rlang::enquos(...)
   var_names_chr <- var_names$new
@@ -72,7 +72,7 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
 
   auto_notes %<>% c(glue::glue("*M* and *SD* are used to represent mean and standard deviation for {dv_name} for that group, respectively.<br>"))
 
-  p_note <- ifelse(p.adjust[1] == "none", "", glue::glue("(*p*-values were adjusted using the {p.adjust[1]} method.)"))
+  p_note <- ifelse(p.adjust[1] == "none", "", glue::glue("(*p*-values were adjusted using the {stringr::str_to_sentence(p.adjust[1])}-method.)"))
 
   auto_notes %<>% c(glue::glue("Within each variable, the means of groups with different superscripts differ with *p* < .05 <br> {p_note}"))
 
@@ -82,11 +82,24 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
   }
 
-  if (!is.null(filename)) {
-    tab %>% gt::gtsave(filename)
+  temp_file <- tempfile()
+  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  code <- readr::read_file(temp_file)
+
+  for (i in seq_along(css_tags)) {
+    code <- .add_css(code, names(css_tags)[i], css_tags[[i]])
   }
 
-  list(descr = descr, tab = tab)
+  if (!is.null(filename)) {
+    readr::write_file(code, filename)
+  }
+
+  list(descr = descr, tab = tab, html = code)
 }
 
+.add_css <- function(code, class, add) {
+  css <- paste0("\n", add, ";\n\n")
+  class %<>% stringr::str_replace(stringr::fixed("."), stringr::fixed("\\."))
+  stringr::str_replace(code, paste0("(", class, " \\{[\\s\\S]*?(?=\\}))"), paste0("\\1", css))
+}
 
