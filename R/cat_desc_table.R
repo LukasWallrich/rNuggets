@@ -19,11 +19,12 @@
 #' @inheritParams lm_with_std
 #' @param notes List of notes to append to bottom of table.
 #' @param dv_name Optional. A different name to use for the dependent variable in the automatic table footnote explaining the M(SD) column. Defaults to dv variable name.
-#' @param css_tags List of css tags to be added, each named with the class that the tag should be added to. Defaults to one tag to make variable names bold
+#' @param bold_vars Should rows with variable names be bold. Defaults to TRUE
+#' @param css_tags List of css tags to be added, each named with the class that the tag should be added to.
 #' @return A list including a tibble of descriptive statistics (`descr`), the `gt`-table (`tab`) and the HTML code (`html`) with `css_tags` added
 #' @export
 
-cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_names = NULL, p.adjust = p.adjust.methods, alpha_level = .05, filename = NULL, notes = list(), dv_name = NULL, css_tags = list(`.gt_group_heading` = "font-weight: bold")) {
+cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_names = NULL, p.adjust = p.adjust.methods, alpha_level = .05, filename = NULL, notes = list(), dv_name = NULL, bold_vars = TRUE, css_tags = list()) {
   mi_list <- rename_cat_variables(mi_list, ..., var_names = var_names, level_names = level_names)
   vars <- rlang::enquos(...)
   var_names_chr <- var_names$new
@@ -65,6 +66,13 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::fmt_percent(columns = "Share", decimals = 1) %>%
     gt::cols_label(.list = f(.))
+
+  if (bold_vars) {
+   tab <- tab %>% gt::tab_style(
+      style = list(gt::cell_text(weight = "bold")),
+      locations = gt::cells_row_groups()
+    )
+  }
 
   auto_notes <- list()
 

@@ -16,7 +16,8 @@ cat_var_table_mi(
   filename = NULL,
   notes = list(),
   dv_name = NULL,
-  css_tags = list(.gt_group_heading = "font-weight: bold")
+  bold_vars = TRUE,
+  css_tags = list()
 )
 }
 \arguments{
@@ -42,7 +43,9 @@ cat_var_table_mi(
 
 \item{dv_name}{Optional. A different name to use for the dependent variable in the automatic table footnote explaining the M(SD) column. Defaults to dv variable name.}
 
-\item{css_tags}{List of css tags to be added, each named with the class that the tag should be added to. Defaults to one tag to make variable names bold}
+\item{bold_vars}{Should rows with variable names be bold. Defaults to TRUE}
+
+\item{css_tags}{List of css tags to be added, each named with the class that the tag should be added to.}
 }
 \value{
 A list including a tibble of descriptive statistics (`descr`), the `gt`-table (`tab`) and the HTML code (`html`) with `css_tags` added
