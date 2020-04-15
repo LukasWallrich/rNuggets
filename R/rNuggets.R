@@ -14,4 +14,8 @@ globalVariables(".")
 #' @importFrom generics glance
 #' @importFrom broom glance
 #' @importFrom utils getFromNamespace
+#' @export
+generics::tidy
+#'
+#'
 "_PACKAGE"

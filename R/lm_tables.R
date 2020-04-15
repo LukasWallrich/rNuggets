@@ -222,3 +222,152 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
     )
   }
 }
+
+
+#' Creates a summary table comparing standardised and non-standardised
+#' proportional odd logistic regression models
+#'
+#' This function creates a summary table for polr models (including mice::mira objects
+#' containing polr-models) that shows a standardised and non-standardised version of the model
+#' side-by-side. Several pairs of such models can be compared side-by-side.
+#'
+#' @param mod A polr-model/mira object of polr models, with variables not standardised (or a list of such models)
+#' @param std_mod A polr-model/mira object of polr models, with standardised predictor variables (or a list of such models)
+#' @param conf_level Confidence level to use for confidence intervals, defaults to .95
+#' @param OR Logical. Shoulds odds ratios be shown instead of typical coefficients. If TRUE, estimates are exponentiated
+#' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
+#' @param model_names If several pairs of models are to be plotted side by side, indicate the label for each *pair* here
+#' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
+#' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
+#' @inheritParams modelsummary::modelsummary
+#' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
+
+polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable."), ...) {
+  .check_req_packages(c("modelsummary", "gt", "htmltools", "readr", "pscl"))
+
+  tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
+  glance.mira <- getFromNamespace("glance.mira", "modelsummary")
+
+  if ((is.list(mod) | is.list(std_mod)) & !(length(mod) == length(std_mod))) {
+    stop("Same number of models need to be included in mod and std_mod arguments")
+  }
+
+  if (!("list" %in% class(mod))) mod <- list(mod)
+  if (!("list" %in% class(std_mod))) std_mod <- list(std_mod)
+
+  if (!is.null(model_names) & !length(model_names) == length(mod)) {
+    stop("Length of model names needs to be the same as length of model")
+  }
+
+  gof_map <- tibble::tribble(
+    ~raw, ~clean, ~fmt, ~omit,
+
+    "nobs", "*N*", "%.0f", FALSE,
+    "r.squared", "R<sup>2</sup>", "%.3f", FALSE,
+    "adj.r.squared", "Adj.R<sup>2</sup>", "%.3f", FALSE,
+    "AIC", "AIC", "%.1f", TRUE,
+    "BIC", "BIC", "%.1f", TRUE,
+    "logLik", "Log.Lik.", "%.3f", TRUE,
+    "deviance", "Deviance", "%.2f", TRUE,
+    "df.residual", "DF Resid", "%.0f", TRUE,
+    "df.null", "DF Null", "%.0f", TRUE,
+    "sigma", "Sigma", "%.3f", TRUE,
+    "statistic", "Statistics", "%.3f", TRUE,
+    "p.value", "p", "%.3f", TRUE,
+    "df", "DF", "%.0f", TRUE,
+    "null.deviance", "Deviance Null", "%.2f", TRUE,
+    "nimp", "No of Imputations", "%.0f", TRUE,
+  )
+
+  if (show_nimp) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
+  gof <- purrr::map(mod, modelsummary:::extract_gof, fmt, gof_map)
+  gof_map$omit <- TRUE
+
+  CIs <- list()
+  CIs_std <- list()
+  mods <- list()
+  mod_tidy <- list()
+  std_mod_tidy <- list()
+  stat_list <- list()
+
+  for (i in seq_len(length(mod))) {
+    mod_tidy[[i]] <- generics::tidy(mod[[i]])
+    CIs[[i]] <- paste0("[", sprintf(fmt, mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
+    names(CIs_std[[i]]) <- mod_tidy[[i]]$term
+
+    std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
+    CIs_std[[i]] <- paste0("[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
+    names(CIs_std[[i]]) <- std_mod_tidy[[i]]$term
+
+    mods[[i * 2 - 1]] <- mod[[i]]
+    stat_list[[i * 2 - 1]] <- CIs[[i]]
+    mods[[i * 2]] <- std_mod[[i]]
+    stat_list[[i * 2]] <- CIs_std[[i]]
+  }
+
+  names(mods) <- paste0("Model", seq_len(length(mods)))
+
+  col_labels <- rep(list(gt::md("*<center>OR [95% CI]</center>*"), gt::md("*<center>Stand. OR [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
+
+  notes %<>% c(.make_stars_note())
+
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, ...) %>%
+    gt::fmt_markdown(columns = dplyr::everything()) %>%
+    gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
+
+  for (i in seq_along(notes)) {
+    tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
+  }
+
+
+  if (length(mod) > 1) {
+    if (is.null(model_names)) model_names <- paste0("Model", seq_len(length(mod)))
+    for (i in seq_len(length(mod))) {
+      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], ""**"")), columns = (2 * i):(2 * i + 1))
+    }
+  }
+
+  code <- character()
+
+
+  row <- '<tr style="border-top-style: solid; border-top-width: 2px;">
+    <td class="gt_row gt_left" rowspan="1" colspan="1">  <em>N     </td>'
+
+  sums <- paste(purrr::map(gof, function(x) {
+    glue::glue('<td class="gt_row gt_center" rowspan="1" colspan="2"> {x$value[x$term=="*N*"]}   </td>')
+  }), collapse = " ")
+
+  code %<>% paste(row, sums, "</tr>", collapse = "")
+
+  row <- '<tr>
+    <td class="gt_row gt_left" rowspan="1" colspan="1">  <em>R<sup>2</sup>     </td>'
+
+  R2s <- numeric()
+
+  for (i in seq_along(mods)) {
+    if(class(mods[[i]])[1] %in% c("glm", "polr", "multinorm")) {
+      R2s[i] <- pscl::pR2(mods[[i]]) %>% magrittr::extract("r2ML")
+    } else if ("mira" %in% class(mods[[i]])) {
+      R2s[i] <- mean(purrr::map_dbl(mods[[i]]$analyses, function(x) pscl::pR2(x) %>% magrittr::extract("r2ML")))
+    }
+  }
+
+  sums <- paste(purrr::map(R2s, function(x) {
+    glue::glue('<td class="gt_row gt_center" rowspan="1" colspan="2"> {.fmt_cor(as.numeric(x))}   </td>')
+  }), collapse = " ")
+
+  code %<>% paste(row, sums, "</tr>", collapse = "")
+
+
+  temp_file <- tempfile()
+  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  code <- readr::read_file(temp_file) %>% stringr::str_replace("</tbody>", paste(code, "</tbody>"))
+
+  if (!is.null(filename)) {
+    readr::write_file(code, filename)
+  }
+  else {
+    return(list(gt_tab = tab, html_code = code))
+  }
+}
+

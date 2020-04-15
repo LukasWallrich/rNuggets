@@ -40,5 +40,6 @@ Suggests:
     miceadds,
     htmltools,
     readr,
-    xml2
+    xml2,
+    pscl
 RoxygenNote: 7.1.0

@@ -509,3 +509,47 @@ rename_cat_variables <- function(dat, ..., var_names = NULL, level_names = NULL)
   if (length(dat) == 1) dat <- dat[[1]] # To return data.frame if dataframe was passed
   dat
 }
+
+
+#' Add "exp" class
+#'
+#' This function prepares an object so that the S3 method tidy.exp is called
+#' on it by the tidy() function (e.g., in `modelsummary::msummary`)
+#'
+#'
+#' @param x An object, usually containing a logistic regression model
+
+
+add_exp_class <- function(x) {
+  class(x) <- c("exp", class(x))
+  x
+}
+
+#' Tidy function to exponentiate coefficients
+#'
+#' This function calls the tidy method based on the second class of the
+#' object (i.e. after removing the "exp" class that led to it being called),
+#' and then exponentiates the returned estimates and confidence intervals (if any)
+#' in the tibble. This is usually used to turn coefficients of logistic
+#' regression models into Odds Ratios.
+#'
+#'
+#' @param object An object, usually containing a logistic regression model. Should
+#' have the class "exp" as the first of its classes, and then a class that dispatches
+#' it to an appropriate `generics::tidy`` function
+#' @param ... Arguments passed on to the appropriate `tidy` function
+#' @export
+
+tidy.exp <- function(object, ...) {
+  class(object) <- class(object)[-1]
+  out <- generics::tidy(object, ...)
+  browser()
+  out$estimate <- exp(out$estimate)
+  if(!is.null(out$conf.high)) {
+    out$conf.high <- exp(out$conf.high)
+    out$conf.low <- exp(out$conf.low)
+
+  }
+  out
+}
+
