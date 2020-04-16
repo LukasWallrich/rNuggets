@@ -571,6 +571,7 @@ tidy.polr_p <- function(object, ...) {
   out <- generics::tidy(object, ...)
   sig <- MASS::dropterm(object, test = "Chisq")
   p <- sig %>% dplyr::select(`Pr(Chi)`) %>% dplyr::pull() %>% .[-1]
+
   terms <- purrr::map(rownames(sig)[-1], function(x) out$term[stringr::str_detect(out$term, stringr::fixed(x))]) %>% unlist()
   out <- dplyr::left_join(out, tibble::tibble(term = terms, p.value = p), by = "term")
   browser()
