@@ -259,6 +259,20 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
     stop("Length of model names needs to be the same as length of model")
   }
 
+  mod <- purrr::map(mod, function(x) {
+    if(class(x)[1] == "polr") add_class(x, "polr_p") else x
+  })
+
+  std_mod <- purrr::map(std_mod, function(x) {
+    if(class(x)[1] == "polr") add_class(x, "polr_p") else x
+  })
+
+  if(OR) {
+    mod <- purrr::map(mod, add_class, "exp")
+    std_mod <- purrr::map(std_mod, add_class, "exp")
+  }
+
+
   gof_map <- tibble::tribble(
     ~raw, ~clean, ~fmt, ~omit,
 
@@ -291,9 +305,9 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   stat_list <- list()
 
   for (i in seq_len(length(mod))) {
-    mod_tidy[[i]] <- generics::tidy(mod[[i]])
+    mod_tidy[[i]] <- generics::tidy(mod[[i]], conf.int = TRUE, conf.level = conf_level)
     CIs[[i]] <- paste0("[", sprintf(fmt, mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
-    names(CIs_std[[i]]) <- mod_tidy[[i]]$term
+    names(CIs[[i]]) <- mod_tidy[[i]]$term
 
     std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
     CIs_std[[i]] <- paste0("[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
@@ -307,9 +321,16 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   names(mods) <- paste0("Model", seq_len(length(mods)))
 
+  if(OR) {
   col_labels <- rep(list(gt::md("*<center>OR [95% CI]</center>*"), gt::md("*<center>Stand. OR [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
+  } else {
+    col_labels <- rep(list(gt::md("*<center>Coefs [95% CI]</center>*"), gt::md("*<center>Stand. Coefs [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
+  }
 
   notes %<>% c(.make_stars_note())
+
+  #~~~~~~~~~~~~~~~
+  return(TRUE)
 
   tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
