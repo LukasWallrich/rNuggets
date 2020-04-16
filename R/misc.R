@@ -511,17 +511,19 @@ rename_cat_variables <- function(dat, ..., var_names = NULL, level_names = NULL)
 }
 
 
-#' Add "exp" class
+#' Add class
 #'
-#' This function prepares an object so that the S3 method tidy.exp is called
-#' on it by the tidy() function (e.g., in `modelsummary::msummary`)
+#' This function adds a given class to an object, so that
+#' different S3 methods can be called (e.g., `tidy.exp` to get OR for logistic regression models
+#' (e.g., in `modelsummary::msummary`)
 #'
 #'
-#' @param x An object, usually containing a logistic regression model
+#' @param x An object
+#' @param class_to_add String of the class to add, defaults to "exp"
 
 
-add_exp_class <- function(x) {
-  class(x) <- c("exp", class(x))
+add_class <- function(x, class_to_add = "exp") {
+  class(x) <- c(class_to_add, class(x))
   x
 }
 
@@ -543,13 +545,36 @@ add_exp_class <- function(x) {
 tidy.exp <- function(object, ...) {
   class(object) <- class(object)[-1]
   out <- generics::tidy(object, ...)
-  browser()
   out$estimate <- exp(out$estimate)
+  browser()
   if(!is.null(out$conf.high)) {
     out$conf.high <- exp(out$conf.high)
     out$conf.low <- exp(out$conf.low)
-
   }
+  out
+}
+
+#' Tidy polr with added p-values
+#'
+#' This function calls tidy.polr and then adds a p.value column based
+#' on the `MASS::dropterm` chi-squared test. This approach to testing
+#' the significance of model terms was recommeded by Prof Brian Ripley,
+#' the author of the MASS package.
+#'
+#'
+#' @param object An object containing a `polr` model.
+#' @param ... Arguments passed on to the `tidy.polr` function
+#' @source https://r.789695.n4.nabble.com/p-values-of-plor-td4668100.html
+#' @export
+
+tidy.polr_p <- function(object, ...) {
+  class(object)[1] <- "polr"
+  out <- generics::tidy(object, ...)
+  sig <- MASS::dropterm(object, test = "Chisq")
+  p <- sig %>% dplyr::select(`Pr(Chi)`) %>% dplyr::pull() %>% .[-1]
+  terms <- map(rownames(sig)[-1], ~str_extract(out$term, paste0(.x, ".*"))) %>% unlist() %>% .[!is.na(.)]
+  out <- left.join(out, tibble::tibble(term = terms, p.value = p), by = "term")
+  browser()
   out
 }
 
