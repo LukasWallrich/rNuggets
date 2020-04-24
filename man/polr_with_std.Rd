@@ -16,7 +16,7 @@ polr_with_std(
   model_names = NULL,
   show_nimp = FALSE,
  
-    notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable."),
+    notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), standardised OR are only shown for continuous predictors."),
   ...
 )
 }
