@@ -1,13 +1,17 @@
 ---
-title: "Data prep"
+title: "INSERT TITLE"
+author: "NAME"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document:
-    df_print: kable
-    code_folding: hide
-    theme: paper
+  minidown::mini_document:
+    theme: mini
+    code_folding:
+      source: hide
+      output: show
+      message: hide
+      warning: hide
+      error: show
     toc: true
-    toc_depth: 3
     toc_float: true
     number_sections: true
 ---
@@ -18,10 +22,33 @@ library(magrittr)
 #library(rNuggets)
 ```
 
-# Start
 
-```{r}
+# Accordion menu {.collapse}
 
-```
+You can use accordion.
+The `minidown` package plans to support tabsets, but not yet.
+
+::: {menu='How' .show}
+
+Add the collapse class to a heading.
+Under the heading, separate blocks with Pandoc's Divs
+with `menu=title` attribute.
+If you add `show` class, menu is open by default.
+
+:::
+
+::: {menu='Hidden'}
+
+This is hidden by default because of the missing 'show' class.
+
+:::
+
+
+# Icons
+
+Visit https://minicss.org/docs#icons for available icons.
+
+[]{.icon-alert}
+
 
 

@@ -1,6 +1,6 @@
 Package: rNuggets
 Title: Package of useful helper functions for data analysis
-Version: 0.1.5
+Version: 0.1.6
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: This package contains a set of functions that I have written
@@ -41,5 +41,6 @@ Suggests:
     htmltools,
     readr,
     xml2,
-    pscl
+    pscl,
+    minidown
 RoxygenNote: 7.1.0
