@@ -96,6 +96,7 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
 
 .deg2rad <- function(deg) return(deg*pi/180)
 
+std_stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
 
 
 #' Identify rows of dataframe with observations in certain distance from point
@@ -574,7 +575,6 @@ tidy.polr_p <- function(object, ...) {
 
   terms <- purrr::map(rownames(sig)[-1], function(x) out$term[stringr::str_detect(out$term, stringr::fixed(x))]) %>% unlist()
   out <- dplyr::left_join(out, tibble::tibble(term = terms, p.value = p), by = "term")
-  browser()
   out
 }
 

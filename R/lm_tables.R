@@ -94,7 +94,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, ...) %>%
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 
@@ -106,7 +106,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   if (length(mod) > 1) {
     if (is.null(model_names)) model_names <- paste0("Model", seq_len(length(mod)))
     for (i in seq_len(length(mod))) {
-      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], ""**"")), columns = (2 * i):(2 * i + 1))
+      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], "**")), columns = (2 * i):(2 * i + 1))
     }
   }
 
@@ -241,8 +241,9 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
+#' @export
 
-polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable."), ...) {
+polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), standardised OR are only shown for continuous predictors."), ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr", "pscl"))
 
   tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
@@ -306,11 +307,11 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   for (i in seq_len(length(mod))) {
     mod_tidy[[i]] <- generics::tidy(mod[[i]], conf.int = TRUE, conf.level = conf_level)
-    CIs[[i]] <- paste0("[", sprintf(fmt, mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
+    CIs[[i]] <- paste0(sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE), "[", sprintf(fmt, mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, mod_tidy[[i]]$conf.high), "] ")
     names(CIs[[i]]) <- mod_tidy[[i]]$term
 
     std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
-    CIs_std[[i]] <- paste0("[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "] ", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
+    CIs_std[[i]] <- paste0(sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE), "[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "] ")
     names(CIs_std[[i]]) <- std_mod_tidy[[i]]$term
 
     mods[[i * 2 - 1]] <- mod[[i]]
@@ -329,10 +330,8 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   notes %<>% c(.make_stars_note())
 
-  #~~~~~~~~~~~~~~~
-  return(TRUE)
 
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, gof_map = gof_map, ...) %>%
+  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 
@@ -344,7 +343,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   if (length(mod) > 1) {
     if (is.null(model_names)) model_names <- paste0("Model", seq_len(length(mod)))
     for (i in seq_len(length(mod))) {
-      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], ""**"")), columns = (2 * i):(2 * i + 1))
+      tab <- tab %>% gt::tab_spanner(gt::md(paste0("**", model_names[i], "**")), columns = (2 * i):(2 * i + 1))
     }
   }
 

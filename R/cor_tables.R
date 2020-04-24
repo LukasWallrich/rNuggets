@@ -1,10 +1,11 @@
 #' Create a correlation table with summary statistics in APA style
 #'
-#' This function, creates (and #' optionally saves) a correlation table with
-#' summary statistics. It accepts
+#' This function, creates (and optionally saves) a correlation table with
+#' summary statistics. It accepts correlation matrices from various functions
+#' in this package as its first argument
 #'
-#' @param cor_matrix A correlation matrix, for example returned from \code{
-#' survey_cor_matrix()}, \code{wtd_cor_matrix()}
+#' @param cor_matrix A correlation matrix, for example returned from
+#' \code{cor_matrix()}, \code{survey_cor_matrix()}, or \code{wtd_cor_matrix_mi()}
 #' @param notes List of additional notes to show under the table.
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @inheritParams sigstars
