@@ -35,6 +35,22 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
                                  ". ", rownames(cor_matrix[[1]]),
                                  sep = ""
   )
+  if (!is.null(cor_matrix[["ci.low"]])) {
+    message("Confidence intervals are extracted from correlation matrix")
+  } else {
+    message("Confidence intervals are calculated based on correlation coefficient +/- 2 SE")
+  }
+
+  get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
+    if(!is.null(cor_matrix[["ci.low"]])) return(cor_matrix[["ci.low"]][i,j])
+    cor.r - 2 * cor.se
+  }
+
+  get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
+    if(!is.null(cor_matrix[["ci.high"]])) return(cor_matrix[["ci.high"]][i,j])
+    cor.r + 2 * cor.se
+  }
+
 
   for (i in 1:number_variables) {
     output_descriptives[i, 1] <- paste0(
@@ -46,11 +62,12 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
         cor.r <- cor_matrix$cors[i, j]
         cor.p <- cor_matrix$p.values[i, j]
         cor.se <- cor_matrix$std.err[i, j]
+        cor.ci.low <- get_cor.ci.low(cor_matrix, cor.r, cor.se, i, j)
+        cor.ci.high <- get_cor.ci.high(cor_matrix, cor.r, cor.se, i, j)
         output_cor[i, j] <- paste(.fmt_cor(cor.r), sigstars(cor.p, stars))
-        cor_ci_string <- paste0(cor.r - 2 * cor.se, cor.r + 2 * cor.se)
         output_ci[i, j] <- paste0(
           '<span style="font-size:80%">',
-          "[", .fmt_cor(cor.r - 2 * cor.se), ", ", .fmt_cor(cor.r + 2 * cor.se), "]",
+          "[", .fmt_cor(cor.ci.low), ", ", .fmt_cor(cor.ci.high), "]",
           "</span>"
         )
       }
@@ -107,9 +124,9 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
 #' @param x Dataframe of variables that can be coerced to numeric.
 #' @param var_names A named character vector with the names that should be displayed
 #' for variables. If NULL, then the variables are not renamed.
-#' @inheritParams psych::corr.test
+#' @inheritParams psych::corr.test -y -minlength -ci
 #' @inheritDotParams psych::corr.test
-#' @return A list including the correlation matrix, p-values, standard errors and descriptives
+#' @return A list including the correlation matrix, p-values, standard errors, confidence intervals and descriptives
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 #' @export
@@ -124,7 +141,7 @@ cor_matrix <- function(x,
   x %<>% dplyr::select_if(is.numeric)
 
   # Compute correlation matrix
-  correlation_matrix <- psych::corr.test(x, method = method[1])
+  correlation_matrix <- psych::corr.test(x, method = method[1], adjust = adjust, ...)
   cors <- correlation_matrix$r # Matrix of correlation coeficients
   p.values <- correlation_matrix$p # Matrix of p-value
   std.err <- correlation_matrix$se # Matrix of p-value
@@ -133,6 +150,14 @@ cor_matrix <- function(x,
   #Copy (possibly) adjusted p-values into lower half that will be used by apa_cor_table()
   p.values[lower.tri(p.values)] <- t(p.values)[lower.tri(p.values)]
 
+  ci_low <- p.values
+  ci_low[TRUE] <- NA
+  ci_low[lower.tri(ci_low)] <- correlation_matrix$ci$lower
+
+  ci_high <- p.values
+  ci_high[TRUE] <- NA
+  ci_high[lower.tri(ci_high)] <- correlation_matrix$ci$upper
+
 
   desc_stat <- x %>%
     psych::describe() %>%
@@ -140,16 +165,16 @@ cor_matrix <- function(x,
     tibble::rownames_to_column("var") %>%
     dplyr::select(.data$var, M = .data$mean, SD = .data$sd)
 
-  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, desc = desc_stat)
+  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, ci.low = ci_low, ci.high = ci_high, desc = desc_stat)
 
   if (!is.null(var_names)) {
-    corM[1:4] <- purrr::map(corM[1:4], function(x) {
+    corM[1:6] <- purrr::map(corM[1:6], function(x) {
       rownames(x) <- rownames(x) %>% stringr::str_replace_all(var_names)
       colnames(x) <- colnames(x) %>% stringr::str_replace_all(var_names)
       x
     })
     used_vars <- intersect(var_names, rownames(corM[[1]]))
-    corM[1:4] <- purrr::map(corM[1:4], function(x) x[used_vars, used_vars])
+    corM[1:6] <- purrr::map(corM[1:6], function(x) x[used_vars, used_vars])
     rownames(corM$desc) <- rownames(corM$desc) %>% stringr::str_replace_all(var_names)
     corM$desc$var %<>% stringr::str_replace_all(var_names)
     corM$desc <- corM$desc[match(corM$desc$var, used_vars), ]
