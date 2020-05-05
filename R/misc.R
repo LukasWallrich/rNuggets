@@ -266,6 +266,7 @@ fmt_p <- function(p_value, sig_dig = 3) {
   fmt_p <- function(x) paste0("= ", sprintf(fmt, x)) %>%
   stringr::str_replace(" 0.", " .")
   exact <- ifelse(p_value < .001, FALSE, TRUE)
+  exact[is.na(exact)] <- TRUE
   out <- p_value
   out[exact] <- purrr::map_chr(out[exact], fmt_p)
   out[!exact] <- "< .001"
