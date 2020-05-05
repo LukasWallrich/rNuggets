@@ -23,7 +23,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
   glance.mira <- getFromNamespace("glance.mira", "modelsummary")
 
-  if ((is.list(mod) | is.list(std_mod)) & !(length(mod) == length(std_mod))) {
+  if ((class(mod)[1]=="list" | class(std_mod)[1]=="list") & !(length(mod) == length(std_mod))) {
     stop("Same number of models need to be included in mod and std_mod arguments")
   }
 
