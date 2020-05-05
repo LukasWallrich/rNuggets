@@ -9,7 +9,8 @@
 #' @param notes List of additional notes to show under the table.
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @inheritParams sigstars
-#' @param add_title Logical. Should title be added to table?
+#' @param add_title Should title be added to table? Set to TRUE for default title or to character for custom title
+#' @param extras Tibble of additional columns to be added after the descriptives column - needs to be sorted in the same order as the `desc` element in the cor_matrix
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
 #' accept weighted correlation matrices and work with the `gt` package instead`
 #' @return A table that can be printed in the RStudio console to be shown in the
@@ -18,7 +19,9 @@
 #' @export
 
 apa_cor_table <- function(cor_matrix, filename = NULL,
-                          notes = list(NULL), stars = NULL, add_title = TRUE) {
+                          notes = list(NULL), stars = NULL, add_title = FALSE, extras = NULL) {
+
+  if(add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
 
   .check_req_packages("gt")
 
@@ -77,12 +80,20 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
   cor_cells <- paste(output_cor, output_ci, sep = "<br />")
   dim(cor_cells) <- dim(output_cor)
 
+  if(is.null(extras)) {
   cells <- cbind(
     matrix(output_variable_names, ncol = 1),
     output_descriptives, cor_cells
-  )
+  ) } else {
+    message("Note that ordering of 'extras' argument is not checked - ensure that it matches 'desc' in the correlation matrix.")
+    cells <- cbind(
+      matrix(output_variable_names, ncol = 1),
+      output_descriptives, extras, cor_cells,
+      stringsAsFactors = FALSE
+    )
+  }
 
-  colnames(cells) <- c("Variable", "desc", seq_len(length(output_variable_names) - 1))
+  colnames(cells) <- c("Variable", "desc", colnames(extras), seq_len(length(output_variable_names) - 1))
 
   cells_df <- tibble::as_tibble(cells)
 
@@ -99,9 +110,9 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
   }
 
-  if(add_title) {
+  if(is.character(add_title)) {
   tab <- tab %>% gt::tab_header(
-    title = "Means, standard deviations, and correlations with confidence intervals"
+    title = add_title
   )
   }
 
