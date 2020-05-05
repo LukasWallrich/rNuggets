@@ -43,7 +43,7 @@ spearman_brown <- function(df, items, name = "", SB_only = FALSE) {
 #'   and Pearson's "r" are also supported.
 #' @param r_key (optional) Numeric. Set to the possible maximum value of the scale
 #' if the whole scale should be reversed, or to -1 to reverse the scale based on
-#' the observed maximum
+#' the observed maximum.
 #' @param print_hist Logical. Should histograms for items and resulting scale be printed?
 #' @param print_desc Logical. Should descriptives for scales be printed?
 #' @param return_list Logical. Should only scale values be returned, or descriptives as well?
@@ -54,12 +54,12 @@ spearman_brown <- function(df, items, name = "", SB_only = FALSE) {
 
 make_scale <- function(df, scale_items, scale_name, reverse = c("auto",
     "none", "spec"), reverse_items = NULL, two_items_reliability = c("spearman_brown", "cron_alpha",
-    "r"), r_key = NULL, print_hist = T, print_desc = T, return_list = F) {
-scale_vals <- df %>%
+    "r"), r_key = NULL, print_hist = TRUE, print_desc = TRUE, return_list = FALSE) {
+
+  if (is.null(r_key)) r_key <- 0
+  scale_vals <- df %>%
   dplyr::select(dplyr::one_of(scale_items)) %>%
-  {
-    as.data.frame(purrr::map(.data, as.integer))
-  }
+  dplyr::mutate_all(as.numeric)
     if ((reverse != "spec")[1]) {
         check.keys <- ifelse(reverse == "none", F, T)
         alpha_obj <- suppressWarnings(scale_vals %>% psych::alpha(na.rm = TRUE, check.keys = check.keys))
@@ -106,12 +106,12 @@ scale_vals <- df %>%
     }
     if (print_hist) {
         cbind(scale_vals, Scale = alpha_obj$scores) %>% tidyr::gather(key = "category", value = "resp",
-            factor_key = T) %>% {
-            print(ggplot2::ggplot(.data, ggplot2::aes(x = .data$resp)) +
+            factor_key = TRUE) %>%
+            ggplot2::ggplot(ggplot2::aes(x = .data$resp)) +
                       ggplot2::geom_histogram(binwidth = 0.5) +
                       ggplot2::facet_wrap(~.data$category) +
-                      ggplot2::ggtitle(paste0("Histogram for ", scale_name)))
-        }
+                      ggplot2::ggtitle(paste0("Histogram for ", scale_name)) %>%
+            print()
     }
     if (return_list)
         return(list(scores = alpha_obj$scores, descriptives = descriptives))
@@ -143,7 +143,7 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
 
             scales_rev_values <- purrr::pmap(list(scale_items = items[scales_rev], scale_name = scales_rev,
                 reverse_items = reversed[scales_rev]), make_scale, df = df, return_list = T,
-                reverse = "spec", two_items_reliability, ...) %>% data.table::transpose()
+                reverse = "spec", two_items_reliability, ...) %>% purrr::transpose()
 
         } else {
             stop("Reverse list and variable lists cannot be matched - check that they have same names")
@@ -158,7 +158,7 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
             paste0(scales_n_rev, collapse = ", ")))
 
         scales_n_rev_values <- purrr::map2(items[scales_n_rev], scales_n_rev, make_scale, df = df,
-            return_list = T, reverse = "none", two_items_reliability, ...) %>% data.table::transpose()
+            return_list = T, reverse = "none", two_items_reliability, ...) %>% purrr::transpose()
     }
 
     scores <- if (exists("scales_n_rev_values") & exists("scales_rev_values")) {
