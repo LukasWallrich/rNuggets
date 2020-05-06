@@ -96,7 +96,12 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #'
 #' This runs lm() after standardising all continuous variables, while leaving
 #' factors intact. It does not take a data argument, so it is intended to be used with
-#' with() - if a data argument is needed, use `run_lm()` instead.
+#' with() or %$% - if a data argument is needed, use `run_lm()` instead.
+#'
+#' In the model call, the weights variable will always be calles weights. This might
+#' pose a problem when you update the model later on, for  the moment the only workaround
+#' is to rename the weights variable accordingly (or to fix it and contribute a PR on
+#' Github).
 #'
 #' @inheritParams stats::lm
 #' @param rename_std Logical. Should standardised variables be indicated by _sd
@@ -139,9 +144,13 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
    formula <- formula %>%
         stringr::str_replace_all(c(repl))
     }
-    formula <- as.formula(formula) #Rebuilds formula in current environment
-
-    mod <- lm(formula, weights = weights, ...)
+    #formula <- as.formula(formula) #Rebuilds formula in current environment
+    if(!is.null(weights)) {
+        mod <- eval(parse(text=glue::glue("lm({formula}, weights = weights, ...)")))
+    } else {
+      mod <- eval(parse(text=glue::glue("lm({formula}, ...)")))
+    }
+    #mod <- lm(formula, weights = weights, ...)
     mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
     class(mod) <- c(class(mod), "rN_std")
     mod
