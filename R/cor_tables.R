@@ -135,8 +135,8 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
 #' @param x Dataframe of variables that can be coerced to numeric.
 #' @param var_names A named character vector with the names that should be displayed
 #' for variables. If NULL, then the variables are not renamed.
-#' @inheritParams psych::corr.test -y -minlength -ci
-#' @inheritDotParams psych::corr.test
+#' @inheritParams psych::corr.test
+#' @inheritDotParams psych::corr.test -y -minlength -ci
 #' @return A list including the correlation matrix, p-values, standard errors, confidence intervals and descriptives
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package

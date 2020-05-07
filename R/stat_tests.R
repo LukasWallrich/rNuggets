@@ -139,7 +139,7 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
     formula <- Reduce(paste, deparse(formula))
 
     if (rename_std) {
-    repl <- paste0(vars_num, "_sc")
+    repl <- paste0(vars_num, "_sd")
     names(repl) <- vars_num
    formula <- formula %>%
         stringr::str_replace_all(c(repl))

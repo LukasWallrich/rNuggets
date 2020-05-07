@@ -87,7 +87,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
 
   if ("rN_std" %in% class(std_mod[[1]]) | ("mira" %in% class(std_mod[[1]]) & "rN_std" %in% class(std_mod[[1]][[1]]))) {
-    notes %<>% c("Given that dummy variables loose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable.")
+    notes %<>% c("Given that dummy variables lose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable.")
   }
 
   notes %<>% c(.make_stars_note())

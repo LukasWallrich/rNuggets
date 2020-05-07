@@ -13,6 +13,7 @@
 #' @encoding UTF-8
 #' @param p A \emph{p}-value or (more commonly) a vector of \emph{p}-values
 #' @param stars A character vector to change the significance symbols (see details in `sigstars`)
+#' @param ns Logical. Should non-significant values be highlighted as "ns"?
 #' @param pad_html Should all results be padded right to the same width with HTML non-breaking spaces?
 #' @return A character vector of significance stars for each \emph{p}-value,
 #' each padded with spaces to be four characters long
@@ -20,9 +21,9 @@
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 #' @export
 
-sigstars <- function(p, stars = NULL, pad_html = FALSE) {
+sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
-  ns <- ""
+  ns <- ifelse(ns == TRUE, "<sup>ns</sup>", "")
   if (pad_html) {
     .check_req_packages(c("xml2"), note = "Trying to add HTML-padding to sigstars.")
     stars2 <- names(stars)
@@ -32,7 +33,7 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE) {
     stars3 <- purrr::map_chr(stars2, .pad, len)
     stars3 %>% stringr::str_replace_all(stringr::fixed(stars2), names(stars))
     names(stars) = stars3
-    ns <- paste0(rep("&nbsp;", len), collapse = "")
+    ns <- paste0(ns, rep("&nbsp;", len-nchar(ns)), collapse = "")
   }
 
   out <- rep(ns, length(p))
@@ -275,7 +276,7 @@ fmt_p <- function(p_value, sig_dig = 3) {
 
 .fmt_pct <- function(x, digits = 1) {
   fmt <- paste0("%1.", digits, "f%%")
-  sprintf("%1f", x*100)
+  sprintf(fmt, x*100)
 }
 
 
@@ -538,15 +539,15 @@ add_class <- function(x, class_to_add = "exp") {
 #' regression models into Odds Ratios.
 #'
 #'
-#' @param object An object, usually containing a logistic regression model. Should
+#' @param x An object, usually containing a logistic regression model. Should
 #' have the class "exp" as the first of its classes, and then a class that dispatches
 #' it to an appropriate `generics::tidy`` function
 #' @param ... Arguments passed on to the appropriate `tidy` function
 #' @export
 
-tidy.exp <- function(object, ...) {
-  class(object) <- class(object)[-1]
-  out <- generics::tidy(object, ...)
+tidy.exp <- function(x, ...) {
+  class(x) <- class(x)[-1]
+  out <- generics::tidy(x, ...)
   out$estimate <- exp(out$estimate)
   if(!is.null(out$conf.high)) {
     out$conf.high <- exp(out$conf.high)
@@ -563,16 +564,16 @@ tidy.exp <- function(object, ...) {
 #' the author of the MASS package.
 #'
 #'
-#' @param object An object containing a `polr` model.
+#' @param x An object containing a `polr` model.
 #' @param ... Arguments passed on to the `tidy.polr` function
 #' @source https://r.789695.n4.nabble.com/p-values-of-plor-td4668100.html
 #' @export
 
-tidy.polr_p <- function(object, ...) {
-  class(object)[1] <- "polr"
-  out <- generics::tidy(object, ...)
-  sig <- MASS::dropterm(object, test = "Chisq")
-  p <- sig %>% dplyr::select(`Pr(Chi)`) %>% dplyr::pull() %>% .[-1]
+tidy.polr_p <- function(x, ...) {
+  class(x)[1] <- "polr"
+  out <- generics::tidy(x, ...)
+  sig <- MASS::dropterm(x, test = "Chisq")
+  p <- sig %>% dplyr::select(.data$`Pr(Chi)`) %>% dplyr::pull() %>% .[-1]
 
   terms <- purrr::map(rownames(sig)[-1], function(x) out$term[stringr::str_detect(out$term, stringr::fixed(x))]) %>% unlist()
   out <- dplyr::left_join(out, tibble::tibble(term = terms, p.value = p), by = "term")
