@@ -7,10 +7,10 @@
 https://r.789695.n4.nabble.com/p-values-of-plor-td4668100.html
 }
 \usage{
-\method{tidy}{polr_p}(object, ...)
+\method{tidy}{polr_p}(x, ...)
 }
 \arguments{
-\item{object}{An object containing a `polr` model.}
+\item{x}{An object containing a `polr` model.}
 
 \item{...}{Arguments passed on to the `tidy.polr` function}
 }

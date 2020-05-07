@@ -42,5 +42,6 @@ Suggests:
     readr,
     xml2,
     pscl,
-    minidown
+    minidown,
+    MASS
 RoxygenNote: 7.1.0

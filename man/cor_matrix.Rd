@@ -29,15 +29,12 @@ for variables. If NULL, then the variables are not renamed.}
 \item{...}{
   Arguments passed on to \code{\link[psych:corr.test]{psych::corr.test}}
   \describe{
-    \item{\code{y}}{A second matrix or dataframe with the same number of rows as x }
     \item{\code{use}}{use="pairwise" is the default value and will do pairwise deletion of cases. use="complete" will select just complete cases. }
     \item{\code{alpha}}{alpha level of confidence intervals}
-    \item{\code{ci}}{By default, confidence intervals are found.  However, this leads to a noticable slowdown of speed, particularly for large problems.  So, for just the rs, ts and ps, set ci=FALSE}
-    \item{\code{minlength}}{What is the minimum length for abbreviations.  Defaults to 5.}
   }}
 }
 \value{
-A list including the correlation matrix, p-values, standard errors and descriptives
+A list including the correlation matrix, p-values, standard errors, confidence intervals and descriptives
 }
 \description{
 Calculates the correlation matrix between the numeric variables in a given dataframe and

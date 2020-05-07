@@ -9,7 +9,7 @@ Adapted from
  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 }
 \usage{
-sigstars(p, stars = NULL, pad_html = FALSE)
+sigstars(p, stars = NULL, pad_html = FALSE, ns = FALSE)
 }
 \arguments{
 \item{p}{A \emph{p}-value or (more commonly) a vector of \emph{p}-values}
@@ -17,6 +17,8 @@ sigstars(p, stars = NULL, pad_html = FALSE)
 \item{stars}{A character vector to change the significance symbols (see details in `sigstars`)}
 
 \item{pad_html}{Should all results be padded right to the same width with HTML non-breaking spaces?}
+
+\item{ns}{Logical. Should non-significant values be highlighted as "ns"?}
 }
 \value{
 A character vector of significance stars for each \emph{p}-value,

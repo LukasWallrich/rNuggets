@@ -12,9 +12,9 @@ make_scale(
   reverse_items = NULL,
   two_items_reliability = c("spearman_brown", "cron_alpha", "r"),
   r_key = NULL,
-  print_hist = T,
-  print_desc = T,
-  return_list = F
+  print_hist = TRUE,
+  print_desc = TRUE,
+  return_list = FALSE
 )
 }
 \arguments{
@@ -37,7 +37,7 @@ and Pearson's "r" are also supported.}
 
 \item{r_key}{(optional) Numeric. Set to the possible maximum value of the scale
 if the whole scale should be reversed, or to -1 to reverse the scale based on
-the observed maximum}
+the observed maximum.}
 
 \item{print_hist}{Logical. Should histograms for items and resulting scale be printed?}
 

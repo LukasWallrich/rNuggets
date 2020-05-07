@@ -13,7 +13,8 @@ apa_cor_table(
   filename = NULL,
   notes = list(NULL),
   stars = NULL,
-  add_title = TRUE
+  add_title = FALSE,
+  extras = NULL
 )
 }
 \arguments{
@@ -26,7 +27,9 @@ apa_cor_table(
 
 \item{stars}{A character vector to change the significance symbols (see details in `sigstars`)}
 
-\item{add_title}{Logical. Should title be added to table?}
+\item{add_title}{Should title be added to table? Set to TRUE for default title or to character for custom title}
+
+\item{extras}{Tibble of additional columns to be added after the descriptives column - needs to be sorted in the same order as the `desc` element in the cor_matrix}
 }
 \value{
 A table that can be printed in the RStudio console to be shown in the

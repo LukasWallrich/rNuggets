@@ -66,7 +66,13 @@ suffix}
 \description{
 This runs lm() after standardising all continuous variables, while leaving
 factors intact. It does not take a data argument, so it is intended to be used with
-with() - if a data argument is needed, use `run_lm()` instead.
+with() or %$% - if a data argument is needed, use `run_lm()` instead.
+}
+\details{
+In the model call, the weights variable will always be calles weights. This might
+pose a problem when you update the model later on, for  the moment the only workaround
+is to rename the weights variable accordingly (or to fix it and contribute a PR on
+Github).
 }
 \references{
 See (Fox, 2015) for an argument why dummy variables should never

@@ -4,10 +4,10 @@
 \alias{tidy.exp}
 \title{Tidy function to exponentiate coefficients}
 \usage{
-\method{tidy}{exp}(object, ...)
+\method{tidy}{exp}(x, ...)
 }
 \arguments{
-\item{object}{An object, usually containing a logistic regression model. Should
+\item{x}{An object, usually containing a logistic regression model. Should
 have the class "exp" as the first of its classes, and then a class that dispatches
 it to an appropriate `generics::tidy`` function}
 
