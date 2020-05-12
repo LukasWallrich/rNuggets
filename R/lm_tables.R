@@ -214,15 +214,6 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
   )
 }
 
-.check_req_packages <- function(x, note = "") {
-  if (suppressWarnings(!all(lapply(x, requireNamespace, quietly = TRUE)))) {
-    stop(paste0(note, "Some required packages are not installed. Make sure you have
-               these packages: ", paste0(x, collapse = ", ")),
-      call. = FALSE
-    )
-  }
-}
-
 
 #' Creates a summary table comparing standardised and non-standardised
 #' proportional odd logistic regression models

@@ -43,5 +43,9 @@ Suggests:
     xml2,
     pscl,
     minidown,
-    MASS
+    MASS,
+    DiagrammeR,
+    clipr,
+    DiagrammeRsvg,
+    rsvg
 RoxygenNote: 7.1.0
