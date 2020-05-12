@@ -580,3 +580,22 @@ tidy.polr_p <- function(x, ...) {
   out
 }
 
+#' Dump objects to clipboard (to transfer them between R sessions)
+#'
+#' This function calls dump on one or several R objects, which creates code that recreates them from the console.
+#' It then copies this code to the clipboard. This can be used to quickly copy (small) objects between R sessions,
+#' for instance during package development and testing, or - of course - to paste the dump code into a forum post.
+#'
+#' @param objects A character vector containing the names of one or more objects in the current session.
+#' @export
+
+dump_to_clip <- function(objects) {
+  .check_req_packages("clipr")
+  if(!is.character(objects)) stop("'objects' need to be a character vector with one or more R objects")
+  utils::capture.output(dump(objects, file="")) %>% clipr::write_clip()
+}
+
+
+.fmt_ci <- function(lower, upper, digits = 2) {
+  paste0("[", round(lower, digits), ", ", round(upper, digits), "]")
+}
