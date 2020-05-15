@@ -7,7 +7,9 @@
 #'
 #' @param df A dataframe
 #' @param fun A function that is applied to the dataframe and the
-#' output of which is printed
+#' output of which is printed. If the argument is not passed, df is
+#' merely printed and not returned, which only makes sense in combination
+#' with the `note` argument
 #' @param ... Arguments passed on to \code{fun}
 #' @param note A string that is printed above the \code{fun}-output
 #' @param return Logical - should df be returned?
@@ -22,7 +24,12 @@
 #' x <- 1:5 %>% tunnel(mean, note="Mean") %>% tunnel(sd, note="SD")
 #' x
 
-tunnel <- function(df, fun, ..., note=NULL, return=T) {
+tunnel <- function(df, fun, ..., note=NULL, return=TRUE) {
+  if (missing(fun)) {
+    fun <- function(x) x
+    return = FALSE
+  }
+
   if (!is.null(note)) print(note)
   print(fun(df, ...))
   if (return) return(df) else invisible(NULL)
