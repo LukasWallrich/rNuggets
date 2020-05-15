@@ -4,7 +4,7 @@ author: "NAME"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   minidown::mini_document:
-    theme: mini
+    code_download: true
     code_folding:
       source: hide
       output: show
