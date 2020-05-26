@@ -17,6 +17,9 @@
 
 plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL) {
 
+  .check_req_packages(c("glue", "DiagrammeR"))
+
+
   stylec <- ifelse(df$pvalue[df$type=="direct"] < .05, "solid", "dashed")
 
   determine_positions <- function(num_Ms) {
@@ -124,7 +127,7 @@ if (!is.null(filename)) {
   } else {
     ext <- stringr::str_sub(filename, -3)
     if (!(ext %in% c("pdf", "svg", "png"))) {
-      warning("File extension should be pdf, png or svg. Defaults to png now, but you will need to rename the file to open it")
+      warning("File extension should be pdf, png or svg. Defaults to png now, but you might need to rename the file to open it")
       ext <- "svg"
     }
     if (ext == "pdf") {
@@ -150,6 +153,118 @@ if (!is.null(filename)) {
 
 
 }
+
+.null_transformer <- function(str = "") {
+  function(text, envir) {
+    out <- glue::identity_transformer(text, envir)
+    if (is.null(out)) {
+      return(str)
+    }
+
+    out
+  }
+}
+
+moderated_mediation <- function(X, M, W, Y, mod_direct_path = TRUE, labels = list(a="+", b="+", c="+", a_mod = "+", c_mod = "+"), filename = NULL) {
+
+
+
+    .check_req_packages(c("glue", "DiagrammeR"))
+
+  #Set parameters
+
+  a <- labels$a
+  b <- labels$b
+  c <- labels$c
+  a_mod <- labels$a_mod
+  c_mod <- labels$c_mod
+
+
+code <-  glue::glue(.transformer = .null_transformer(), "digraph {{
+
+        graph [layout = 'neato',
+        outputorder = 'edgesfirst',
+        bgcolor = 'white', rankdir=LR,]
+
+        node [fontname = 'Helvetica',
+        fontsize = '10',
+        shape = 'circle',
+        fixedsize = 'true',
+        width = '0.5',
+        style = 'filled',
+        fillcolor = 'white',
+        color = 'black',
+        fontcolor = 'black']
+
+
+
+        'X' [label = <{X}>, color = 'black', shape = 'rectangle', height = '0.5', width = '1.5', pos = '0,0!']
+        'Y' [label = <{Y}>, color = 'black', shape = 'rectangle', height = '0.5', width = '1.5', pos = '5,0!']
+        'M' [label = <{M}>, color = 'black', shape = 'rectangle', height = '0.5', width = '1.5', pos = '2.5,1!']
+        'a' [label = <{a}>  color = 'black', fillcolor='transparent', shape = 'plaintext', pos = '0.75,0.5!']
+        'amod' [label = <{a_mod}>  color = 'black', fillcolor='transparent', shape = 'plaintext', pos = '0.9,0.8!']
+        'b' [label = <{b}>, color = 'black', fillcolor='transparent', shape = 'plaintext', pos = '3.8,0.65!']
+        'c' [label = <{c}>, color = 'black', fillcolor='transparent', shape = 'plaintext', pos = '2.45,-0.15!']
+        'W' [label = <{W}>, color = 'black', shape = 'rectangle', height = '0.5', width = '1.2', pos = '0.75,1.4!']
+        'MW' [style = invis, pos = '1.3,0.5!', height = '0', width = '0']
+        {if(mod_direct_path) '\\'XW\\' [style = invis, pos = \\'2,0!\\', height = \\'0\\', width = \\'0\\']'}
+        {if(mod_direct_path) glue::glue('\\'cmod\\' [label = <{c_mod}>, color = \\'black\\', shape = \\'plaintext\\', fillcolor=\\'transparent\\', pos = \\'1.9,0.4!\\']')}
+
+        edge [fontname = 'Helvetica',
+        fontsize = '10',
+        len = '1.5',
+        color = 'black',
+        arrowsize = '0.5']
+
+        X->MW  [arrowhead=none]
+        MW -> M
+        M->Y
+        W->MW
+        {ifelse(mod_direct_path, '    X->XW [arrowhead=none] \n    XW -> Y \n    W->XW', '    X->Y')}
+}
+
+
+
+        }}")
+
+browser()
+
+  graph <- code %>% DiagrammeR::grViz()
+
+  if (!is.null(filename)) {
+    if (suppressWarnings(!all(lapply(c("DiagrammeRsvg", "rsvg"), requireNamespace, quietly = TRUE)))) {
+      warning("To save the diagramme, you need the following packages: DiagrammeRsvg & rsvg. File not saved.")
+    } else {
+      ext <- stringr::str_sub(filename, -3)
+      if (!(ext %in% c("pdf", "svg", "png"))) {
+        warning("File extension should be pdf, png or svg. Defaults to png now, but you might need to rename the file to open it")
+        ext <- "svg"
+      }
+      if (ext == "pdf") {
+        graph %>%
+          DiagrammeRsvg::export_svg() %>%
+          charToRaw() %>%
+          rsvg::rsvg_pdf(filename)
+      } else if (ext == "svg") {
+        graph %>%
+          DiagrammeRsvg::export_svg() %>%
+          charToRaw() %>%
+          rsvg::rsvg_svg(filename)
+      } else if (ext == "png") {
+        graph %>%
+          DiagrammeRsvg::export_svg() %>%
+          charToRaw() %>%
+          rsvg::rsvg_png(filename)
+      }
+    }
+  }
+  out <- .named_list(code, graph)
+
+
+
+
+}
+
 
 .named_list <- function(...) {
   out <- list(...)
