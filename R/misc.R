@@ -597,5 +597,5 @@ dump_to_clip <- function(objects) {
 
 
 .fmt_ci <- function(lower, upper, digits = 2) {
-  paste0("[", round(lower, digits), ", ", round(upper, digits), "]")
+  paste0("[", sprintf(paste0("%.", digits, "f"), round(lower, digits)), ", ", sprintf(paste0("%.", digits, "f"), round(upper, digits)), "]")
 }
