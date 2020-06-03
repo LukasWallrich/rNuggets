@@ -15,7 +15,7 @@
 #' @source https://www.r-bloggers.com/five-ways-to-calculate-internal-consistency/
 #'
 spearman_brown <- function(df, items, name = "", SB_only = FALSE) {
-    cor_value <- cor.test(df[, items[1]], df[, items[2]], na.rm = T)$estimate
+    cor_value <- cor.test(magrittr::extract2(df, items[1]), magrittr::extract2(df, items[2]), na.rm = T)$estimate
     SB_value <- (abs(cor_value) * 2)/(1 + abs(cor_value))
     if (SB_only)
         return(SB_value)
