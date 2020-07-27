@@ -9,7 +9,7 @@ Adapted from
  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 }
 \usage{
-sigstars(p, stars = NULL, pad_html = FALSE, ns = FALSE)
+sigstars(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs = FALSE)
 }
 \arguments{
 \item{p}{A \emph{p}-value or (more commonly) a vector of \emph{p}-values}
@@ -19,6 +19,8 @@ sigstars(p, stars = NULL, pad_html = FALSE, ns = FALSE)
 \item{pad_html}{Should all results be padded right to the same width with HTML non-breaking spaces?}
 
 \item{ns}{Logical. Should non-significant values be highlighted as "ns"?}
+
+\item{return_NAs}{Logical. Should NAs be returned? If not, empty strings are returned instead.}
 }
 \value{
 A character vector of significance stars for each \emph{p}-value,
@@ -26,7 +28,8 @@ each padded with spaces to be four characters long
 }
 \description{
 Function returns significance stars for \emph{p}-values, most likely for use
-in tables that report the results of multiple statistical tests.
+in tables that report the results of multiple statistical tests. An empty
+string is returned for NAs, unless that behaviour is overwritten.
 }
 \details{
 Symbols and tresholds are *** \emph{p} < .001,  ** \emph{p} < .01, * \emph{p}

@@ -13,5 +13,6 @@ to_tribble(x, show = FALSE)
 }
 \description{
 Tribbles are an easy way to legibly input data, and therefore helpful for teaching and interactive work. This function takes
-a tibble and returns code that can recreate it.
+a tibble and returns code that can recreate it. Note that this function converts
+"NA" to NA.
 }

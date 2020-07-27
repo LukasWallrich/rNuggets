@@ -48,6 +48,12 @@ estimates. FALSE if statistics should be printed beside estimates.}
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
   \describe{
+    \item{\code{output}}{filename or object type (string)
+\itemize{
+  \item Supported filename extensions: .html, .tex, .md, .txt, .png, .jpg. 
+  \item Supported object types: "default", "html", "markdown", "latex", "gt", "kableExtra", "huxtable", "flextable".
+  \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kable::save_kable`, or `cat` functions.
+}}
     \item{\code{coef_map}}{named character vector. Names refer to the original variable
 names. Values refer to the variable names that will appear in the table.
 Coefficients which are omitted from this vector will be omitted from the
@@ -58,13 +64,22 @@ from the table (using `stringr::str_detect`).}
 `omit`. See `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `stringr::str_detect`).}
+    \item{\code{add_rows}}{a data.frame (or tibble) with the following columns: 
+\itemize{
+  \item section (character): insert in "middle" or "bottom" section of the table
+  \item position (integer): row position in the section
+  \item term (character): string to display under coefficient names
+  \item one column per model with the same name as that model with the
+        values to insert (some models can be omitted). 
+  \item See the examples section of this documentation and an example.
+}}
     \item{\code{title}}{string}
-    \item{\code{subtitle}}{string}
-    \item{\code{add_rows}}{list of character vectors, each of length equal to the number
-of models + 1.}
-    \item{\code{add_rows_location}}{integer or NULL. custom rows will be added to the
-bottom of the table if this parameter is NULL, or after the position set by
-this integer.}
+    \item{\code{estimate}}{character name of the estimate to display. Must be a column
+name in the dataframe produced by `tidy(model)`. In the vast majority of
+cases, the default value of this argument should not be changed.}
+    \item{\code{subtitle}}{This argument is deprecated. Use `title` or the `tab_header`}
+    \item{\code{add_rows_location}}{This argument is deprecated. Use a data.frame as
+described in the documentation for the `add_rows` argument.}
   }}
 }
 \description{

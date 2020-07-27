@@ -8,13 +8,15 @@ Inspired by the magrittr \code{\%T>\%} operator that promises similar
   functionality but often didn't quite fit my needs
 }
 \usage{
-tunnel(df, fun, ..., note = NULL, return = T)
+tunnel(df, fun, ..., note = NULL, return = TRUE)
 }
 \arguments{
 \item{df}{A dataframe}
 
 \item{fun}{A function that is applied to the dataframe and the
-output of which is printed}
+output of which is printed. If the argument is not passed, df is
+merely printed and not returned, which only makes sense in combination
+with the `note` argument}
 
 \item{...}{Arguments passed on to \code{fun}}
 
