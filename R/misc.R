@@ -1,5 +1,4 @@
 
-
 #' Significance stars for p-values
 #'
 #' Function returns significance stars for \emph{p}-values, most likely for use
@@ -44,11 +43,15 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE) {
   out
 }
 
-.make_stars_note <- function (stars = NULL)
+.make_stars_note <- function (stars = NULL, markdown = TRUE)
 {
-  if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
+  if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = .05, `**` = .01, `***` = .001)
   out <- stars
-  out <- paste0(names(out), " p < ", out)
+  if (markdown == TRUE) {
+    out <- paste0(names(out), " *p* < ", sub('.', '', out))
+  } else {
+    out <- paste0(names(out), " p < ", sub('.', '', out))
+  }
   out <- paste0(out, collapse = ", ")
 
   return(out)
@@ -320,7 +323,10 @@ to_tribble <- function(x, show = FALSE) {
   }
 
   code %<>% substr(1, nchar(.)-2) %>% paste0("\n)\n")
-  if (show) cat(code)
+  if (show) {
+    cat(code)
+    return(invisible(code))
+  }
   code
 }
 
@@ -599,3 +605,5 @@ dump_to_clip <- function(objects) {
 .fmt_ci <- function(lower, upper, digits = 2) {
   paste0("[", sprintf(paste0("%.", digits, "f"), round(lower, digits)), ", ", sprintf(paste0("%.", digits, "f"), round(upper, digits)), "]")
 }
+
+
