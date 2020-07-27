@@ -2,7 +2,8 @@
 #' Significance stars for p-values
 #'
 #' Function returns significance stars for \emph{p}-values, most likely for use
-#' in tables that report the results of multiple statistical tests.
+#' in tables that report the results of multiple statistical tests. An empty
+#' string is returned for NAs, unless that behaviour is overwritten.
 #'
 #'  Symbols and tresholds are *** \emph{p} < .001,  ** \emph{p} < .01, * \emph{p}
 #'  < .05 and † \emph{p} < .1. The symbols can be changed by named character vector sorted
@@ -14,13 +15,14 @@
 #' @param stars A character vector to change the significance symbols (see details in `sigstars`)
 #' @param ns Logical. Should non-significant values be highlighted as "ns"?
 #' @param pad_html Should all results be padded right to the same width with HTML non-breaking spaces?
+#' @param return_NAs Logical. Should NAs be returned? If not, empty strings are returned instead.
 #' @return A character vector of significance stars for each \emph{p}-value,
 #' each padded with spaces to be four characters long
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 #' @export
 
-sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE) {
+sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs = FALSE) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
   ns <- ifelse(ns == TRUE, "<sup>ns</sup>", "")
   if (pad_html) {
@@ -40,6 +42,9 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE) {
   for (n in names(stars)) {
     out <- ifelse(p < stars[n], n, out)
   }
+
+  if(!return_NAs) out[is.na(out)] <- ""
+
   out
 }
 
@@ -292,7 +297,8 @@ fmt_p <- function(p_value, sig_dig = 3) {
 #'Converts a tibble to tribble code
 #'
 #'Tribbles are an easy way to legibly input data, and therefore helpful for teaching and interactive work. This function takes
-#'a tibble and returns code that can recreate it.
+#'a tibble and returns code that can recreate it. Note that this function converts
+#'"NA" to NA.
 #'
 #' @param x The tibble to be converted into tribble code
 #' @param show Logical. Print code (otherwise, returned - print with `cat()` to get linebreaks etc)
@@ -321,6 +327,8 @@ to_tribble <- function(x, show = FALSE) {
     }
     code %<>% paste0("\n  ")
   }
+
+  code %<>% stringr::str_replace_all('"NA"', "NA")
 
   code %<>% substr(1, nchar(.)-2) %>% paste0("\n)\n")
   if (show) {

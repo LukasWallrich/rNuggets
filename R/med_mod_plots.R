@@ -16,14 +16,8 @@
 #' Plot mediation model with one or more mediators
 #'
 #' Returns graphViz code and graph for (multiple) mediation model.
-#' Coefficients and significance  values for paths can be provided from return
-#' of \code{\link{run_mediation_mult}} (\code{exact_vals}-attribute) or provided
-#' as described in the details.
-#'
-#'  Symbols and tresholds are *** \emph{p} < .001,  ** \emph{p} < .01, * \emph{p}
-#'  < .05 and † \emph{p} < .1. The symbols can be changed by named character vector sorted
-#'  descendingly to the \code{stars} argument. For the default, the argument would be
-#' \code{stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)}
+#' Coefficients and significance  values for paths need to be provided -
+#' see example for the format.
 #'
 #' @encoding UTF-8
 #' @param IV Character. Name of predictor
@@ -33,11 +27,27 @@
 #' @param coef_offset Tibble with values to position mediators. If not
 #' provided, function will align mediators automatically, which is unlikely to
 #' provide a well-aligned path (except for cases when offset has been implemented
-#' for that number of mediators, currently 3). However, returned code can still
+#' for that number of mediators, currently 1 and 3). However, returned code can still
 #' be edited. See rNuggets:::.coef_offset_3 for an example of an offset tibble.
 #' @param digits Number of digits for rounding
 #' @param filename If provided, graph will be saved as .svg file.
 #' @return A list of a the graph and the associated code.
+#' @export
+#' @examples
+#' # Values for model
+#' med_model <- tibble::tribble(
+#' ~type, ~mediator, ~est, ~pvalue, ~ci.lower, ~ci.upper,
+#' "a", "Empathy", 0.29, 0, 0.29, 0.29,
+#' "b", "Empathy", 0.18, 0, 0.18, 0.18,
+#' "direct", NA, -0.08, 0, -0.08, -0.08,
+#' "indirect", "Empathy", 0.05, 0, 0.05, 0.05,
+#' "total", NA, 0.41, 0, 0.41, 0.41)
+#'
+#' # Run plot command
+#' rNuggets:::plot_mediation(IV = "Positive <br /> contact",
+#' DV = "Diversity <br /> policies", Ms = "Empathy", df = med_model)
+
+
 
 
 
@@ -89,15 +99,17 @@ plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms),
 
 
 if (!is.null(coef_offset)) {
-  if (!(coef_offset == 3 || (tibble::is_tibble(coef_offset) && nrow(coef_offset) == length(Ms) * 2))) {
+  if (!(coef_offset %in% c(1, 3) || (tibble::is_tibble(coef_offset) && nrow(coef_offset) == length(Ms) * 2))) {
     warning("Valid coef_offset tibble is not provided and automatic alignment of coefficients is
                                                                                                         not yet implemented for this number of mediators - you will likely need to either provide a valid
                                                                                                         coef_offset tibble or edit the returned grViz code manually")
     coef_offset <- NULL
   } else if (coef_offset == 3) {
     coef_offset <- .coef_offset_3
-  }
-}
+  } else if (coef_offset == 1) {
+    coef_offset <- NULL
+
+}}
 
 
   if (!is.null(coef_offset)) {
