@@ -6,19 +6,25 @@
 #'
 #' @param cor_matrix A correlation matrix, for example returned from
 #' \code{cor_matrix()}, \code{survey_cor_matrix()}, or \code{wtd_cor_matrix_mi()}
+#' @param ci Method to create CI - default is to use any given in the cor_matrix,
+#' and otherwise to compute them using z-transformations. The simple SE method should not be used, but is provided for compatibility.
+#' @param n Number of observations to calculate confidence intervals - only needed
+#' if cor_matrix does not contain degrees of freedom (df) and confidence intervals are to
+#' be calulcated using z-transformations
 #' @param notes List of additional notes to show under the table.
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @inheritParams sigstars
 #' @param add_title Should title be added to table? Set to TRUE for default title or to character for custom title
 #' @param extras Tibble of additional columns to be added after the descriptives column - needs to be sorted in the same order as the `desc` element in the cor_matrix
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
-#' accept weighted correlation matrices and work with the `gt` package instead`
+#' accept weighted correlation matrices and work with the `gt` package instead. Code for calculation
+#' of confidence intervals adapted from https://medium.com/@shandou/how-to-compute-confidence-interval-for-pearsons-r-a-brief-guide-951445b9cb2d`
 #' @return A table that can be printed in the RStudio console to be shown in the
 #' viewer. Unless it is to be post-processed with further `gt` functions, it should
 #' usually be saved by passing a filename argument.
 #' @export
 
-apa_cor_table <- function(cor_matrix, filename = NULL,
+apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"), n = NULL, filename = NULL,
                           notes = list(NULL), stars = NULL, add_title = FALSE, extras = NULL) {
 
   if(add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
@@ -38,21 +44,53 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
                                  ". ", rownames(cor_matrix[[1]]),
                                  sep = ""
   )
-  if (!is.null(cor_matrix[["ci.low"]])) {
+  if (!is.null(cor_matrix[["ci.low"]]) & "given" %in% ci) {
     message("Confidence intervals are extracted from correlation matrix")
+    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
+      if(!is.null(cor_matrix[["ci.low"]])) return(cor_matrix[["ci.low"]][i,j])
+    }
+
+    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
+      if(!is.null(cor_matrix[["ci.high"]])) return(cor_matrix[["ci.high"]][i,j])
+    }
+
+
+    } else if ("z_transform" %in% ci & !(is.null(cor_matrix[["df"]]) & is.null(n))) {
+    message("Confidence intervals are based on Fisher's r to
+            z transformation.")
+
+    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
+      z_prime <- .5*ln((1+cor.r)/(1-cor.r))
+      n <- df+1
+      CI_low <- z_prime - 1.96*1/sqrt(n-3)
+      tanh(CI_low)
+    }
+
+    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
+      z_prime <- .5*ln((1+cor.r)/(1-cor.r))
+      n <- df+1
+      CI_low <- z_prime + 1.96*1/sqrt(n-3)
+      tanh(CI_low)
+    }
+
+    if (is.null(cor_matrix[["df"]])) {
+      cor_matrix$df <- cor_matrix$cors
+      cor_matrix$df[] <- n-1
+    }
+
   } else {
-    message("Confidence intervals are calculated based on correlation coefficient +/- 2 SE")
+    message("Confidence intervals are calculated based on correlation
+            coefficient +/- 2 SE. This is generally not recommended!")
+    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
+      cor.r - 2 * cor.se
+    }
+
+    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
+      cor.r + 2 * cor.se
+    }
+
   }
 
-  get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
-    if(!is.null(cor_matrix[["ci.low"]])) return(cor_matrix[["ci.low"]][i,j])
-    cor.r - 2 * cor.se
-  }
-
-  get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
-    if(!is.null(cor_matrix[["ci.high"]])) return(cor_matrix[["ci.high"]][i,j])
-    cor.r + 2 * cor.se
-  }
 
 
   for (i in 1:number_variables) {
@@ -65,8 +103,9 @@ apa_cor_table <- function(cor_matrix, filename = NULL,
         cor.r <- cor_matrix$cors[i, j]
         cor.p <- cor_matrix$p.values[i, j]
         cor.se <- cor_matrix$std.err[i, j]
-        cor.ci.low <- get_cor.ci.low(cor_matrix, cor.r, cor.se, i, j)
-        cor.ci.high <- get_cor.ci.high(cor_matrix, cor.r, cor.se, i, j)
+        cor.df <- cor_matrix$df[i, j]
+        cor.ci.low <- get_cor.ci.low(cor_matrix, cor.r, cor.se, i, j, cor.df)
+        cor.ci.high <- get_cor.ci.high(cor_matrix, cor.r, cor.se, i, j, cor.df)
         output_cor[i, j] <- paste(.fmt_cor(cor.r), sigstars(cor.p, stars))
         output_ci[i, j] <- paste0(
           '<span style="font-size:80%">',
@@ -290,7 +329,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
         mi_selected <- purrr::map(mi_selected, dplyr::rename, x = 1, y = 2)
         # browser()
         cor.ii.jj <- purrr::map(mi_selected, do.call, what = .wtd_cor_test_lm)
-        df <- rbind(df, data.frame(x = ii, y = jj, mice::pool(cor.ii.jj) %>% summary() %>% magrittr::extract(c("estimate", "p.value", "std.error", "statistic")) %>% magrittr::extract(2, )))
+        df <- rbind(df, data.frame(x = ii, y = jj, mice::pool(cor.ii.jj) %>% summary() %>% magrittr::extract(c("estimate", "p.value", "std.error", "statistic", "df")) %>% magrittr::extract(2, )))
       }
     }
   }
@@ -312,6 +351,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
   std.err <- to_matrix(df, variables, "std.error")
   p.values <- to_matrix(df, variables, "p.value")
   t.values <- to_matrix(df, variables, "statistic")
+  dfs <- to_matrix(df, variables, "df")
 
   imp_svy <- survey::svydesign(~1, weights = as.formula(paste0("~", dplyr::as_label(weights))), data = mitools::imputationList(mi_list))
 
@@ -323,7 +363,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
     desc <- rbind(desc, data.frame(var = variables[i], M = M, SD = SD))
   }
 
-  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, desc = desc, tests = df)
+  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, df = dfs, desc = desc, tests = df)
 
   if (!is.null(var_names)) {
     corM[1:4] <- purrr::map(corM[1:4], function(x) {
