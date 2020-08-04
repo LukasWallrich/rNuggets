@@ -67,6 +67,7 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
     }
 
     get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
+
       z_prime <- .5*log((1+cor.r)/(1-cor.r))
       n <- df+1
       CI_low <- z_prime + 1.96*1/sqrt(n-3)
