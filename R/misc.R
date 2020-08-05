@@ -594,6 +594,22 @@ tidy.polr_p <- function(x, ...) {
   out
 }
 
+#' Copy data to clipboard to paste into Excel
+#'
+#' This function copies a dataframe into the clipboard, so that it can be
+#' pasted into excel.
+#'
+#' @param df Dataframe to be copied.
+#' @param row_names Logical. Should row names be copied?
+#' @param col_names Logical. Should column names be copied?
+#' @source https://www.r-bloggers.com/copying-data-from-excel-to-r-and-back/
+
+
+clip_excel <- function(df,row_names=FALSE,col_names=TRUE,...) {
+  write.table(df,"clipboard",sep="\t",row.names=row_names,col.names=col_names,...)
+}
+
+
 #' Dump objects to clipboard (to transfer them between R sessions)
 #'
 #' This function calls dump on one or several R objects, which creates code that recreates them from the console.
