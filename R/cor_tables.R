@@ -46,11 +46,11 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
   )
   if (!is.null(cor_matrix[["ci.low"]]) & "given" %in% ci) {
     message("Confidence intervals are extracted from correlation matrix")
-    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
+    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
       if(!is.null(cor_matrix[["ci.low"]])) return(cor_matrix[["ci.low"]][i,j])
     }
 
-    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
+    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
       if(!is.null(cor_matrix[["ci.high"]])) return(cor_matrix[["ci.high"]][i,j])
     }
 
@@ -82,11 +82,11 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
   } else {
     message("Confidence intervals are calculated based on correlation
             coefficient +/- 2 SE. This is generally not recommended!")
-    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j) {
+    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
       cor.r - 2 * cor.se
     }
 
-    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j) {
+    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
       cor.r + 2 * cor.se
     }
 
@@ -367,13 +367,13 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
   corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, df = dfs, desc = desc, tests = df)
 
   if (!is.null(var_names)) {
-    corM[1:4] <- purrr::map(corM[1:4], function(x) {
+    corM[1:5] <- purrr::map(corM[1:5], function(x) {
       rownames(x) <- rownames(x) %>% stringr::str_replace_all(var_names)
       colnames(x) <- colnames(x) %>% stringr::str_replace_all(var_names)
       x
     })
     used_vars <- intersect(var_names, rownames(corM[[1]]))
-    corM[1:4] <- purrr::map(corM[1:4], function(x) x[used_vars, used_vars])
+    corM[1:5] <- purrr::map(corM[1:5], function(x) x[used_vars, used_vars])
     rownames(corM$desc) <- rownames(corM$desc) %>% stringr::str_replace_all(var_names)
     corM$desc$var %<>% stringr::str_replace_all(var_names)
     corM$desc <- corM$desc[match(used_vars, corM$desc$var), ]
