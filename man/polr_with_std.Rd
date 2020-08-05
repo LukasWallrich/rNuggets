@@ -51,7 +51,7 @@ estimates. FALSE if statistics should be printed beside estimates.}
     \item{\code{output}}{filename or object type (string)
 \itemize{
   \item Supported filename extensions: .html, .tex, .md, .txt, .png, .jpg. 
-  \item Supported object types: "default", "html", "markdown", "latex", "gt", "kableExtra", "huxtable", "flextable".
+  \item Supported object types: "default", "html", "markdown", "latex", "data.frame", "gt", "kableExtra", "huxtable", "flextable".
   \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kable::save_kable`, or `cat` functions.
 }}
     \item{\code{coef_map}}{named character vector. Names refer to the original variable
@@ -64,22 +64,14 @@ from the table (using `stringr::str_detect`).}
 `omit`. See `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `stringr::str_detect`).}
-    \item{\code{add_rows}}{a data.frame (or tibble) with the following columns: 
-\itemize{
-  \item section (character): insert in "middle" or "bottom" section of the table
-  \item position (integer): row position in the section
-  \item term (character): string to display under coefficient names
-  \item one column per model with the same name as that model with the
-        values to insert (some models can be omitted). 
-  \item See the examples section of this documentation and an example.
-}}
+    \item{\code{add_rows}}{a data.frame (or tibble) with the same number of columns as
+your main table. By default, rows are appended to the bottom of the table.
+You can define a "position" attribute of integers to set the row positions.
+See examples.}
     \item{\code{title}}{string}
     \item{\code{estimate}}{character name of the estimate to display. Must be a column
-name in the dataframe produced by `tidy(model)`. In the vast majority of
+name in the data.frame produced by `tidy(model)`. In the vast majority of
 cases, the default value of this argument should not be changed.}
-    \item{\code{subtitle}}{This argument is deprecated. Use `title` or the `tab_header`}
-    \item{\code{add_rows_location}}{This argument is deprecated. Use a data.frame as
-described in the documentation for the `add_rows` argument.}
   }}
 }
 \description{

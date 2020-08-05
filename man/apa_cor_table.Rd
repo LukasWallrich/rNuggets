@@ -5,11 +5,14 @@
 \title{Create a correlation table with summary statistics in APA style}
 \source{
 Based on the apaTables \code{apa.cor.table()} function, but adapted to
-accept weighted correlation matrices and work with the `gt` package instead`
+accept weighted correlation matrices and work with the `gt` package instead. Code for calculation
+of confidence intervals adapted from https://medium.com/@shandou/how-to-compute-confidence-interval-for-pearsons-r-a-brief-guide-951445b9cb2d`
 }
 \usage{
 apa_cor_table(
   cor_matrix,
+  ci = c("given", "z_transform", "simple_SE"),
+  n = NULL,
   filename = NULL,
   notes = list(NULL),
   stars = NULL,
@@ -20,6 +23,13 @@ apa_cor_table(
 \arguments{
 \item{cor_matrix}{A correlation matrix, for example returned from
 \code{cor_matrix()}, \code{survey_cor_matrix()}, or \code{wtd_cor_matrix_mi()}}
+
+\item{ci}{Method to create CI - default is to use any given in the cor_matrix,
+and otherwise to compute them using z-transformations. The simple SE method should not be used, but is provided for compatibility.}
+
+\item{n}{Number of observations to calculate confidence intervals - only needed
+if cor_matrix does not contain degrees of freedom (df) and confidence intervals are to
+be calulcated using z-transformations}
 
 \item{filename}{the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)}
 
