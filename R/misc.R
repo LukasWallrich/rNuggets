@@ -433,7 +433,7 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
  #' to either \code{\link{rename_cat_variables}} or directly to \code{\link{cat_var_table_mi}}
  #'
  #' Only categorical variables should be passed to the function if code for levels is
- #' requested - if a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
+ #' requested. If a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
  #'
  #'
  #' @param dat A dataframe that contains the variables - only used to extract their possible levels.
@@ -448,7 +448,6 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
  #' @export
 
 get_rename_tribbles <- function(dat, ..., show = TRUE, which = c("both", "vars", "levels"), max_levels = 20) {
-  browser()
   vars <- rlang::enquos(...)
   vars_chr <- purrr::map_chr(vars, dplyr::as_label)
   out <- list()
