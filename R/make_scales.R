@@ -165,7 +165,7 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
         cbind(data.frame(scales_n_rev_values$scores), data.frame(scales_rev_values$scores))
     } else if (exists("scales_rev_values")) {
         data.frame(scales_rev_values$scores)
-    } else if (exists("scales_rev_values")) {
+    } else if (exists("scales_n_rev_values")) {
         data.frame(scales_n_rev_values$scores)
     } else {
         stop("No scales created - check inputs")
