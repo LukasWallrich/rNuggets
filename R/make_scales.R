@@ -243,13 +243,14 @@ svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_ti
     df <- eval(parse(text = paste0("update(df,", scale_name, " = rowMeans(df[,scale_items_num]$variables, na.rm=T))")))
 
     # Reverse full scale
+    if(!is.null(r_key)) {
     if (r_key == -1) {
         df <- eval(parse(text = paste0("update(df,", scale_name, " = psych::reverse.code(",
             r_key, ", df$variables$", scale_name, "))")))
     } else if (r_key > 0) {
       df <- eval(parse(text = paste0("update(df,", scale_name, " = psych::reverse.code(",
                                      -1, ", df$variables$", scale_name, ", maxi = ",r_key,"))")))
-    }
+    }}
 
     # Print scale descriptives
     cat(paste0("Descriptive stats for ", scale_title, "\n", "Cronbach's alpha:", round(survey::svycralpha(as.formula(.scale_formula(scale_items_num)),
