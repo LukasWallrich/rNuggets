@@ -69,8 +69,9 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs =
   x}
 
 .unescape_html <- function(str){
-  xml2::xml_text(xml2::read_html(paste0("<x>", str, "</x>")))
-}
+  purrr::map_chr(str, function(x)
+    xml2::xml_text(xml2::read_html(paste0("<x>", x, "</x>"))))
+  }
 
 #' Geosedic distance between two points.
 #'

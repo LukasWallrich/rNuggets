@@ -300,7 +300,7 @@ code <-  glue::glue(.transformer = .null_transformer(), "digraph {{
     escapes <- stringi::stri_escape_unicode(targets) %>%
       stringr::str_replace("\\\\u", "&#x")
 
-    if (nchar(escapes) > 0) escapes %<>% paste0(";")
+    if (length(escapes) > 0) escapes %<>% paste0(";")
 
     graph %>%
       DiagrammeRsvg::export_svg() %>%
