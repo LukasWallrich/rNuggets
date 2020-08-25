@@ -34,5 +34,5 @@ to either \code{\link{rename_cat_variables}} or directly to \code{\link{cat_var_
 }
 \details{
 Only categorical variables should be passed to the function if code for levels is
-requested - if a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
+requested. If a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
 }
