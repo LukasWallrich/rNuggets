@@ -13,6 +13,7 @@ globalVariables(".")
 #' @importFrom generics tidy
 #' @importFrom generics glance
 #' @importFrom broom glance
+#' @importFrom broom tidy
 #' @importFrom utils getFromNamespace
 #' @export
 generics::tidy
