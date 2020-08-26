@@ -15,6 +15,8 @@ clip_excel(df, row_names = FALSE, col_names = TRUE, ...)
 \item{row_names}{Logical. Should row names be copied?}
 
 \item{col_names}{Logical. Should column names be copied?}
+
+\item{...}{Further arguments passed to `write.table`}
 }
 \description{
 This function copies a dataframe into the clipboard, so that it can be

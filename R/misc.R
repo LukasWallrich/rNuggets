@@ -602,11 +602,12 @@ tidy.polr_p <- function(x, ...) {
 #' @param df Dataframe to be copied.
 #' @param row_names Logical. Should row names be copied?
 #' @param col_names Logical. Should column names be copied?
+#' @param ... Further arguments passed to `write.table`
 #' @source https://www.r-bloggers.com/copying-data-from-excel-to-r-and-back/
 
 
 clip_excel <- function(df,row_names=FALSE,col_names=TRUE,...) {
-  write.table(df,"clipboard",sep="\t",row.names=row_names,col.names=col_names,...)
+  utils::write.table(df,"clipboard",sep="\t",row.names=row_names,col.names=col_names,...)
 }
 
 

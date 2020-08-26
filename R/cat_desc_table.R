@@ -42,17 +42,17 @@ cat_var_table <- function(df, dv, ..., var_names = NULL, level_names = NULL, p.a
 
 
   descr <- purrr::map(vars, function(x) df %>% dplyr::rename(level = !!x) %>%
-                        filter(!exclude_na | !is.na(level)) %>%
-                          dplyr::group_by(level) %>%
+                        dplyr::filter(!exclude_na | !is.na(.data$level)) %>%
+                          dplyr::group_by(.data$level) %>%
                         dplyr::summarise(M = mean(!!dv, na.rm = na.rm),
                                          SD =  sd(!!dv, na.rm = na.rm),
-                                         N = n()) %>%
+                                         N = dplyr::n()) %>%
                         dplyr::mutate(Share = .data$N / sum(.data$N),
                                       group_var = rlang::as_name(x),
                                       level = as.character(level)))
 
   tests <- purrr::map(vars, function(x) {
-    pairwise.t.test(df %>% select(!!dv) %>% pull(), df %>% select(!!x) %>% pull(), p.adjust.method = p.adjust[1]) %>%
+    stats::pairwise.t.test(df %>% select(!!dv) %>% dplyr::pull(), df %>% select(!!x) %>% dplyr::pull(), p.adjust.method = p.adjust[1]) %>%
       get_pairwise_letters(alpha_level = alpha_level) %>%
       dplyr::select(.data$level, .data$letters)
   })

@@ -405,7 +405,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 #'
 tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
   out <- summary(mice::pool(x, ...), type = "all", conf.int = conf.int, conf.level = conf.level) %>%
-    dplyr::mutate(term = as.character(term)) %>%
+    dplyr::mutate(term = as.character(.data$term)) %>%
     tibble::as_tibble()
   conf_vars <- names(out)[stringr::str_detect(names(out), "%")]
   names(out)[names(out) %in% conf_vars] <- c("conf.low", "conf.high")

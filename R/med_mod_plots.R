@@ -305,7 +305,7 @@ code <-  glue::glue(.transformer = .null_transformer(), "digraph {{
     graph %>%
       DiagrammeRsvg::export_svg() %>%
       stringr::str_replace_all('fill="transparent"', 'fill-opacity="0.0"') %>%
-      ifelse(length(escapes) > 0, stringr::str_replace_all(., escapes %>% set_names(targets)), .) %>%
+      ifelse(length(escapes) > 0, stringr::str_replace_all(., escapes %>% magrittr::set_names(targets)), .) %>%
       writeLines(filename)
   }
   graph

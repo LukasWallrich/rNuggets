@@ -54,16 +54,18 @@ estimates. FALSE if statistics should be printed beside estimates.}
   \item Supported object types: "default", "html", "markdown", "latex", "data.frame", "gt", "kableExtra", "huxtable", "flextable".
   \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kable::save_kable`, or `cat` functions.
 }}
-    \item{\code{coef_map}}{named character vector. Names refer to the original variable
-names. Values refer to the variable names that will appear in the table.
-Coefficients which are omitted from this vector will be omitted from the
-table. The table will be ordered in the same order as this vector.}
+    \item{\code{coef_map}}{named character vector.  Values refer to the variable names
+that will appear in the table. Names refer to the original term names stored
+in the model object (e.g., "hp:mpg" for an interaction term). Coefficients
+that are omitted from this vector will be omitted from the table. The table
+will be ordered in the same order as this vector.}
     \item{\code{coef_omit}}{string regular expression. Omits all matching coefficients
-from the table (using `stringr::str_detect`).}
+from the table (using `grepl`).}
     \item{\code{gof_map}}{data.frame with four columns: `raw`, `clean`, `fmt`, and
-`omit`. See `modelsummary::gof_map`}
+`omit`. If `gof_map` is NULL, then `modelsummary` will use this data frame
+by default: `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
-the table (using `stringr::str_detect`).}
+the table (using `grepl`).}
     \item{\code{add_rows}}{a data.frame (or tibble) with the same number of columns as
 your main table. By default, rows are appended to the bottom of the table.
 You can define a "position" attribute of integers to set the row positions.
