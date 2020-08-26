@@ -152,7 +152,7 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
     }
     #mod <- lm(formula, weights = weights, ...)
     mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
-    class(mod) <- c(class(mod), "rN_std")
+    class(mod) <- c("rN_std", class(mod))
     mod
 
 }

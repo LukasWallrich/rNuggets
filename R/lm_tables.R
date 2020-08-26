@@ -65,11 +65,11 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   stat_list <- list()
 
   for (i in seq_len(length(mod))) {
-    mod_tidy[[i]] <- generics::tidy(mod[[i]])
+    mod_tidy[[i]] <- tidy(mod[[i]])
     SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
     names(SEs[[i]]) <- mod_tidy[[i]]$term
 
-    std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
+    std_mod_tidy[[i]] <- tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
     CIs[[i]] <- paste0("[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "]")
     names(CIs[[i]]) <- std_mod_tidy[[i]]$term
 
@@ -92,7 +92,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
+  tab <- modelsummary::msummary(mods, output="gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 
@@ -320,7 +320,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   notes %<>% c(.make_stars_note())
 
 
-  tab <- modelsummary::msummary(mods, statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
+  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
 
@@ -440,3 +440,13 @@ glance.mira <- function(x, ...) {
   }
   return(out)
 }
+
+#' Helper function to enable tidy.lm to be used on lm_std() models
+#' Strips rN_std class and calls tidy() again
+#' @param x An object with class rN_std
+#' @param ... arguments passed on to tidy method
+#' @export
+
+tidy.rN_std <- function(x, ...) {
+  class(x)<-class(x)[class(x)!="rN_std"]
+  generics::tidy(x, ...)}
