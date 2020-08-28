@@ -31,6 +31,9 @@
 #' be edited. See rNuggets:::.coef_offset_3 for an example of an offset tibble.
 #' @param digits Number of digits for rounding
 #' @param filename If provided, graph will be saved as .svg file.
+#' @param ind_p_values Should significance stars be shown for indirect effects,
+#' based on pvalues passed in DF? If FALSE, indirect effects with confidence
+#' intervals that do not include zero are bolded
 #' @return A list of a the graph and the associated code.
 #' @export
 #' @examples
@@ -51,7 +54,7 @@
 
 
 
-plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL) {
+plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL, ind_p_values = FALSE) {
 
   .check_req_packages(c("glue", "DiagrammeR"))
 
@@ -89,9 +92,23 @@ plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms),
   df$type[!is.na(df$mediator) & !df$type=="indirect"] <- paste0("M", 1:length(Ms), "_", df$type[!is.na(df$mediator) & !df$type=="indirect"])
   df$type[df$type=="indirect"] <- paste0("M", 1:length(Ms))
 
+  if (ind_p_values == TRUE) {
+    pos <- df %>%
+      dplyr::mutate(ci = .fmt_ci(.data$ci.lower, .data$ci.upper, digits), est = paste0(sprintf(paste0("%.", digits, "f"), .data$est), sigstars(.data$pvalue))) %>%
+      dplyr::select(obj = .data$type, .data$est, .data$ci) %>%
+      dplyr::full_join(pos, by = "obj")
+  } else {
+    pos <- df %>%
+      dplyr::mutate(ci = .fmt_ci(.data$ci.lower, .data$ci.upper, digits),
+                    est = ifelse(stringr::str_detect(.data$type,  "^M[0-9]$"),
+                                 ifelse(sign(.data$ci.lower) == sign(.data$ci.upper),
+                                        paste0("<b>", sprintf(paste0("%.", digits, "f"), .data$est), "</b> "),
+                                        sprintf(paste0("%.", digits, "f"), .data$est)),
+                                 paste0(sprintf(paste0("%.", digits, "f"), .data$est), sigstars(.data$pvalue)))) %>%
+      dplyr::select(obj = .data$type, .data$est, .data$ci) %>%
+      dplyr::full_join(pos, by = "obj")
 
-  pos <- df %>% dplyr::mutate(ci = .fmt_ci(.data$ci.lower, .data$ci.upper, digits), est = paste0(sprintf(paste0("%.", digits, "f"), .data$est), sigstars(.data$pvalue))) %>% dplyr::select(obj = .data$type, .data$est, .data$ci) %>% dplyr::full_join(pos, by = "obj")
-
+  }
   pos$est[pos$obj == "note"] <- paste("<i>Direct effect:</i> ", pos$est[pos$obj == "direct"], pos$ci[pos$obj == "direct"], "<br />", "<i>Total effect: </i>",  pos$est[pos$obj == "total"], pos$ci[pos$obj == "total"] )
 
   pos %<>% .[!is.na(pos$est),]

@@ -12,7 +12,8 @@ plot_mediation(
   df,
   digits = 2,
   coef_offset = length(Ms),
-  filename = NULL
+  filename = NULL,
+  ind_p_values = FALSE
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ for that number of mediators, currently 1 and 3). However, returned code can sti
 be edited. See rNuggets:::.coef_offset_3 for an example of an offset tibble.}
 
 \item{filename}{If provided, graph will be saved as .svg file.}
+
+\item{ind_p_values}{Should significance stars be shown for indirect effects,
+based on pvalues passed in DF? If FALSE, indirect effects with confidence
+intervals that do not include zero are bolded}
 }
 \value{
 A list of a the graph and the associated code.
