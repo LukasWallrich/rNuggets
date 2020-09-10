@@ -29,6 +29,8 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
 
   if(add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
 
+  assert_tibble(extras, null.ok = TRUE)
+
   .check_req_packages("gt")
 
   df_col <- dim(cor_matrix[[1]])[2]

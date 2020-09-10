@@ -56,6 +56,8 @@ make_scale <- function(df, scale_items, scale_name, reverse = c("auto",
     "none", "spec"), reverse_items = NULL, two_items_reliability = c("spearman_brown", "cron_alpha",
     "r"), r_key = NULL, print_hist = TRUE, print_desc = TRUE, return_list = FALSE) {
 
+  if(!all(scale_items %in% names(df))) stop("Not all scale_items can be found in the dataset")
+
   if (is.null(r_key)) r_key <- 0
   scale_vals <- df %>%
   dplyr::select(dplyr::one_of(scale_items)) %>%
@@ -88,12 +90,12 @@ make_scale <- function(df, scale_items, scale_name, reverse = c("auto",
         descriptives <- list(NoItems = length(scale_items), Reliability = reliab, mean = mean(alpha_obj$scores,
             na.rm = T), SD = sd(alpha_obj$scores, na.rm = T), Reversed = paste0(reversed,
             collapse = " "), RevMin = ifelse(length(reversed) > 0, min(scale_vals, na.rm = T),
-            NA), RevMin = ifelse(length(reversed) > 0, max(scale_vals, na.rm = T), NA))
+            NA), RevMax = ifelse(length(reversed) > 0, max(scale_vals, na.rm = T), NA))
     }
     if (print_desc) {
         print(paste0("Descriptives for scale ", scale_name))
         print(paste0(ifelse(length(scale_items) == 2, paste0(two_items_reliability, ": "),
-            "Cronbach's alpha: "), round(reliab, 2)))
+            "Cronbach's alpha: "), round_(reliab, 2)))
         print(paste0("Scale mean: ", mean(alpha_obj$scores, na.rm = T)))
         print(paste0("Scale SD: ", sd(alpha_obj$scores, na.rm = T)))
 
@@ -253,9 +255,9 @@ svy_make_scale <- function(df, scale_items, scale_name, print_hist = T, scale_ti
     }}
 
     # Print scale descriptives
-    cat(paste0("Descriptive stats for ", scale_title, "\n", "Cronbach's alpha:", round(survey::svycralpha(as.formula(.scale_formula(scale_items_num)),
-        df, na.rm = T), 2), "\nMean: ", round(survey::svymean(as.formula(paste0("~", scale_name)),
-        df, na.rm = T)[1], 2), "  SD: ", round(sqrt(survey::svyvar(as.formula(paste0("~", scale_name)),
+    cat(paste0("Descriptive stats for ", scale_title, "\n", "Cronbach's alpha:", round_(survey::svycralpha(as.formula(.scale_formula(scale_items_num)),
+        df, na.rm = T), 2), "\nMean: ", round_(survey::svymean(as.formula(paste0("~", scale_name)),
+        df, na.rm = T)[1], 2), "  SD: ", round_(sqrt(survey::svyvar(as.formula(paste0("~", scale_name)),
         df, na.rm = T)[1]), 2)))
 
     # Print histograms of items and scale
