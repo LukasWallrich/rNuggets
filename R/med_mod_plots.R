@@ -140,7 +140,7 @@ if (!is.null(coef_offset)) {
 
 
 
-    code <- glue::glue("digraph  {{
+    code <- glue_warn("digraph  {{
 
             graph [layout = 'neato',
             outputorder = 'edgesfirst',
@@ -201,16 +201,6 @@ if (!is.null(filename)) {
 
 }
 
-.null_transformer <- function(str = "") {
-  function(text, envir) {
-    out <- glue::identity_transformer(text, envir)
-    if (is.null(out)) {
-      return(str)
-    }
-
-    out
-  }
-}
 
 .unescape_html <- function(str){
   purrr::map_chr(str, function(x) xml2::xml_text(xml2::read_html(paste0("<x>", x, "</x>"))))
@@ -237,7 +227,7 @@ moderated_mediation <- function(X, M, W, Y, CV = NULL, mod_direct_path = TRUE, l
 
   p <- "BR"
 
-code <-  glue::glue(.transformer = .null_transformer(), "digraph {{
+code <-  glue_warn("digraph {{
 
         graph [layout = 'neato',
         outputorder = 'edgesfirst',
@@ -265,9 +255,9 @@ code <-  glue::glue(.transformer = .null_transformer(), "digraph {{
         'W' [label = <{W}>, color = 'black', shape = 'rectangle', height = '0.5', width = '1.5', pos = '1.8,-0.7!']
         'MW' [style = invis, pos = '1.3,0.5!', height = '0', width = '0']
         {if(mod_direct_path) '\\'XW\\' [style = invis, pos = \\'1.8,0!\\', height = \\'0\\', width = \\'0\\']'}
-        {if(mod_direct_path) glue::glue('\\'cmod\\' [label = <{c_mod}>, color = \\'black\\', shape = \\'plaintext\\', fillcolor=\\'transparent\\', pos = \\'1.9,-0.25!\\']')}
+        {if(mod_direct_path) glue_warn('\\'cmod\\' [label = <{c_mod}>, color = \\'black\\', shape = \\'plaintext\\', fillcolor=\\'transparent\\', pos = \\'1.9,-0.25!\\']')}
 
-        {if(!is.null(CV)) glue::glue('\\'CV\\' [label = <{CV}>, color = \\'black\\', shape = \\'rectangle\\', height = \\'{0.4+stringr::str_count(CV, \\'BR\\')*.1}\\', width = \\'1.5\\', pos = \\'5,{-0.7-stringr::str_count(CV, \\'BR\\')*.05}!\\']')}
+        {if(!is.null(CV)) glue_warn('\\'CV\\' [label = <{CV}>, color = \\'black\\', shape = \\'rectangle\\', height = \\'{0.4+stringr::str_count(CV, \\'BR\\')*.1}\\', width = \\'1.5\\', pos = \\'5,{-0.7-stringr::str_count(CV, \\'BR\\')*.05}!\\']')}
 
         edge [fontname = 'Helvetica',
         fontsize = '10',
