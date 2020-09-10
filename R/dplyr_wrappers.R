@@ -38,7 +38,8 @@ tunnel <- function(df, fun, ..., note=NULL, return=TRUE) {
 #' lm() for pipes - data as first argument
 #'
 #' Within a dplyr-pipe, running lm() is often complicated be the placing of the
-#' data argument. This wrapper places data first.
+#' data argument. This wrapper places data first and allows to run standardized
+#' models.
 #'
 #' Note that the model call in the lm-object is replaced by the call to this
 #' function - that means that \code{update()} cannot be used.

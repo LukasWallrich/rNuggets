@@ -9,7 +9,7 @@ p_pct(x, digits = 1)
 \arguments{
 \item{x}{A number}
 
-\item{digits}{The number of digits after the percentage point. Defaults to 1}
+\item{digits}{The number of digits after the percentage point. Defaults to 1. Trailing zeroes are shown as needed.}
 }
 \description{
 Takes a number and returns it as a formatted string expressing the percentage

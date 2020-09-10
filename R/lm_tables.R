@@ -409,7 +409,7 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
     tibble::as_tibble()
   conf_vars <- names(out)[stringr::str_detect(names(out), "%")]
   names(out)[names(out) %in% conf_vars] <- c("conf.low", "conf.high")
-  out <- out %>% dplyr::select(term, order(names(.)))
+  out <- out %>% dplyr::select(.data$term, order(names(.)))
   return(out)
 }
 
@@ -422,6 +422,7 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
 #' @note If x contains `lm` models, R2 is included in the output
 #'
 #' @examples
+#' \dontrun{
 #' library(mice)
 #' data <- airquality
 #' data[4:10,3] <- rep(NA,7)
@@ -429,7 +430,7 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
 #' tmp <- mice(data,m=5, seed=500, printFlag = FALSE)
 #' mod <- with(tmp, lm(Ozone ~ Solar.R + Wind))
 #' glance(mod)
-#'
+#'}
 
 glance.mira <- function(x, ...) {
   out <- tibble::tibble('nimp' = length(x$analyses))

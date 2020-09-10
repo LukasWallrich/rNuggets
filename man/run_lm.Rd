@@ -75,7 +75,8 @@ suffix}
 }
 \description{
 Within a dplyr-pipe, running lm() is often complicated be the placing of the
-data argument. This wrapper places data first.
+data argument. This wrapper places data first and allows to run standardized
+models.
 }
 \details{
 Note that the model call in the lm-object is replaced by the call to this
