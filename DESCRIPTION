@@ -1,6 +1,6 @@
 Package: rNuggets
 Title: Package of useful helper functions for data analysis
-Version: 0.1.9.2003
+Version: 0.2.0.0001
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: This package contains a set of functions that I have written
@@ -28,7 +28,9 @@ Imports:
     generics, 
     broom,
     glue,
-    forcats
+    forcats, 
+    checkmate,
+    stringi
 Suggests:
     survey,
     srvyr,
