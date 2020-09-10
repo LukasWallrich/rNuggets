@@ -223,11 +223,11 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
 #'Takes a number and returns it as a formatted string expressing the percentage
 #'
 #' @param x A number
-#' @param digits The number of digits after the percentage point. Defaults to 1
+#' @param digits The number of digits after the percentage point. Defaults to 1. Trailing zeroes are shown as needed.
 #' @export
 
 p_pct <- function(x, digits = 1) {
-  paste0(format(round(x*100, digits), nsmall = 2), "%")
+  paste0(format(round_(x*100, digits), nsmall = 2), "%")
 }
 
 
@@ -628,7 +628,63 @@ dump_to_clip <- function(objects) {
 
 
 .fmt_ci <- function(lower, upper, digits = 2) {
-  paste0("[", sprintf(paste0("%.", digits, "f"), round(lower, digits)), ", ", sprintf(paste0("%.", digits, "f"), round(upper, digits)), "]")
+  paste0("[", round_(lower, digits), ", ", round_(upper, digits), "]")
 }
 
 
+show_null <- function(x, val = "NULL") {
+  if (is.null(x)) {
+    val
+  } else {
+    x
+  }
+}
+
+
+transforming_glue <- function(transformer) {
+  function(..., .sep = "", .envir = parent.frame(), .open = "{", .close = "}",
+           .na = "NA") {
+    glue::glue(
+      ..., .sep = .sep, .envir = .envir, .open = .open, .close = .close,
+      .na = "NA",
+      .transformer = transformer
+    )
+  }
+}
+
+warn_null <- function(text, envir, val = "NULL", ...) {
+  res <- glue::identity_transformer(text, envir)
+  if (is.null(res)) {
+    warning("glue item evaluates to NULL: ", text, call. = FALSE, immediate. = TRUE)
+    val
+  }  else if (length(res)==0) {
+    warning("glue item evaluates to length (0): ", text, call. = FALSE, immediate. = TRUE)
+    val
+  }else {
+    res
+  }
+}
+
+#' glue::glue wrapper that warns when items evaluate to NULL
+#' @param .open \[`character(1)`: \sQuote{\\\{}]\cr The opening delimiter. Doubling the
+#'   full delimiter escapes it.
+#' @param .close \[`character(1)`: \sQuote{\\\}}]\cr The closing delimiter. Doubling the
+#'   full delimiter escapes it.
+#' @inheritParams glue::glue
+#' @inheritDotParams glue::glue
+#' @export
+
+glue_warn <- transforming_glue(warn_null)
+
+
+#' Round function that return trailing zeroes
+#' @param x Numeric vector to be rounded
+#' @param digits Number of significant digits
+#' @return Character vector of rounded values, with trailing zeroes as needed to show `digits` figures after the decimal point
+#' @export
+round_ <- function(x, digits = 0) {
+  checkmate::assert_numeric(x)
+  checkmate::assert_integerish(digits)
+  fmt <- paste0("%.", digits, "f")
+  sprintf(fmt, x)
+}
