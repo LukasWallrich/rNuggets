@@ -4,7 +4,7 @@
 \alias{lm_std}
 \title{lm() with standardised continuous variables - no data argument}
 \usage{
-lm_std(formula, weights = NULL, rename_std = FALSE, ...)
+lm_std(formula, weights = NULL, rename_std = FALSE, data = NULL, ...)
 }
 \arguments{
 \item{formula}{an object of class \code{"\link[stats]{formula}"} (or one that
@@ -20,6 +20,12 @@ lm_std(formula, weights = NULL, rename_std = FALSE, ...)
 
 \item{rename_std}{Logical. Should standardised variables be indicated by _sd
 suffix}
+
+\item{data}{an optional data frame, list or environment (or object
+    coercible by \code{\link{as.data.frame}} to a data frame) containing
+    the variables in the model.  If not found in \code{data}, the
+    variables are taken from \code{environment(formula)},
+    typically the environment from which \code{lm} is called.}
 
 \item{...}{
   Arguments passed on to \code{\link[stats:lm]{stats::lm}}
@@ -65,11 +71,10 @@ suffix}
 }
 \description{
 This runs lm() after standardising all continuous variables, while leaving
-factors intact. It does not take a data argument, so it is intended to be used with
-with() or %$% - if a data argument is needed, use `run_lm()` instead.
+factors intact.
 }
 \details{
-In the model call, the weights variable will always be calles weights. This might
+In the model call, the weights variable will always be called weights. This might
 pose a problem when you update the model later on, for  the moment the only workaround
 is to rename the weights variable accordingly (or to fix it and contribute a PR on
 Github).

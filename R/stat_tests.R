@@ -16,7 +16,7 @@ paired_t_test_d <- function(df, x, y) {
     print(t.test_result)
     cohens_d <- t.test_result$estimate /
         (sqrt(t.test_result$parameter + 1) * t.test_result$stderr)
-    print(paste("Cohen's d:", round(cohens_d, 3)))
+    print(paste("Cohen's d:", round_(cohens_d, 3)))
     invisible(list(t.test_result, cohens_d))
 }
 
@@ -55,7 +55,7 @@ svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
     names(vars) <- c(dv, "var")
     cohens_d <- (means[1, 2] - means[2, 2]) / sqrt((vars[1, 2] + vars[2, 2]) / 2)
     print(paste0("Cohen's d for pair ", paste0(pair, collapse = " & "), " is:",
-                 round(cohens_d, 3)))
+                 round_(cohens_d, 3)))
     invisible(list(t.test_result, cohens_d))
 }
 
@@ -95,10 +95,9 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' lm() with standardised continuous variables - no data argument
 #'
 #' This runs lm() after standardising all continuous variables, while leaving
-#' factors intact. It does not take a data argument, so it is intended to be used with
-#' with() or %$% - if a data argument is needed, use `run_lm()` instead.
+#' factors intact.
 #'
-#' In the model call, the weights variable will always be calles weights. This might
+#' In the model call, the weights variable will always be called weights. This might
 #' pose a problem when you update the model later on, for  the moment the only workaround
 #' is to rename the weights variable accordingly (or to fix it and contribute a PR on
 #' Github).
@@ -112,11 +111,15 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' one option is `QuantPsyc::lm.beta()`
 #' @export
 
-lm_std <- function(formula, weights = NULL, rename_std = FALSE, ...) {
+lm_std <- function(formula, weights = NULL, rename_std = FALSE, data = NULL, ...) {
     parent <- parent.frame()
     here <- environment()
     vars <- all.vars(formula)
 
+    if(!is.null(data)) {
+      attach(data, name = "rN_lm_std_df")
+      on.exit(detach("rN_lm_std_df"))
+    }
     vars_num <- vars[purrr::map_lgl(vars, ~is.numeric(get(.x, parent)))]
 
     if (rename_std) {
