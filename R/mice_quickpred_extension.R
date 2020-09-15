@@ -1,4 +1,4 @@
-#' Create mice predictorMatrix with relevant factors (extends mice::quickpred)
+#' Create mice predictorMatrix including unordered factors (extends mice::quickpred)
 #'
 #' \code{\link[mice]{quickpred}} creates a predictor matrix that suggests which variables should
 #' be used for multiple imputation. However, it does not yield meaningful information
