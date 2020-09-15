@@ -9,7 +9,7 @@ Description: This package contains a set of functions that I have written
     helpful, I'd be delighted and then be grateful for any bug reports.
 Encoding: UTF-8
 LazyData: true
-License: CC BY-SA 4.0
+License: GPL-2 | GPL-3
 BugReports: https://github.com/LukasWallrich/rNuggets/issues
 URL: https://github.com/LukasWallrich/rNuggets
 Imports: 
@@ -33,6 +33,7 @@ Imports:
     stringi
 Suggests:
     survey,
+    mice,
     srvyr,
     jtools,
     mice,
