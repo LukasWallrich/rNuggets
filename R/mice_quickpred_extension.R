@@ -72,6 +72,9 @@ quickpred_ext <- function (data, mincor = 0.1, minpuc = 0, include = "", exclude
     ## Correction for factors
     x_dummies <- x
 
+    fct_start <- numeric()
+    fct_end <- numeric()
+
     for (i in seq_along(fct_which)) {
       fct_start[i] <- ncol(x_dummies) + 1
       d <- dummy_code(x[,fct_which[i]])
