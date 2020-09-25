@@ -60,7 +60,7 @@ NAME <- "{{filename}}"
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load({paste(standard_packages, collapse=", ")})
 {if(is.null(github_packages)) "" else "pacman::p_load_gh("} \\
-{if(is.null(github_packages)) "" else paste0(paste0("'", github_packages, "'"), collapse=", ")} \\
+{if(is.null(github_packages)) "" else paste0(paste0("\"", github_packages, "\""), collapse=", ")} \\
 {if(is.null(github_packages)) "" else ")"}
 
 source(here("1_tools/management_functions.R"))
