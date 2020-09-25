@@ -14,7 +14,7 @@
 setup_analysis_project <- function (folder = here::here(), analyses = c("data_prep", "analyses", "presentation"), pipeline_name = "outputs", code_folder = FALSE, standard_packages = c("magrittr", "here", "dplyr"), github_packages = NULL)
 {
 
-  folders <- paste0(folder, c("0_data", "1_tools", ifelse(code_folder, "2_code", NULL), paste0("3_", pipeline_name)))
+  folders <- paste0(folder, c("0_data", "1_tools", (if(code_folder) "2_code" else NULL), paste0("3_", pipeline_name)))
 
   purrr::map(folders, function(x) {
   if (!dir.exists(x)) {
@@ -35,7 +35,7 @@ setup_analysis_project <- function (folder = here::here(), analyses = c("data_pr
 
   writeLines(management_functions_file, file.path(folder, "1_tools", "management_functions.R"))
 
-  writeLines(glue::glue(run_all_file), file.path(folder, ifelse(code_folder, "2_code", ""), "0_run_all.R"))
+  writeLines(glue::glue(run_all_file), file.path(folder, (if(code_folder) "2_code" else ""), "0_run_all.R"))
 
 
 }
@@ -57,9 +57,9 @@ NAME <- "{{filename}}"
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(char = {standard_packages})
-{ifelse(is.null(github_packages), "", "pacman::p_load_gh(char = ")}
-{ifelse(is.null(github_packages), "", github_packages}
-{ifelse(is.null(github_packages), "", ")"}
+{if(is.null(github_packages)) "" else "pacman::p_load_gh(char = "}
+{if(is.null(github_packages)) "" else github_packages}
+{if(is.null(github_packages)) "" else ")"}
 
 
 source(here("1_tools/management_functions.R"))
@@ -105,7 +105,7 @@ run_all_file <- ('
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here, purrr)
 
-files <- list.files(here({ifelse(code_folder, "2_code", "")}), pattern = "\\.R$")[-1]
+files <- list.files(here({if(code_folder) "2_code" else ""}), pattern = "\\.R$")[-1]
 
 map(here(files), source)
 
