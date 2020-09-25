@@ -1,6 +1,6 @@
 Package: rNuggets
 Title: Package of useful helper functions for data analysis
-Version: 0.2.0.0002
+Version: 0.2.0.0003
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: This package contains a set of functions that I have written
@@ -33,7 +33,6 @@ Imports:
     stringi
 Suggests:
     survey,
-    mice,
     srvyr,
     jtools,
     mice,
