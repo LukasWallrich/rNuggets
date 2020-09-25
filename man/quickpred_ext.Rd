@@ -52,5 +52,5 @@ than two levels separately (through dummy coding). If the correlation exceeds `m
 level, the factor variable is used as a predictor.
 }
 \seealso{
-\code{\link{mice::quickpred}}
+\code{\link[mice]{quickpred}}
 }

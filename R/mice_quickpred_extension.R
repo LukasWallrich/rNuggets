@@ -26,7 +26,7 @@
 #' abbreviated.
 #' @return A square binary matrix of size \code{ncol(data)}.
 #' @source This function is based on the mice::quickpred function as available in mice v 3.11.4, written by Stef van Buuren. The code for dummy coding factor variables is based on psych::dummy.code, written by William Revelle
-#' @seealso \code{\link{mice::quickpred}}
+#' @seealso \code{\link[mice]{quickpred}}
 #' @export
 
 quickpred_ext <- function (data, mincor = 0.1, minpuc = 0, include = "", exclude = "",
