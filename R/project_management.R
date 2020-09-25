@@ -35,7 +35,7 @@ setup_analysis_project <- function (folder = here::here(), analyses = c("data_pr
     writeLines(code, file.path(folder, files[i]))
   }
 
-  writeLines(management_functions_file, file.path(folder, "1_tools", "management_functions.R"))
+  writeLines(glue::glue(management_functions_file), file.path(folder, "1_tools", "management_functions.R"))
 
   writeLines(glue::glue(run_all_file), file.path(folder, (if(code_folder) "2_code" else ""), "0_run_all.R"))
 
@@ -59,8 +59,8 @@ NAME <- "{{filename}}"
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load({paste(standard_packages, collapse=", ")})
-{if(is.null(github_packages)) "" else "pacman::p_load_gh("} \\
-{if(is.null(github_packages)) "" else paste0(paste0("\"", github_packages, "\""), collapse=", ")} \\
+{if(is.null(github_packages)) "" else "pacman::p_load_gh("}\\
+{if(is.null(github_packages)) "" else paste0(paste0("\'", github_packages, "\'"), collapse=", ")}\\
 {if(is.null(github_packages)) "" else ")"}
 
 source(here("1_tools/management_functions.R"))
@@ -74,7 +74,7 @@ pipelinedir <- "3_{pipeline_name}"
 #df <- read_!!!(here(pipelinedir, {{previous_name}}, "!!!"))
 
 notes <- character()
-notes <- c(notes, "Note created:", timestamp())
+notes <- c(notes, "Note created:", timestamp(quiet = TRUE))
 
 
 # ------------
@@ -92,14 +92,14 @@ writeLines(notes, here({pipeline_folder}, "notes.txt"))
                   ')
 
 management_functions_file <- ("
-  create_pipeline_dir <- function (NAME) {
-  pipeline <- here('3_pipeline', NAME)
-  if (!dir.exists(pipeline)) {
+  create_pipeline_dir <- function (NAME) {{
+  pipeline <- here('3_{pipeline_name}', NAME)
+  if (!dir.exists(pipeline)) {{
     dir.create(pipeline)
-}
+}}
 
   stringr::str_replace(stringr::str_replace(pipeline, here(), ''), '^/', '')
-}
+}}
 
                               ")
 
