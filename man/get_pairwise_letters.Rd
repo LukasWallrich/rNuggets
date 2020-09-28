@@ -31,9 +31,8 @@ between levels that are assigned the same letter are *not* statistically differe
 \examples{
 attach(airquality)
 month <- factor(Month, labels = month.abb[5:9])
-x<-pairwise.t.test(Ozone, Month)
+x <- pairwise.t.test(Ozone, Month)
 library(rNuggets)
 get_pairwise_letters(x)
 detach()
-
 }
