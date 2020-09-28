@@ -163,12 +163,11 @@ for (i in seq_along(names(df))) {
   df[row_missing, col_missing] <- NA # assign missing values
 }
 
-#' Create mice predictorMatrix including unordered factors (extends mice::quickpred)
-#' @source mice v 3.11.4, written by Stef van Buuren.
 
 mice_check.dataform <- function (data)
 {
-  if (!(is.matrix(data) || is.data.frame(data)))
+  ## Source: mice v 3.11.4, written by Stef van Buuren.
+    if (!(is.matrix(data) || is.data.frame(data)))
     stop("Data should be a matrix or data frame", call. = FALSE)
   if (ncol(data) < 2)
     stop("Data should contain at least two columns",

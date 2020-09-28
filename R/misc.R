@@ -742,7 +742,7 @@ round_ <- function(x, digits = 0) {
 #' @param to_clip Should result be written to clipboard?
 #' @examples
 #' line_to_vector("a b c", to_clip = FALSE)
-#' line_to_vector("1 2 3", s = F, t = F)
+#' line_to_vector("1 2 3", s = FALSE, t = FALSE)
 #' @export
 
 
