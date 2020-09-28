@@ -741,7 +741,7 @@ round_ <- function(x, digits = 0) {
 #' @param strings Should vector items be considered as strings, i.e. quoted.
 #' @param to_clip Should result be written to clipboard?
 #' @examples
-#' line_to_vector("a b c", to_clip - FALSE)
+#' line_to_vector("a b c", to_clip = FALSE)
 #' line_to_vector("1 2 3", s = F, t = F)
 #' @export
 

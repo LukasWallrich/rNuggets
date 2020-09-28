@@ -31,7 +31,7 @@
 
 quickpred_ext <- function(data, mincor = 0.1, minpuc = 0, include = "", exclude = "",
                           method = "pearson") {
-  data <- mice:::check.dataform(data)
+  data <- mice_check.dataform(data)
   nvar <- ncol(data)
 
   # Identify characters and factors
@@ -161,4 +161,30 @@ for (i in seq_along(names(df))) {
   row_missing <- sample(1:n_rows, sample(1:n_rows, round(perc_missing / 100 * n_rows, 0))) # sample randomly x% of rows
   col_missing <- i # define column
   df[row_missing, col_missing] <- NA # assign missing values
+}
+
+#' Create mice predictorMatrix including unordered factors (extends mice::quickpred)
+#' @source mice v 3.11.4, written by Stef van Buuren.
+
+mice_check.dataform <- function (data)
+{
+  if (!(is.matrix(data) || is.data.frame(data)))
+    stop("Data should be a matrix or data frame", call. = FALSE)
+  if (ncol(data) < 2)
+    stop("Data should contain at least two columns",
+         call. = FALSE)
+  data <- as.data.frame(data)
+  mat <- sapply(data, is.matrix)
+  df <- sapply(data, is.data.frame)
+  if (any(mat))
+    stop("Cannot handle columns with class matrix: ",
+         colnames(data)[mat])
+  if (any(df))
+    stop("Cannot handle columns with class data.frame: ",
+         colnames(data)[df])
+  dup <- duplicated(colnames(data))
+  if (any(dup))
+    stop("Duplicate names found: ", paste(colnames(data)[dup],
+                                          collapse = ", "))
+  data
 }

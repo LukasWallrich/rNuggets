@@ -1,6 +1,6 @@
 Package: rNuggets
-Title: Package of useful helper functions for data analysis
-Version: 0.2.0.0005
+Title: Useful Helper Functions for (Academic) Data Analysis
+Version: 0.2.0.0006
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: This package contains a set of functions that I have written
@@ -49,5 +49,6 @@ Suggests:
     DiagrammeR,
     clipr,
     DiagrammeRsvg,
-    rsvg
+    rsvg,
+    rstudioapi
 RoxygenNote: 7.1.1

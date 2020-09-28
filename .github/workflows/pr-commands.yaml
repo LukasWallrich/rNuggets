@@ -22,8 +22,7 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add man/\* NAMESPACE
-          git commit -m 'Document' || echo "No changes to commit"
+          git commit -a 'Document' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
 
   dispatch:
