@@ -12,10 +12,8 @@ jobs:
       GITHUB_PAT: ${{ secrets.GH_PAT }}
     steps:
       - uses: actions/checkout@v2
-      - uses: r-lib/actions/pr-fetch@master
-        with:
-          repo-token: ${{ secrets.GH_PAT }}
-      - uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-pandoc@v1
       - name: Install dependencies
         run: Rscript -e 'install.packages(c("remotes", "roxygen2"))' -e 'remotes::install_deps(dependencies = TRUE)'
       - name: Document
@@ -25,34 +23,9 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add man/\* NAMESPACE
-          git commit -m 'Document'
-      - uses: r-lib/actions/pr-push@master
-        with:
-          repo-token: ${{ secrets.GH_PAT }}
-  style:
-    name: style
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GH_PAT }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: r-lib/actions/pr-fetch@master
-        with:
-          repo-token: ${{ secrets.GH_PAT }}
-      - uses: r-lib/actions/setup-r@master
-      - name: Install dependencies
-        run: Rscript -e 'install.packages("styler")'
-      - name: Style
-        run: Rscript -e 'styler::style_pkg()'
-      - name: commit
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add \*.R
-          git commit -m 'Style'
-      - uses: r-lib/actions/pr-push@master
-        with:
-          repo-token: ${{ secrets.GH_PAT }}
+          git commit -m 'Document' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
+
   dispatch:
     name: Repository Dispatch
     runs-on: ubuntu-latest
