@@ -688,3 +688,31 @@ round_ <- function(x, digits = 0) {
   fmt <- paste0("%.", digits, "f")
   sprintf(fmt, x)
 }
+
+#' Turn line of items separated by spaces into c() command
+#'
+#' This takes a line of items separated by spaces and returns a c()
+#' vector command - with the items quoted or not. By default, the line
+#' is read from the clipboard and a character vector returned
+#'
+#' @param x Character string of desired vector items, separated by spaces
+#' @param strings Should vector items be considered as strings, i.e. quoted.
+#' @param to_clip Should result be written to clipboard?
+#' @examples
+#' line_to_vector("a b c", to_clip - FALSE)
+#' line_to_vector("1 2 3", s = F, t = F)
+#' @export
+
+
+
+line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE) {
+  assert_character(x)
+  x <- strsplit(x, " ") %>% unlist()
+  if (strings) {
+    out <- paste0('c("', paste0(x, collapse = '", "'), '")')
+  } else {
+    out <- paste0('c(', paste0(x, collapse = ', '), ')')
+  }
+  if (to_clip) clipr::write_clip(out)
+  invisible(out)
+}
