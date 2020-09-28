@@ -236,17 +236,18 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @param model_names If several pairs of models are to be plotted side by side, indicate the label for each *pair* here
 #' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
-#' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models
-#' were run with a helper function in this package, a note regarding the standardisation is also automatically added.
+#' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. A note is also added
+#' stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), standardised OR are only shown for continuous predictors."), ...) {
+polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr", "pscl"))
 
-  tidy.mira <- getFromNamespace("tidy.mira", "modelsummary")
-  glance.mira <- getFromNamespace("glance.mira", "modelsummary")
+  #TK: add polr_std function and show this note only when that function was used.
+
+  notes %<>% c("Given that dummy variables loose their interpretability when standardised (Fox, 2015), standardised OR are only shown for continuous predictors.")
 
   if ((is.list(mod) | is.list(std_mod)) & !(length(mod) == length(std_mod))) {
     stop("Same number of models need to be included in mod and std_mod arguments")
@@ -294,6 +295,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   )
 
   if (show_nimp) gof_map[nrow(gof_map), ncol(gof_map)] <- FALSE
+  extract_gof <- getFromNamespace("extract_gof", "modelsummary")
   gof <- purrr::map(mod, extract_gof, fmt, gof_map)
   gof_map$omit <- TRUE
 
