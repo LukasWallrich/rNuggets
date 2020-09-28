@@ -14,19 +14,22 @@ jobs:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
       - uses: r-lib/actions/setup-pandoc@v1
+      - name: system dependencies
+        run: sudo apt-get install libcurl4-openssl-dev
       - name: Install dependencies
-        run: Rscript -e 'install.packages(c("remotes", "roxygen2"))' -e 'remotes::install_deps(dependencies = TRUE)'
+        run: Rscript -e 'install.packages(c("remotes", "roxygen2"))' -e 'remotes::install_deps(dependencies = NA)'
       - name: Document
         run: Rscript -e 'roxygen2::roxygenise()'
       - name: commit
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git commit -a 'Document' || echo "No changes to commit"
+          git commit -a 'Documentation' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
 
   dispatch:
     name: Repository Dispatch
+    if: success()
     runs-on: ubuntu-latest
     steps:
       - uses: peter-evans/repository-dispatch@v1
