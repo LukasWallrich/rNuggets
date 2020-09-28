@@ -36,6 +36,7 @@
 #' @return A list of a the graph and the associated code.
 #' @export
 #' @examples
+#' #' \dontrun{
 #' # Values for model
 #' med_model <- tibble::tribble(
 #'   ~type, ~mediator, ~est, ~pvalue, ~ci.lower, ~ci.upper,
@@ -50,7 +51,7 @@
 #' rNuggets:::plot_mediation(
 #'   IV = "Positive <br /> contact",
 #'   DV = "Diversity <br /> policies", Ms = "Empathy", df = med_model
-#' )
+#' )}
 plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL, ind_p_values = FALSE) {
   .check_req_packages(c("glue", "DiagrammeR"))
 
