@@ -37,6 +37,8 @@ the result of the function and returning the dataframe for further processing.
 }
 \examples{
 library(magrittr)
-x <- 1:5 \%>\% tunnel(mean, note="Mean") \%>\% tunnel(sd, note="SD")
+x <- 1:5 \%>\%
+  tunnel(mean, note = "Mean") \%>\%
+  tunnel(sd, note = "SD")
 x
 }

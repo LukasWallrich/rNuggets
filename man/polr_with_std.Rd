@@ -15,8 +15,7 @@ polr_with_std(
   filename = NULL,
   model_names = NULL,
   show_nimp = FALSE,
- 
-    notes = list("Given that dummy variables loose their interpretability when standardised (Fox, 2015), standardised OR are only shown for continuous predictors."),
+  notes = list(),
   ...
 )
 }
@@ -43,27 +42,25 @@ estimates. FALSE if statistics should be printed beside estimates.}
 
 \item{show_nimp}{Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic}
 
-\item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
+\item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. A note is also added
+stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
   \describe{
     \item{\code{output}}{filename or object type (string)
 \itemize{
-  \item Supported filename extensions: .html, .tex, .md, .txt, .png, .jpg.
+  \item Supported filename extensions: .html, .tex, .md, .txt, .png, .jpg. 
   \item Supported object types: "default", "html", "markdown", "latex", "data.frame", "gt", "kableExtra", "huxtable", "flextable".
-  \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kableExtra::save_kable`, or `cat` functions.
+  \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kable::save_kable`, or `cat` functions.
 }}
-    \item{\code{coef_map}}{named character vector. Values refer to the variable names
+    \item{\code{coef_map}}{named character vector.  Values refer to the variable names
 that will appear in the table. Names refer to the original term names stored
-in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.
-Coefficients that are omitted from this vector will be omitted from the
-table. The table will be ordered in the same order as this vector.}
+in the model object (e.g., "hp:mpg" for an interaction term). Coefficients
+that are omitted from this vector will be omitted from the table. The table
+will be ordered in the same order as this vector.}
     \item{\code{coef_omit}}{string regular expression. Omits all matching coefficients
 from the table (using `grepl`).}
-    \item{\code{coef_rename}}{named character vector. Values refer to the variable names
-that will appear in the table. Names refer to the original term names stored
-in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.}
     \item{\code{gof_map}}{data.frame with four columns: `raw`, `clean`, `fmt`, and
 `omit`. If `gof_map` is NULL, then `modelsummary` will use this data frame
 by default: `modelsummary::gof_map`}

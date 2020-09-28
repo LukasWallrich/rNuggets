@@ -4,12 +4,14 @@
 \alias{line_to_vector}
 \title{Turn line of items separated by spaces into c() command}
 \usage{
-line_to_vector(x = clipr::read_clip(), strings = TRUE)
+line_to_vector(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE)
 }
 \arguments{
 \item{x}{Character string of desired vector items, separated by spaces}
 
 \item{strings}{Should vector items be considered as strings, i.e. quoted.}
+
+\item{to_clip}{Should result be written to clipboard?}
 }
 \description{
 This takes a line of items separated by spaces and returns a c()
@@ -17,6 +19,6 @@ vector command - with the items quoted or not. By default, the line
 is read from the clipboard and a character vector returned
 }
 \examples{
-line_to_vector("a b c")
-line_to_vector("1 2 3", s = F)
+line_to_vector("a b c", to_clip = FALSE)
+line_to_vector("1 2 3", s = F, t = F)
 }

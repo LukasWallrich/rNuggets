@@ -17,5 +17,7 @@ boolean invisible(FALSE) if nothing was added, invisible(TRUE) if snipped defini
   in 'inst/rstudio/r.snippets' and 'rmd.snippets' (if not empty) to the RStudios user snippet location.
 }
 \examples{
-\dontrun{add_package_snippets()}
+\dontrun{
+add_package_snippets()
+}
 }
