@@ -71,7 +71,7 @@ datadir <- "0_data"
 pipelinedir <- "3_{pipeline_name}"
 
 #df <- read_!!!(here(datadir, "!!!"))
-#df <- read_!!!(here(pipelinedir, {{previous_name}}, "!!!"))
+#df <- read_!!!(here(pipelinedir, "{{previous_name}}", "!!!"))
 
 notes <- character()
 notes <- c(notes, "Note created:", timestamp(quiet = TRUE))
@@ -86,9 +86,9 @@ notes <- c(notes, "Note created:", timestamp(quiet = TRUE))
 # Save outputs
 # ------------
 
-# write_rds(df, here({pipeline_folder}, "XXX.RDS"))
+# readr::write_rds(df, here(pipeline, "XXX.RDS"))
 
-writeLines(notes, here({pipeline_folder}, "notes.txt"))
+writeLines(notes, here(pipeline, "notes.txt"))
                   ')
 
 management_functions_file <- ("

@@ -1,16 +1,16 @@
 # Skeleton to create scales
 snippet sn_scales
 	scale_items <- list(
-		${2:scale_name} = c("${3:item1}", "${4:item2}", ...), 
-	)		
+		${2:scale_name} = c("${3:item1}", "${4:item2}", ...),
+	)
 
 	scale_items_rev <- list(
-		${2:scale_name} = c("", ...), 
-	)		
+		${2:scale_name} = c("", ...),
+	)
 
 	scales <- rNuggets::make_mult_scales(${1:data}, scale_items, scale_items_rev)
 
-	${1:data} %<>% cbind(scale_values$scores)
+	${1:data} %<>% cbind(scales[["scores"]]))
 
 # dplyr snippet
 snippet p
