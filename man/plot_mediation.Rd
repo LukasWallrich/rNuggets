@@ -48,6 +48,7 @@ Coefficients and significance  values for paths need to be provided -
 see example for the format.
 }
 \examples{
+#' \dontrun{
 # Values for model
 med_model <- tibble::tribble(
   ~type, ~mediator, ~est, ~pvalue, ~ci.lower, ~ci.upper,
@@ -62,5 +63,5 @@ med_model <- tibble::tribble(
 rNuggets:::plot_mediation(
   IV = "Positive <br /> contact",
   DV = "Diversity <br /> policies", Ms = "Empathy", df = med_model
-)
+)}
 }
