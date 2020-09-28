@@ -716,3 +716,5 @@ line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRU
   if (to_clip) clipr::write_clip(out)
   invisible(out)
 }
+
+l2v <- line_to_vector
