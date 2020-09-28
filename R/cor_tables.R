@@ -26,8 +26,7 @@
 
 apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"), n = NULL, filename = NULL,
                           notes = list(NULL), stars = NULL, add_title = FALSE, extras = NULL) {
-
-  if(add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
+  if (add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
 
   assert_tibble(extras, null.ok = TRUE)
 
@@ -43,55 +42,54 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
     1
   )
   output_variable_names <- paste(as.character(1:number_variables),
-                                 ". ", rownames(cor_matrix[[1]]),
-                                 sep = ""
+    ". ", rownames(cor_matrix[[1]]),
+    sep = ""
   )
   if (!is.null(cor_matrix[["ci.low"]]) & "given" %in% ci) {
     message("Confidence intervals are extracted from correlation matrix")
-    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
-      if(!is.null(cor_matrix[["ci.low"]])) return(cor_matrix[["ci.low"]][i,j])
+    get_cor.ci.low <- function(cor_matrix, cor.r, cor.se, i, j, df) {
+      if (!is.null(cor_matrix[["ci.low"]])) {
+        return(cor_matrix[["ci.low"]][i, j])
+      }
     }
 
-    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
-      if(!is.null(cor_matrix[["ci.high"]])) return(cor_matrix[["ci.high"]][i,j])
+    get_cor.ci.high <- function(cor_matrix, cor.r, cor.se, i, j, df) {
+      if (!is.null(cor_matrix[["ci.high"]])) {
+        return(cor_matrix[["ci.high"]][i, j])
+      }
     }
-
-
-    } else if ("z_transform" %in% ci & !(is.null(cor_matrix[["df"]]) & is.null(n))) {
+  } else if ("z_transform" %in% ci & !(is.null(cor_matrix[["df"]]) & is.null(n))) {
     message("Confidence intervals are based on Fisher's r to
             z transformation.")
 
-    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
-      z_prime <- .5*log((1+cor.r)/(1-cor.r))
-      n <- df+1
-      CI_low <- z_prime - 1.96*1/sqrt(n-3)
+    get_cor.ci.low <- function(cor_matrix, cor.r, cor.se, i, j, df) {
+      z_prime <- .5 * log((1 + cor.r) / (1 - cor.r))
+      n <- df + 1
+      CI_low <- z_prime - 1.96 * 1 / sqrt(n - 3)
       tanh(CI_low)
     }
 
-    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
-
-      z_prime <- .5*log((1+cor.r)/(1-cor.r))
-      n <- df+1
-      CI_low <- z_prime + 1.96*1/sqrt(n-3)
+    get_cor.ci.high <- function(cor_matrix, cor.r, cor.se, i, j, df) {
+      z_prime <- .5 * log((1 + cor.r) / (1 - cor.r))
+      n <- df + 1
+      CI_low <- z_prime + 1.96 * 1 / sqrt(n - 3)
       tanh(CI_low)
     }
 
     if (is.null(cor_matrix[["df"]])) {
       cor_matrix$df <- cor_matrix$cors
-      cor_matrix$df[] <- n-1
+      cor_matrix$df[] <- n - 1
     }
-
   } else {
     message("Confidence intervals are calculated based on correlation
             coefficient +/- 2 SE. This is generally not recommended!")
-    get_cor.ci.low <- function (cor_matrix, cor.r, cor.se, i, j, df) {
+    get_cor.ci.low <- function(cor_matrix, cor.r, cor.se, i, j, df) {
       cor.r - 2 * cor.se
     }
 
-    get_cor.ci.high <- function (cor_matrix, cor.r, cor.se, i, j, df) {
+    get_cor.ci.high <- function(cor_matrix, cor.r, cor.se, i, j, df) {
       cor.r + 2 * cor.se
     }
-
   }
 
 
@@ -122,11 +120,12 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
   cor_cells <- paste(output_cor, output_ci, sep = "<br />")
   dim(cor_cells) <- dim(output_cor)
 
-  if(is.null(extras)) {
-  cells <- cbind(
-    matrix(output_variable_names, ncol = 1),
-    output_descriptives, cor_cells
-  ) } else {
+  if (is.null(extras)) {
+    cells <- cbind(
+      matrix(output_variable_names, ncol = 1),
+      output_descriptives, cor_cells
+    )
+  } else {
     message("Note that ordering of 'extras' argument is not checked - ensure that it matches 'desc' in the correlation matrix.")
     cells <- cbind(
       matrix(output_variable_names, ncol = 1),
@@ -152,10 +151,10 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
   }
 
-  if(is.character(add_title)) {
-  tab <- tab %>% gt::tab_header(
-    title = add_title
-  )
+  if (is.character(add_title)) {
+    tab <- tab %>% gt::tab_header(
+      title = add_title
+    )
   }
 
   tab <- tab %>% gt::cols_label(desc = gt::md("*M (SD)*"))
@@ -190,7 +189,6 @@ cor_matrix <- function(x,
                        method = c("pearson", "spearman", "kendall"),
                        adjust = "none",
                        ...) {
-
   x %<>% dplyr::select_if(is.numeric)
 
   # Compute correlation matrix
@@ -200,7 +198,7 @@ cor_matrix <- function(x,
   std.err <- correlation_matrix$se # Matrix of p-value
   t.values <- correlation_matrix$t # Matrix of p-value
 
-  #Copy (possibly) adjusted p-values into lower half that will be used by apa_cor_table()
+  # Copy (possibly) adjusted p-values into lower half that will be used by apa_cor_table()
   p.values[lower.tri(p.values)] <- t(p.values)[lower.tri(p.values)]
 
   ci_low <- p.values

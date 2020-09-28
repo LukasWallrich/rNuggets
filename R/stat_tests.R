@@ -11,13 +11,13 @@
 #' @export
 
 paired_t_test_d <- function(df, x, y) {
-    t.test_result <- t.test(x = df[[x]], y = df[[y]], paired = T)
-    t.test_result$data.name <- paste(x, "vs.", y)
-    print(t.test_result)
-    cohens_d <- t.test_result$estimate /
-        (sqrt(t.test_result$parameter + 1) * t.test_result$stderr)
-    print(paste("Cohen's d:", round_(cohens_d, 3)))
-    invisible(list(t.test_result, cohens_d))
+  t.test_result <- t.test(x = df[[x]], y = df[[y]], paired = T)
+  t.test_result$data.name <- paste(x, "vs.", y)
+  print(t.test_result)
+  cohens_d <- t.test_result$estimate /
+    (sqrt(t.test_result$parameter + 1) * t.test_result$stderr)
+  print(paste("Cohen's d:", round_(cohens_d, 3)))
+  invisible(list(t.test_result, cohens_d))
 }
 
 #' t.test for survey object with Cohen's d
@@ -38,25 +38,32 @@ paired_t_test_d <- function(df, x, y) {
 #' @export
 
 svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
-    df <- eval(parse(text = paste0("update(df, filt = factor(df$variables$",
-                                   iv, ", levels = c('", paste0(pair,
-                                   collapse = "', '"), "')))")))
-    t.test_result <- NULL
-    if (ttest) {
-        print(paste0("T-Test for ", paste0(pair, collapse = " & "), ":"))
-        t.test_result <- eval(parse(text = paste0("survey::svyttest(", dv, " ~ ", iv,
-                                                  ", subset(df, !is.na(filt)))")))
-        print(t.test_result)
-    }
-    # Calculate Cohen's d
-    means <- survey::svyby(~get(dv), ~filt, df, survey::svymean)[1:2]
-    names(means) <- c(dv, "mean")
-    vars <- survey::svyby(~get(dv), ~filt, df, survey::svyvar)[1:2]
-    names(vars) <- c(dv, "var")
-    cohens_d <- (means[1, 2] - means[2, 2]) / sqrt((vars[1, 2] + vars[2, 2]) / 2)
-    print(paste0("Cohen's d for pair ", paste0(pair, collapse = " & "), " is:",
-                 round_(cohens_d, 3)))
-    invisible(list(t.test_result, cohens_d))
+  df <- eval(parse(text = paste0(
+    "update(df, filt = factor(df$variables$",
+    iv, ", levels = c('", paste0(pair,
+      collapse = "', '"
+    ), "')))"
+  )))
+  t.test_result <- NULL
+  if (ttest) {
+    print(paste0("T-Test for ", paste0(pair, collapse = " & "), ":"))
+    t.test_result <- eval(parse(text = paste0(
+      "survey::svyttest(", dv, " ~ ", iv,
+      ", subset(df, !is.na(filt)))"
+    )))
+    print(t.test_result)
+  }
+  # Calculate Cohen's d
+  means <- survey::svyby(~ get(dv), ~filt, df, survey::svymean)[1:2]
+  names(means) <- c(dv, "mean")
+  vars <- survey::svyby(~ get(dv), ~filt, df, survey::svyvar)[1:2]
+  names(vars) <- c(dv, "var")
+  cohens_d <- (means[1, 2] - means[2, 2]) / sqrt((vars[1, 2] + vars[2, 2]) / 2)
+  print(paste0(
+    "Cohen's d for pair ", paste0(pair, collapse = " & "), " is:",
+    round_(cohens_d, 3)
+  ))
+  invisible(list(t.test_result, cohens_d))
 }
 
 #' Pairwise t.tests with effect sizes and survey weights
@@ -78,18 +85,23 @@ svy_cohen_d_pair <- function(df, dv, iv, pair, ttest = T) {
 ### improve return with broom
 
 svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
-    if (is.null(cats))
-        cats <- eval(parse(text = paste0("levelsdf$variables$", iv)))
+  if (is.null(cats)) {
+    cats <- eval(parse(text = paste0("levelsdf$variables$", iv)))
+  }
 
-        print(paste("Beware - NO correction for multiple comparisons is employed.\n",
-                factorial(length(cats)) / (factorial(length(cats) - 2) * 2),
-                "pairwise tests will be performed."))
-    df2 <- purrr::cross_df(data.frame(cats, cats, stringsAsFactors = F), .filter =
-                        function(x, y) as.character(x) <= as.character(y))
-    x <- purrr::map(purrr::pmap(df2, c), function(x) svy_cohen_d_pair(pair = x, ...))
+  print(paste(
+    "Beware - NO correction for multiple comparisons is employed.\n",
+    factorial(length(cats)) / (factorial(length(cats) - 2) * 2),
+    "pairwise tests will be performed."
+  ))
+  df2 <- purrr::cross_df(data.frame(cats, cats, stringsAsFactors = F),
+    .filter =
+      function(x, y) as.character(x) <= as.character(y)
+  )
+  x <- purrr::map(purrr::pmap(df2, c), function(x) svy_cohen_d_pair(pair = x, ...))
 
-    names(x) <- tidyr::unite(df2, .data$new_col)[[1]]
-    x
+  names(x) <- tidyr::unite(df2, .data$new_col)[[1]]
+  x
 }
 
 #' lm() with standardised continuous variables - no data argument
@@ -112,52 +124,51 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' @export
 
 lm_std <- function(formula, weights = NULL, rename_std = FALSE, data = NULL, ...) {
-    parent <- parent.frame()
-    here <- environment()
-    vars <- all.vars(formula)
+  parent <- parent.frame()
+  here <- environment()
+  vars <- all.vars(formula)
 
-    if(!is.null(data)) {
-      attach(data, name = "rN_lm_std_df")
-      on.exit(detach("rN_lm_std_df"))
-    }
-    vars_num <- vars[purrr::map_lgl(vars, ~is.numeric(get(.x, parent)))]
+  if (!is.null(data)) {
+    attach(data, name = "rN_lm_std_df")
+    on.exit(detach("rN_lm_std_df"))
+  }
+  vars_num <- vars[purrr::map_lgl(vars, ~ is.numeric(get(.x, parent)))]
 
-    if (rename_std) {
-        vars_num_sc <- paste0(vars_num, "_sd")
-    } else {
-        vars_num_sc <- vars_num
-    }
+  if (rename_std) {
+    vars_num_sc <- paste0(vars_num, "_sd")
+  } else {
+    vars_num_sc <- vars_num
+  }
 
-    assign_scaled <- function(x, y) {
-        assign(y, scale_blank(get(x, parent)), pos = here)
-    }
+  assign_scaled <- function(x, y) {
+    assign(y, scale_blank(get(x, parent)), pos = here)
+  }
 
-    purrr::map2(vars_num, vars_num_sc, assign_scaled)
+  purrr::map2(vars_num, vars_num_sc, assign_scaled)
 
-    other_vars <- setdiff(vars, vars_num)
+  other_vars <- setdiff(vars, vars_num)
 
-    purrr::map(other_vars, ~assign(.x, get(.x, parent), pos = here))
+  purrr::map(other_vars, ~ assign(.x, get(.x, parent), pos = here))
 
-    if (!is.null(weights)) weights <- weights
-    formula <- Reduce(paste, deparse(formula))
+  if (!is.null(weights)) weights <- weights
+  formula <- Reduce(paste, deparse(formula))
 
-    if (rename_std) {
+  if (rename_std) {
     repl <- paste0(vars_num, "_sd")
     names(repl) <- vars_num
-   formula <- formula %>%
-        stringr::str_replace_all(c(repl))
-    }
-    #formula <- as.formula(formula) #Rebuilds formula in current environment
-    if(!is.null(weights)) {
-        mod <- eval(parse(text=glue::glue("lm({formula}, weights = weights, ...)")))
-    } else {
-      mod <- eval(parse(text=glue::glue("lm({formula}, ...)")))
-    }
-    #mod <- lm(formula, weights = weights, ...)
-    mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
-    class(mod) <- c("rN_std", class(mod))
-    mod
-
+    formula <- formula %>%
+      stringr::str_replace_all(c(repl))
+  }
+  # formula <- as.formula(formula) #Rebuilds formula in current environment
+  if (!is.null(weights)) {
+    mod <- eval(parse(text = glue::glue("lm({formula}, weights = weights, ...)")))
+  } else {
+    mod <- eval(parse(text = glue::glue("lm({formula}, ...)")))
+  }
+  # mod <- lm(formula, weights = weights, ...)
+  mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+  class(mod) <- c("rN_std", class(mod))
+  mod
 }
 
 #' t-test() on multiply-imputed data (accepts survey weights)
@@ -175,33 +186,33 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, data = NULL, ...
 #' @export
 
 t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
-    dv <- rlang::enquo(dv)
-    groups <- rlang::enquo(groups)
-    weights <- rlang::enquo(weights)
+  dv <- rlang::enquo(dv)
+  groups <- rlang::enquo(groups)
+  weights <- rlang::enquo(weights)
 
-    mi_list <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
+  mi_list <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
 
-    out <- .run_t_test_mi(mi_list)
+  out <- .run_t_test_mi(mi_list)
 
-    out$group_var <- dplyr::as_label(groups)
+  out$group_var <- dplyr::as_label(groups)
 
-    out
-
+  out
 }
 
 .run_t_test_mi <- function(mi_list) {
+  tests <- purrr::map(mi_list, do.call, what = .wtd_t_test_lm) %>% mice::pool()
 
-    tests <- purrr::map(mi_list, do.call, what = .wtd_t_test_lm) %>% mice::pool()
+  res <- summary(tests)
 
-    res <- summary(tests)
+  if (nrow(res) > 2) stop("Group should only have two levels - subset data or use pairwise_t_test_mi instead")
 
-     if (nrow(res)>2) stop("Group should only have two levels - subset data or use pairwise_t_test_mi instead")
+  groups <- mi_list[[1]]$g %>%
+    unique() %>%
+    as.character()
 
-    groups <- mi_list[[1]]$g %>% unique() %>% as.character()
+  out <- tibble::tibble(x = groups[1], y = groups[2], mean_diff = res[2, "estimate"], t_value = res[2, "statistic"], df = res[2, "df"], p_value = res[2, "p.value"])
 
-    out <- tibble::tibble(x=groups[1], y=groups[2], mean_diff = res[2, "estimate"], t_value = res[2, "statistic"], df = res[2, "df"], p_value = res[2, "p.value"])
-
-    out
+  out
 }
 
 #' Pairwise t-tests() on multiply-imputed data (accepts survey weights)
@@ -216,32 +227,36 @@ t_test_mi <- function(mi_list, dv, groups, weights = NULL) {
 #'
 #' @export
 
-pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.method = p.adjust.methods) {
+pairwise_t_test_mi <- function(mi_list, dv, groups, weights = NULL, p.adjust.method = p.adjust.methods) {
   if (!("quosure" %in% class(dv) | "name" %in% class(dv))) {
     dv <- rlang::enquo(dv)
     groups <- rlang::enquo(groups)
     weights <- rlang::enquo(weights)
   }
 
-    pairs <- mi_list[[1]] %>% dplyr::select(!!groups) %>% dplyr::pull() %>%
-      unique() %>% as.character()  %>% utils::combn(2) %>% split(col(.))
-    mi_list_sel <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
+  pairs <- mi_list[[1]] %>%
+    dplyr::select(!!groups) %>%
+    dplyr::pull() %>%
+    unique() %>%
+    as.character() %>%
+    utils::combn(2) %>%
+    split(col(.))
+  mi_list_sel <- purrr::map(mi_list, dplyr::select, wt = !!weights, dv = !!dv, g = !!groups)
 
-    out <- purrr::map_df(pairs, function(x) {
-        dat <- purrr::map(mi_list_sel, dplyr::filter, .data$g %in% x)
-        .run_t_test_mi(dat)
-    })
+  out <- purrr::map_df(pairs, function(x) {
+    dat <- purrr::map(mi_list_sel, dplyr::filter, .data$g %in% x)
+    .run_t_test_mi(dat)
+  })
 
- out$p_value %<>% stats::p.adjust(p.adjust.method)
+  out$p_value %<>% stats::p.adjust(p.adjust.method)
 
- out$group_var <- dplyr::as_label(groups)
+  out$group_var <- dplyr::as_label(groups)
 
- out
-
+  out
 }
 
 .wtd_t_test_lm <- function(dv, g, wt = NULL, ...) {
-    lm(dv ~ g, weights = wt, ...)
+  lm(dv ~ g, weights = wt, ...)
 }
 
 #' Get letters to indicate results of multiple comparisons/post-hoc tests
@@ -264,11 +279,10 @@ pairwise_t_test_mi <- function (mi_list, dv, groups, weights = NULL, p.adjust.me
 #' @examples
 #' attach(airquality)
 #' month <- factor(Month, labels = month.abb[5:9])
-#' x<-pairwise.t.test(Ozone, Month)
+#' x <- pairwise.t.test(Ozone, Month)
 #' library(rNuggets)
 #' get_pairwise_letters(x)
 #' detach()
-#'
 #' @export
 
 
@@ -297,73 +311,77 @@ get_pairwise_letters <- function(tests,
     })
   }
 
-  dat_levels <- c(tests$x, tests$y) %>% as.character() %>% unique()
+  dat_levels <- c(tests$x, tests$y) %>%
+    as.character() %>%
+    unique()
 
   tests$p_value %<>% stats::p.adjust(p.adjust.method)
 
   tests %<>% dplyr::filter(.data$p_value < alpha_level)
   dat_letters <- tibble::tibble(dat_level = dat_levels)
 
-  if(nrow(tests) == 0) { #If no comparisons are significant
+  if (nrow(tests) == 0) { # If no comparisons are significant
     dat_letters[2] <- TRUE
-  }else {
-  dat_letters[2:(nrow(tests) + 2)] <- FALSE
-  dat_letters[2] <- TRUE
+  } else {
+    dat_letters[2:(nrow(tests) + 2)] <- FALSE
+    dat_letters[2] <- TRUE
 
-  n <- 2
+    n <- 2
 
-  for (i in 1:nrow(tests)) {
-    for (j in 2:n) {
-      if (dat_letters[dat_letters$dat_level == tests$x[i], j] &
-        dat_letters[dat_letters$dat_level == tests$y[i], j]) {
-        n <- n + 1
-        #     print(paste0("Working on ", str_sub(x[1], start=-10), " and ", str_sub(x[2], start=-10), ". Copy column ", j, " to ", n,"."))
-        dat_letters[n] <- dat_letters[j]
-        dat_letters[dat_letters$dat_level == tests$x[i], j] <- FALSE
-        dat_letters[dat_letters$dat_level == tests$y[i], n] <- FALSE
-        # break
-        # browser()
+    for (i in 1:nrow(tests)) {
+      for (j in 2:n) {
+        if (dat_letters[dat_letters$dat_level == tests$x[i], j] &
+          dat_letters[dat_letters$dat_level == tests$y[i], j]) {
+          n <- n + 1
+          #     print(paste0("Working on ", str_sub(x[1], start=-10), " and ", str_sub(x[2], start=-10), ". Copy column ", j, " to ", n,"."))
+          dat_letters[n] <- dat_letters[j]
+          dat_letters[dat_letters$dat_level == tests$x[i], j] <- FALSE
+          dat_letters[dat_letters$dat_level == tests$y[i], n] <- FALSE
+          # break
+          # browser()
+        }
+      }
+      # browser()
+    }
+
+    n <- 1
+    absorb <- numeric()
+
+    for (i in 2:(ncol(dat_letters) - 1)) {
+      for (j in (i + 1):ncol(dat_letters)) {
+        if (min(dat_letters[i] - dat_letters[j]) >= 0) {
+          absorb[n] <- j
+          n <- n + 1
+        }
       }
     }
-    # browser()
-  }
 
-  n <- 1
-  absorb <- numeric()
+    if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
 
-  for (i in 2:(ncol(dat_letters) - 1)) {
-    for (j in (i + 1):ncol(dat_letters)) {
-      if (min(dat_letters[i] - dat_letters[j]) >= 0) {
-        absorb[n] <- j
-        n <- n + 1
+
+    n <- 1
+    absorb <- numeric()
+
+    for (i in (ncol(dat_letters):3)) {
+      for (j in 2:(i - 1)) {
+        if (min(dat_letters[i] - dat_letters[j]) >= 0) {
+          absorb[n] <- j
+          n <- n + 1
+        }
       }
     }
+
+    if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
   }
-
-  if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
-
-
-  n <- 1
-  absorb <- numeric()
-
-  for (i in (ncol(dat_letters):3)) {
-    for (j in 2:(i - 1)) {
-      if (min(dat_letters[i] - dat_letters[j]) >= 0) {
-        absorb[n] <- j
-        n <- n + 1
-      }
-    }
-  }
-
-  if (length(absorb > 0)) dat_letters <- dat_letters[-absorb]
-}
   for (i in 2:ncol(dat_letters)) {
     dat_letters[letters[i - 1]] <- NA_character_
     dat_letters[letters[i - 1]][dat_letters[[i]], ] <-
       letters[i - 1]
   }
 
-  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>% tidyr::unite("letters", -.data$dat_level, sep="", remove = FALSE, na.rm = TRUE) %>% dplyr::rename(level = .data$dat_level)
+  dat_letters %<>% dplyr::select(-dplyr::matches("^\\.")) %>%
+    tidyr::unite("letters", -.data$dat_level, sep = "", remove = FALSE, na.rm = TRUE) %>%
+    dplyr::rename(level = .data$dat_level)
 
   return(dat_letters)
 }

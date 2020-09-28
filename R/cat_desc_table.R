@@ -29,27 +29,34 @@ cat_var_table <- function(df, dv, ..., var_names = NULL, level_names = NULL, p.a
   df <- rename_cat_variables(df, ..., var_names = var_names, level_names = level_names)
 
   if (!is.null(var_names)) {
-  var_names_chr <- var_names$new
-  names(var_names_chr) <- var_names$old
+    var_names_chr <- var_names$new
+    names(var_names_chr) <- var_names$old
 
-  vars <- purrr::map(vars, function(x) {
-    x %>%
-      dplyr::as_label() %>%
-      stringr::str_replace_all(var_names_chr) %>%
-      rlang::sym()
-  })
+    vars <- purrr::map(vars, function(x) {
+      x %>%
+        dplyr::as_label() %>%
+        stringr::str_replace_all(var_names_chr) %>%
+        rlang::sym()
+    })
   }
 
 
-  descr <- purrr::map(vars, function(x) df %>% dplyr::rename(level = !!x) %>%
-                        dplyr::filter(!exclude_na | !is.na(.data$level)) %>%
-                          dplyr::group_by(.data$level) %>%
-                        dplyr::summarise(M = mean(!!dv, na.rm = na.rm),
-                                         SD =  sd(!!dv, na.rm = na.rm),
-                                         N = dplyr::n()) %>%
-                        dplyr::mutate(Share = .data$N / sum(.data$N),
-                                      group_var = rlang::as_name(x),
-                                      level = as.character(.data$level)))
+  descr <- purrr::map(vars, function(x) {
+    df %>%
+      dplyr::rename(level = !!x) %>%
+      dplyr::filter(!exclude_na | !is.na(.data$level)) %>%
+      dplyr::group_by(.data$level) %>%
+      dplyr::summarise(
+        M = mean(!!dv, na.rm = na.rm),
+        SD = sd(!!dv, na.rm = na.rm),
+        N = dplyr::n()
+      ) %>%
+      dplyr::mutate(
+        Share = .data$N / sum(.data$N),
+        group_var = rlang::as_name(x),
+        level = as.character(.data$level)
+      )
+  })
 
   tests <- purrr::map(vars, function(x) {
     stats::pairwise.t.test(df %>% dplyr::select(!!dv) %>% dplyr::pull(), df %>% dplyr::select(!!x) %>% dplyr::pull(), p.adjust.method = p.adjust[1]) %>%
@@ -99,7 +106,9 @@ cat_var_table <- function(df, dv, ..., var_names = NULL, level_names = NULL, p.a
   }
 
   temp_file <- tempfile()
-  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  tab %>%
+    htmltools::as.tags() %>%
+    htmltools::save_html(temp_file)
   code <- readr::read_file(temp_file)
 
   for (i in seq_along(css_tags)) {
@@ -183,7 +192,7 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
     gt::cols_label(.list = f(.))
 
   if (bold_vars) {
-   tab <- tab %>% gt::tab_style(
+    tab <- tab %>% gt::tab_style(
       style = list(gt::cell_text(weight = "bold")),
       locations = gt::cells_row_groups()
     )
@@ -206,7 +215,9 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
   }
 
   temp_file <- tempfile()
-  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  tab %>%
+    htmltools::as.tags() %>%
+    htmltools::save_html(temp_file)
   code <- readr::read_file(temp_file)
 
   for (i in seq_along(css_tags)) {
@@ -225,4 +236,3 @@ cat_var_table_mi <- function(mi_list, dv, weights, ..., var_names = NULL, level_
   class %<>% stringr::str_replace(stringr::fixed("."), stringr::fixed("\\."))
   stringr::str_replace(code, paste0("(", class, " \\{[\\s\\S]*?(?=\\}))"), paste0("\\1", css))
 }
-

@@ -21,7 +21,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
 
 
-  if ((class(mod)[1]=="list" | class(std_mod)[1]=="list") & !(length(mod) == length(std_mod))) {
+  if ((class(mod)[1] == "list" | class(std_mod)[1] == "list") & !(length(mod) == length(std_mod))) {
     stop("Same number of models need to be included in mod and std_mod arguments")
   }
 
@@ -92,9 +92,11 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-  tab <- modelsummary::msummary(mods, output="gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
+  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
-    gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
+    gt::cols_label(.list = col_labels) %>%
+    gt::cols_align("right", dplyr::everything()) %>%
+    gt::cols_align("left", columns = 1)
 
   for (i in seq_along(notes)) {
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
@@ -141,7 +143,9 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   code %<>% paste(row, sums, "</tr>", collapse = "")
 
   temp_file <- tempfile()
-  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  tab %>%
+    htmltools::as.tags() %>%
+    htmltools::save_html(temp_file)
   code <- readr::read_file(temp_file) %>% stringr::str_replace("</tbody>", paste(code, "</tbody>"))
 
   if (!is.null(filename)) {
@@ -153,7 +157,9 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 }
 
 .lm_F_test <- function(mod) {
-  if("lm" %in% class(mod$analyses[[1]])) return(mira.lm_F_test(mod))
+  if ("lm" %in% class(mod$analyses[[1]])) {
+    return(mira.lm_F_test(mod))
+  }
   model_summary <- summary(mod)
   f.stat <- model_summary$fstatistic[1]
   DoF <- model_summary$fstatistic[2]
@@ -250,14 +256,14 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   }
 
   mod <- purrr::map(mod, function(x) {
-    if(class(x)[1] == "polr") add_class(x, "polr_p") else x
+    if (class(x)[1] == "polr") add_class(x, "polr_p") else x
   })
 
   std_mod <- purrr::map(std_mod, function(x) {
-    if(class(x)[1] == "polr") add_class(x, "polr_p") else x
+    if (class(x)[1] == "polr") add_class(x, "polr_p") else x
   })
 
-  if(OR) {
+  if (OR) {
     mod <- purrr::map(mod, add_class, "exp")
     std_mod <- purrr::map(std_mod, add_class, "exp")
   }
@@ -311,8 +317,8 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   names(mods) <- paste0("Model", seq_len(length(mods)))
 
-  if(OR) {
-  col_labels <- rep(list(gt::md("*<center>OR [95% CI]</center>*"), gt::md("*<center>Stand. OR [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
+  if (OR) {
+    col_labels <- rep(list(gt::md("*<center>OR [95% CI]</center>*"), gt::md("*<center>Stand. OR [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
   } else {
     col_labels <- rep(list(gt::md("*<center>Coefs [95% CI]</center>*"), gt::md("*<center>Stand. Coefs [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
   }
@@ -322,7 +328,9 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
-    gt::cols_label(.list = col_labels) %>% gt::cols_align("right", dplyr::everything()) %>% gt::cols_align("left", columns = 1)
+    gt::cols_label(.list = col_labels) %>%
+    gt::cols_align("right", dplyr::everything()) %>%
+    gt::cols_align("left", columns = 1)
 
   for (i in seq_along(notes)) {
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
@@ -354,7 +362,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   R2s <- numeric()
 
   for (i in seq_along(mods)) {
-    if(class(mods[[i]])[1] %in% c("glm", "polr", "multinorm")) {
+    if (class(mods[[i]])[1] %in% c("glm", "polr", "multinorm")) {
       R2s[i] <- pscl::pR2(mods[[i]]) %>% magrittr::extract("r2ML")
     } else if ("mira" %in% class(mods[[i]])) {
       R2s[i] <- mean(purrr::map_dbl(mods[[i]]$analyses, function(x) pscl::pR2(x) %>% magrittr::extract("r2ML")))
@@ -369,7 +377,9 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
 
   temp_file <- tempfile()
-  tab %>% htmltools::as.tags() %>%  htmltools::save_html(temp_file)
+  tab %>%
+    htmltools::as.tags() %>%
+    htmltools::save_html(temp_file)
   code <- readr::read_file(temp_file) %>% stringr::str_replace("</tbody>", paste(code, "</tbody>"))
 
   if (!is.null(filename)) {
@@ -425,15 +435,15 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
 #' \dontrun{
 #' library(mice)
 #' data <- airquality
-#' data[4:10,3] <- rep(NA,7)
-#' data[1:5,4] <- NA
-#' tmp <- mice(data,m=5, seed=500, printFlag = FALSE)
+#' data[4:10, 3] <- rep(NA, 7)
+#' data[1:5, 4] <- NA
+#' tmp <- mice(data, m = 5, seed = 500, printFlag = FALSE)
 #' mod <- with(tmp, lm(Ozone ~ Solar.R + Wind))
 #' glance(mod)
-#'}
-
+#' }
+#'
 glance.mira <- function(x, ...) {
-  out <- tibble::tibble('nimp' = length(x$analyses))
+  out <- tibble::tibble("nimp" = length(x$analyses))
   out$nobs <- tryCatch(stats::nobs(x$analyses[[1]]), error = function(e) NULL)
   if (class(x$analyses[[1]])[1] == "lm") {
     out$r.squared <- mice::pool.r.squared(x, adjusted = FALSE)[1]
@@ -449,5 +459,6 @@ glance.mira <- function(x, ...) {
 #' @export
 
 tidy.rN_std <- function(x, ...) {
-  class(x)<-class(x)[class(x)!="rN_std"]
-  generics::tidy(x, ...)}
+  class(x) <- class(x)[class(x) != "rN_std"]
+  generics::tidy(x, ...)
+}

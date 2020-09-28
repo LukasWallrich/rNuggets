@@ -12,16 +12,15 @@
 #' @source The structure is based on https://towardsdatascience.com/how-to-keep-your-research-projects-organized-part-1-folder-structure-10bd56034d3a, with some simplifications and additions.
 #' @export
 
-setup_analysis_project <- function (folder = here::here(), analyses = c("data_prep", "analyses", "presentation"), pipeline_name = "outputs", code_folder = FALSE, standard_packages = c("magrittr", "here", "dplyr"), github_packages = NULL)
-{
-
+setup_analysis_project <- function(folder = here::here(), analyses = c("data_prep", "analyses", "presentation"), pipeline_name = "outputs", code_folder = FALSE, standard_packages = c("magrittr", "here", "dplyr"), github_packages = NULL) {
   pipeline_folder <- paste0("3_", pipeline_name)
-  folders <- paste0(folder, "/", c("0_data", "1_tools", (if(code_folder) "2_code" else NULL), pipeline_folder))
+  folders <- paste0(folder, "/", c("0_data", "1_tools", (if (code_folder) "2_code" else NULL), pipeline_folder))
 
   purrr::map(folders, function(x) {
-  if (!dir.exists(x)) {
-    dir.create(x)
-  }})
+    if (!dir.exists(x)) {
+      dir.create(x)
+    }
+  })
 
   files <- paste0(1:length(analyses), "_", analyses, ".R")
   if (code_folder) files <- paste0("2_code/", files)
@@ -30,16 +29,14 @@ setup_analysis_project <- function (folder = here::here(), analyses = c("data_pr
 
   for (i in seq_along(analyses)) {
     filename <- analyses[i]
-    previous_name <- paste0(analyses[i-1],"")
+    previous_name <- paste0(analyses[i - 1], "")
     code <- glue::glue(code_template)
     writeLines(code, file.path(folder, files[i]))
   }
 
   writeLines(glue::glue(management_functions_file), file.path(folder, "1_tools", "management_functions.R"))
 
-  writeLines(glue::glue(run_all_file), file.path(folder, (if(code_folder) "2_code" else ""), "0_run_all.R"))
-
-
+  writeLines(glue::glue(run_all_file), file.path(folder, (if (code_folder) "2_code" else ""), "0_run_all.R"))
 }
 
 
@@ -127,11 +124,13 @@ writeLines(notes, here("last_complete_run.txt"))
 #' @return boolean invisible(FALSE) if nothing was added, invisible(TRUE) if snipped definitions were added
 #' @export
 #'
-#' @examples \dontrun{add_package_snippets()}
+#' @examples
+#' \dontrun{
+#' add_package_snippets()
+#' }
 #' @source https://stackoverflow.com/a/62223103/10581449
 
 add_package_snippets <- function() {
-
   added <- FALSE
 
   # if not on RStudio or RStudioServer exit
@@ -152,12 +151,12 @@ add_package_snippets <- function() {
   # Path to directory for RStudios user files depends on OS and RStudio version
 
   if (rstudioapi::versionInfo()$version < "1.3") {
-    rstudioSnippetsPathBase <- file.path(path.expand('~'),".R", "snippets")
+    rstudioSnippetsPathBase <- file.path(path.expand("~"), ".R", "snippets")
   } else {
     if (.Platform$OS.type == "windows") {
       rstudioSnippetsPathBase <- file.path(Sys.getenv("APPDATA"), "RStudio", "snippets")
     } else {
-      rstudioSnippetsPathBase <- file.path(path.expand('~'), ".config/rstudio", "snippets")
+      rstudioSnippetsPathBase <- file.path(path.expand("~"), ".config/rstudio", "snippets")
     }
   }
 
@@ -189,9 +188,11 @@ add_package_snippets <- function() {
     # the default snippets from the 'user file'
     #
     if (!file.exists(rstudioSnippetsFilePath)) {
-      stop(paste0( "'", rstudioSnippetsFilePath, "' does not exist yet\n.",
-                   "Use RStudio -> Tools -> Global Options -> Code -> Edit Snippets\n",
-                   "To initalize user defined snippets file by adding dummy snippet\n"))
+      stop(paste0(
+        "'", rstudioSnippetsFilePath, "' does not exist yet\n.",
+        "Use RStudio -> Tools -> Global Options -> Code -> Edit Snippets\n",
+        "To initalize user defined snippets file by adding dummy snippet\n"
+      ))
     }
 
     # Extract 'names' of already existing snippets
@@ -209,8 +210,10 @@ add_package_snippets <- function() {
     snippetsToCopy <- setdiff(trimws(pckgSnippetsFileDefinitions), trimws(rstudioSnippetDefinitions))
     snippetsNotToCopy <- intersect(trimws(pckgSnippetsFileDefinitions), trimws(rstudioSnippetDefinitions))
     if (length(snippetsToCopy) == 0) {
-       cat(paste0("\n(",pckgSnippetsFiles[i], ": Following snippets will NOT be added because there is already a snippet with that name: ",
-                  paste0(snippetsNotToCopy, collapse=", ") ,")\n"))
+      cat(paste0(
+        "\n(", pckgSnippetsFiles[i], ": Following snippets will NOT be added because there is already a snippet with that name: ",
+        paste0(snippetsNotToCopy, collapse = ", "), ")\n"
+      ))
       next()
     }
 
@@ -218,14 +221,18 @@ add_package_snippets <- function() {
     # Inform user about changes, ask to confirm action
     #
     if (interactive()) {
-      cat(paste0("You are about to add the following ", length(snippetsToCopy),
-                 " snippets to '", rstudioSnippetsFilePath, "':\n",
-                 paste0(paste0("-", snippetsToCopy), collapse="\n")))
+      cat(paste0(
+        "You are about to add the following ", length(snippetsToCopy),
+        " snippets to '", rstudioSnippetsFilePath, "':\n",
+        paste0(paste0("-", snippetsToCopy), collapse = "\n")
+      ))
       if (length(snippetsNotToCopy) > 0) {
-        cat(paste0("\n(The following snippets will NOT be added because there is already a snippet with that name:\n",
-                   paste0(snippetsNotToCopy, collapse=", ") ,")"))
+        cat(paste0(
+          "\n(The following snippets will NOT be added because there is already a snippet with that name:\n",
+          paste0(snippetsNotToCopy, collapse = ", "), ")"
+        ))
       }
-       answer <- readline(prompt="Do you want to procedd (y/n): ")
+      answer <- readline(prompt = "Do you want to procedd (y/n): ")
       if (substr(answer, 1, 1) == "n") {
         next()
       }
@@ -243,7 +250,7 @@ add_package_snippets <- function() {
       # First find start of next definition and return
       # previous line number or last line if already in last definition
 
-      endLine <- allPckgSnippetDefinitonStarts[allPckgSnippetDefinitonStarts > startLine][1] -1
+      endLine <- allPckgSnippetDefinitonStarts[allPckgSnippetDefinitonStarts > startLine][1] - 1
       if (is.na(endLine)) {
         endLine <- length(pckgSnippetsFileContentSanitized)
       }
@@ -252,14 +259,14 @@ add_package_snippets <- function() {
 
       # Make sure there is at least one empty line between entries
 
-      if (utils::tail(readLines(rstudioSnippetsFilePath, warn = FALSE), n=1) != "") {
+      if (utils::tail(readLines(rstudioSnippetsFilePath, warn = FALSE), n = 1) != "") {
         snippetText <- paste0("\n", snippetText)
       }
 
       # Append snippet block, print message
       #
       cat(paste0(snippetText, "\n"), file = rstudioSnippetsFilePath, append = TRUE)
-   #   cat(paste0("* Added '", s, "' to '", rstudioSnippetsFilePath, "'\n"))
+      #   cat(paste0("* Added '", s, "' to '", rstudioSnippetsFilePath, "'\n"))
       added <- TRUE
     }
   }
@@ -269,7 +276,4 @@ add_package_snippets <- function() {
   }
 
   return(invisible(added))
-
 }
-
-

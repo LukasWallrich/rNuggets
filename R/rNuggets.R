@@ -26,7 +26,7 @@ generics::tidy
   if (suppressWarnings(!all(lapply(x, requireNamespace, quietly = TRUE)))) {
     stop(paste0(note, "Some required packages are not installed. Make sure you have
                these packages: ", paste0(x, collapse = ", ")),
-         call. = FALSE
+      call. = FALSE
     )
   }
 }

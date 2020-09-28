@@ -21,18 +21,23 @@
 #' @export
 #' @examples
 #' library(magrittr)
-#' x <- 1:5 %>% tunnel(mean, note="Mean") %>% tunnel(sd, note="SD")
+#' x <- 1:5 %>%
+#'   tunnel(mean, note = "Mean") %>%
+#'   tunnel(sd, note = "SD")
 #' x
-
-tunnel <- function(df, fun, ..., note=NULL, return=TRUE) {
+tunnel <- function(df, fun, ..., note = NULL, return = TRUE) {
   if (missing(fun)) {
     fun <- function(x) x
-    return = FALSE
+    return <- FALSE
   }
 
   if (!is.null(note)) print(note)
   print(fun(df, ...))
-  if (return) return(df) else invisible(NULL)
+  if (return) {
+    return(df)
+  } else {
+    invisible(NULL)
+  }
 }
 
 #' lm() for pipes - data as first argument
@@ -61,22 +66,22 @@ tunnel <- function(df, fun, ..., note=NULL, return=TRUE) {
 #' @export
 
 run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
-
   if (std) {
     vars <- all.vars(formula)
-    vars_num <- vars[purrr::map_lgl(vars, .is.numeric_col, df=df)]
+    vars_num <- vars[purrr::map_lgl(vars, .is.numeric_col, df = df)]
 
     if (rename_std) {
       df <- df %>% dplyr::mutate_at(vars_num, list(sd = scale_blank))
 
 
-    repl <- paste0(vars_num, "_sd")
-    names(repl) <- vars_num
-    formula <- Reduce(paste, deparse(formula)) %>%
-      stringr::str_replace_all(c(repl)) %>%
-      as.formula()
+      repl <- paste0(vars_num, "_sd")
+      names(repl) <- vars_num
+      formula <- Reduce(paste, deparse(formula)) %>%
+        stringr::str_replace_all(c(repl)) %>%
+        as.formula()
     } else {
-      df <- df %>% dplyr::mutate_at(vars_num, list(scale_blank))    }
+      df <- df %>% dplyr::mutate_at(vars_num, list(scale_blank))
+    }
   }
 
   # get names of stuff in ...
@@ -108,8 +113,8 @@ run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
   mod <- do.call(lm, args)
   class(mod) <- c(class(mod), "rN_lm")
   if (std) {
-  mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
-  class(mod) <- c(class(mod), "rN_std")
+    mod$call_fmt <- c(sys.call(), "Note: DV and continuous IVs were standardised")
+    class(mod) <- c(class(mod), "rN_std")
   } else {
     mod$call_fmt <- c(sys.call())
   }
@@ -126,8 +131,8 @@ run_lm <- function(df, formula, std = FALSE, rename_std = FALSE, ...) {
 #' @inheritDotParams stats::summary.lm
 #' @export
 
-summary.rN_lm <- function (object, ...) {
-  out<-stats::summary.lm(object, ...)
+summary.rN_lm <- function(object, ...) {
+  out <- stats::summary.lm(object, ...)
   out$call <- object$call_fmt
   out
 }
@@ -138,7 +143,5 @@ summary.rN_lm <- function (object, ...) {
 #' @param df Dataframe that contains `col`
 
 .is.numeric_col <- function(col, df) {
-is.numeric(magrittr::extract2(df, col))
-  }
-
-
+  is.numeric(magrittr::extract2(df, col))
+}

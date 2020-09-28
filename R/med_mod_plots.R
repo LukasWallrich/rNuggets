@@ -1,16 +1,15 @@
 .coef_offset_3 <- tibble::tribble(
   ~obj, ~h_off, ~v_off,
-    #Top 1
-    "M1_a", +1, -0.3,
-    "M1_b", -1.2, -0.3,
-    #Top 2
-    "M3_a", 0.5, -0.2,
-    "M3_b", -0.5,-0.2,
-    #Bottom 1
-    "M2_a", 0.4, -0.15,
-    "M2_b", -0.7, -0.15,
-
-  )
+  # Top 1
+  "M1_a", +1, -0.3,
+  "M1_b", -1.2, -0.3,
+  # Top 2
+  "M3_a", 0.5, -0.2,
+  "M3_b", -0.5, -0.2,
+  # Bottom 1
+  "M2_a", 0.4, -0.15,
+  "M2_b", -0.7, -0.15,
+)
 
 
 #' Plot mediation model with one or more mediators
@@ -39,58 +38,52 @@
 #' @examples
 #' # Values for model
 #' med_model <- tibble::tribble(
-#' ~type, ~mediator, ~est, ~pvalue, ~ci.lower, ~ci.upper,
-#' "a", "Empathy", 0.29, 0, 0.29, 0.29,
-#' "b", "Empathy", 0.18, 0, 0.18, 0.18,
-#' "direct", NA, -0.08, 0, -0.08, -0.08,
-#' "indirect", "Empathy", 0.05, 0, 0.05, 0.05,
-#' "total", NA, 0.41, 0, 0.41, 0.41)
+#'   ~type, ~mediator, ~est, ~pvalue, ~ci.lower, ~ci.upper,
+#'   "a", "Empathy", 0.29, 0, 0.29, 0.29,
+#'   "b", "Empathy", 0.18, 0, 0.18, 0.18,
+#'   "direct", NA, -0.08, 0, -0.08, -0.08,
+#'   "indirect", "Empathy", 0.05, 0, 0.05, 0.05,
+#'   "total", NA, 0.41, 0, 0.41, 0.41
+#' )
 #'
 #' # Run plot command
-#' rNuggets:::plot_mediation(IV = "Positive <br /> contact",
-#' DV = "Diversity <br /> policies", Ms = "Empathy", df = med_model)
-
-
-
-
-
+#' rNuggets:::plot_mediation(
+#'   IV = "Positive <br /> contact",
+#'   DV = "Diversity <br /> policies", Ms = "Empathy", df = med_model
+#' )
 plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL, ind_p_values = FALSE) {
-
   .check_req_packages(c("glue", "DiagrammeR"))
 
 
 
-  stylec <- ifelse(df$pvalue[df$type=="direct"] < .05, "solid", "dashed")
+  stylec <- ifelse(df$pvalue[df$type == "direct"] < .05, "solid", "dashed")
 
   determine_positions <- function(num_Ms) {
-
-     pos <- tibble::tribble(
+    pos <- tibble::tribble(
       ~obj, ~h, ~v,
-      NA_character_, NA_real_, NA_real_) %>% .[-1,]
+      NA_character_, NA_real_, NA_real_
+    ) %>% .[-1, ]
 
-    for (i in 1:ceiling(num_Ms/2)) {
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i-1), v=i, h=2.5))
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i-1, "_a"), h=0.6, v=0.6+i-1))
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i-1, "_b"), h=4.6, v=0.6+i-1))
+    for (i in 1:ceiling(num_Ms / 2)) {
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i - 1), v = i, h = 2.5))
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i - 1, "_a"), h = 0.6, v = 0.6 + i - 1))
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i - 1, "_b"), h = 4.6, v = 0.6 + i - 1))
 
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i), v=-i, h=2.5))
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i, "_a"), h=0.6, v=-0.6-i+1))
-      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2*i, "_b"), h=4.6, v=-0.6-i+1))
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i), v = -i, h = 2.5))
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i, "_a"), h = 0.6, v = -0.6 - i + 1))
+      pos %<>% dplyr::bind_rows(tibble::tibble(obj = paste0("M", 2 * i, "_b"), h = 4.6, v = -0.6 - i + 1))
     }
-   pos
-
-
-
+    pos
   }
 
 
   pos <- determine_positions(length(Ms))
-  pos %<>% dplyr::bind_rows(tibble::tibble(obj = "note", h=0.5, v=-0.1))
+  pos %<>% dplyr::bind_rows(tibble::tibble(obj = "note", h = 0.5, v = -0.1))
 
 
 
-  df$type[!is.na(df$mediator) & !df$type=="indirect"] <- paste0("M", 1:length(Ms), "_", df$type[!is.na(df$mediator) & !df$type=="indirect"])
-  df$type[df$type=="indirect"] <- paste0("M", 1:length(Ms))
+  df$type[!is.na(df$mediator) & !df$type == "indirect"] <- paste0("M", 1:length(Ms), "_", df$type[!is.na(df$mediator) & !df$type == "indirect"])
+  df$type[df$type == "indirect"] <- paste0("M", 1:length(Ms))
 
   if (ind_p_values == TRUE) {
     pos <- df %>%
@@ -99,40 +92,43 @@ plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms),
       dplyr::full_join(pos, by = "obj")
   } else {
     pos <- df %>%
-      dplyr::mutate(ci = .fmt_ci(.data$ci.lower, .data$ci.upper, digits),
-                    est = ifelse(stringr::str_detect(.data$type,  "^M[0-9]$"),
-                                 ifelse(sign(.data$ci.lower) == sign(.data$ci.upper),
-                                        paste0("<b>", sprintf(paste0("%.", digits, "f"), .data$est), "</b> "),
-                                        sprintf(paste0("%.", digits, "f"), .data$est)),
-                                 paste0(sprintf(paste0("%.", digits, "f"), .data$est), sigstars(.data$pvalue)))) %>%
+      dplyr::mutate(
+        ci = .fmt_ci(.data$ci.lower, .data$ci.upper, digits),
+        est = ifelse(stringr::str_detect(.data$type, "^M[0-9]$"),
+          ifelse(sign(.data$ci.lower) == sign(.data$ci.upper),
+            paste0("<b>", sprintf(paste0("%.", digits, "f"), .data$est), "</b> "),
+            sprintf(paste0("%.", digits, "f"), .data$est)
+          ),
+          paste0(sprintf(paste0("%.", digits, "f"), .data$est), sigstars(.data$pvalue))
+        )
+      ) %>%
       dplyr::select(obj = .data$type, .data$est, .data$ci) %>%
       dplyr::full_join(pos, by = "obj")
-
   }
-  pos$est[pos$obj == "note"] <- paste("<i>Direct effect:</i> ", pos$est[pos$obj == "direct"], pos$ci[pos$obj == "direct"], "<br />", "<i>Total effect: </i>",  pos$est[pos$obj == "total"], pos$ci[pos$obj == "total"] )
+  pos$est[pos$obj == "note"] <- paste("<i>Direct effect:</i> ", pos$est[pos$obj == "direct"], pos$ci[pos$obj == "direct"], "<br />", "<i>Total effect: </i>", pos$est[pos$obj == "total"], pos$ci[pos$obj == "total"])
 
-  pos %<>% .[!is.na(pos$est),]
-  pos %<>% .[!is.na(pos$h),]
+  pos %<>% .[!is.na(pos$est), ]
+  pos %<>% .[!is.na(pos$h), ]
 
 
-if (!is.null(coef_offset)) {
-  if (!(coef_offset %in% c(1, 3) || (tibble::is_tibble(coef_offset) && nrow(coef_offset) == length(Ms) * 2))) {
-    warning("Valid coef_offset tibble is not provided and automatic alignment of coefficients is
+  if (!is.null(coef_offset)) {
+    if (!(coef_offset %in% c(1, 3) || (tibble::is_tibble(coef_offset) && nrow(coef_offset) == length(Ms) * 2))) {
+      warning("Valid coef_offset tibble is not provided and automatic alignment of coefficients is
                                                                                                         not yet implemented for this number of mediators - you will likely need to either provide a valid
                                                                                                         coef_offset tibble or edit the returned grViz code manually")
-    coef_offset <- NULL
-  } else if (coef_offset == 3) {
-    coef_offset <- .coef_offset_3
-  } else if (coef_offset == 1) {
-    coef_offset <- NULL
-
-}}
+      coef_offset <- NULL
+    } else if (coef_offset == 3) {
+      coef_offset <- .coef_offset_3
+    } else if (coef_offset == 1) {
+      coef_offset <- NULL
+    }
+  }
 
 
   if (!is.null(coef_offset)) {
     for (i in seq_len(nrow(coef_offset))) {
-      pos$h[pos$obj == coef_offset[i,]$obj] <-  pos$h[pos$obj == coef_offset[i,]$obj] + coef_offset[i,]$h_off
-      pos$v[pos$obj == coef_offset[i,]$obj] <-  pos$v[pos$obj == coef_offset[i,]$obj] + coef_offset[i,]$v_off
+      pos$h[pos$obj == coef_offset[i, ]$obj] <- pos$h[pos$obj == coef_offset[i, ]$obj] + coef_offset[i, ]$h_off
+      pos$v[pos$obj == coef_offset[i, ]$obj] <- pos$v[pos$obj == coef_offset[i, ]$obj] + coef_offset[i, ]$v_off
     }
   }
 
@@ -140,7 +136,7 @@ if (!is.null(coef_offset)) {
 
 
 
-    code <- glue_warn("digraph  {{
+  code <- glue_warn("digraph  {{
 
             graph [layout = 'neato',
             outputorder = 'edgesfirst',
@@ -189,35 +185,30 @@ if (!is.null(coef_offset)) {
 
 
 
-if (!is.null(filename)) {
-  graph <- .grViz_and_save(code, filename = filename)
-
-} else {
-  graph <- code %>% DiagrammeR::grViz()
-}
-      out <- .named_list(code, graph)
-
-
-
+  if (!is.null(filename)) {
+    graph <- .grViz_and_save(code, filename = filename)
+  } else {
+    graph <- code %>% DiagrammeR::grViz()
+  }
+  out <- .named_list(code, graph)
 }
 
 
-.unescape_html <- function(str){
+.unescape_html <- function(str) {
   purrr::map_chr(str, function(x) xml2::xml_text(xml2::read_html(paste0("<x>", x, "</x>"))))
 }
 
 
-moderated_mediation <- function(X, M, W, Y, CV = NULL, mod_direct_path = TRUE, labels = list(a="+", b="+", c="+", a_mod = "+", c_mod = "+"), filename = NULL) {
-
-    .check_req_packages(c("glue", "DiagrammeR"))
+moderated_mediation <- function(X, M, W, Y, CV = NULL, mod_direct_path = TRUE, labels = list(a = "+", b = "+", c = "+", a_mod = "+", c_mod = "+"), filename = NULL) {
+  .check_req_packages(c("glue", "DiagrammeR"))
 
   all_text <- paste(X, M, W, Y, CV)
-  escapes <- stringr::str_extract_all(all_text, "&.*?;")[[1]] %>% unique
+  escapes <- stringr::str_extract_all(all_text, "&.*?;")[[1]] %>% unique()
   targets <- .unescape_html(escapes)
 
 
 
-  #Set parameters
+  # Set parameters
 
   a <- labels$a
   b <- labels$b
@@ -227,7 +218,7 @@ moderated_mediation <- function(X, M, W, Y, CV = NULL, mod_direct_path = TRUE, l
 
   p <- "BR"
 
-code <-  glue_warn("digraph {{
+  code <- glue_warn("digraph {{
 
         graph [layout = 'neato',
         outputorder = 'edgesfirst',
@@ -281,13 +272,11 @@ code <-  glue_warn("digraph {{
 
   if (!is.null(filename)) {
     graph <- .grViz_and_save(code, filename = filename)
-
   } else {
     graph <- code %>% DiagrammeR::grViz()
   }
 
   out <- .named_list(code, graph)
-
 }
 
 .grViz_and_save <- function(code, filename) {
@@ -322,6 +311,8 @@ code <-  glue_warn("digraph {{
 
 .named_list <- function(...) {
   out <- list(...)
-  names(out) <- match.call() %>% as.list() %>% .[-1]
+  names(out) <- match.call() %>%
+    as.list() %>%
+    .[-1]
   out
 }

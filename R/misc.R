@@ -33,8 +33,8 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs =
     len <- max(nchars)
     stars3 <- purrr::map_chr(stars2, .pad, len)
     stars3 %>% stringr::str_replace_all(stringr::fixed(stars2), names(stars))
-    names(stars) = stars3
-    ns <- paste0(ns, rep("&nbsp;", len-nchar(ns)), collapse = "")
+    names(stars) <- stars3
+    ns <- paste0(ns, rep("&nbsp;", len - nchar(ns)), collapse = "")
   }
 
   out <- rep(ns, length(p))
@@ -43,19 +43,18 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs =
     out <- ifelse(p < stars[n], n, out)
   }
 
-  if(!return_NAs) out[is.na(out)] <- ""
+  if (!return_NAs) out[is.na(out)] <- ""
 
   out
 }
 
-.make_stars_note <- function (stars = NULL, markdown = TRUE)
-{
+.make_stars_note <- function(stars = NULL, markdown = TRUE) {
   if (is.null(stars)) stars <- c(`&dagger;` = .1, `*` = .05, `**` = .01, `***` = .001)
   out <- stars
   if (markdown == TRUE) {
-    out <- paste0(names(out), " *p* < ", sub('.', '', out))
+    out <- paste0(names(out), " *p* < ", sub(".", "", out))
   } else {
-    out <- paste0(names(out), " p < ", sub('.', '', out))
+    out <- paste0(names(out), " p < ", sub(".", "", out))
   }
   out <- paste0(out, collapse = ", ")
 
@@ -63,15 +62,19 @@ sigstars <- function(p, stars = NULL, pad_html = FALSE, ns = FALSE, return_NAs =
 }
 
 .pad <- function(x, len, padding = "&nbsp;") {
-  x<-as.character(x)
+  x <- as.character(x)
   n <- nchar(x)
-  if(n<len) return(paste0(x, paste0(rep(padding, len-n), collapse = "")))
-  x}
-
-.unescape_html <- function(str){
-  purrr::map_chr(str, function(x)
-    xml2::xml_text(xml2::read_html(paste0("<x>", x, "</x>"))))
+  if (n < len) {
+    return(paste0(x, paste0(rep(padding, len - n), collapse = "")))
   }
+  x
+}
+
+.unescape_html <- function(str) {
+  purrr::map_chr(str, function(x) {
+    xml2::xml_text(xml2::read_html(paste0("<x>", x, "</x>")))
+  })
+}
 
 #' Geosedic distance between two points.
 #'
@@ -98,13 +101,15 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
   R <- 6371 # Earth mean radius [km]
   delta.long <- (long2 - long1)
   delta.lat <- (lat2 - lat1)
-  a <- sin(delta.lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta.long/2)^2
+  a <- sin(delta.lat / 2)^2 + cos(lat1) * cos(lat2) * sin(delta.long / 2)^2
   c <- 2 * asin(min(1, sqrt(a)))
   d <- R * c
   return(d) # Distance in km
 }
 
-.deg2rad <- function(deg) return(deg*pi/180)
+.deg2rad <- function(deg) {
+  return(deg * pi / 180)
+}
 
 std_stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
 
@@ -136,9 +141,13 @@ within_km <- function(df, start_longitude, start_latitude, km) {
   }
   df %>%
     dplyr::select(.data$longitude, .data$latitude) %>%
-    {purrr::map2(.data$longitude, .data$latitude, gcd.hf, start_longitude, start_latitude)} %>%
+    {
+      purrr::map2(.data$longitude, .data$latitude, gcd.hf, start_longitude, start_latitude)
+    } %>%
     unlist() %>%
-    {.data < km}
+    {
+      .data < km
+    }
 }
 
 #' Cut a continuous variable into given proportions
@@ -191,16 +200,18 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
   out <- factor(out)
 
   if (!is.null(fct_levels)) {
-    if (!length(fct_levels) == length(p))
+    if (!length(fct_levels) == length(p)) {
       stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    }
     levels(out) <- fct_levels
   }
 
   xNA[!is.na(xNA)] <- out[ranks]
   xNA <- factor(xNA)
   if (!is.null(fct_levels)) {
-    if (!length(fct_levels) == length(p))
+    if (!length(fct_levels) == length(p)) {
       stop("Arguments fct_levels and p need to have same length", call. = FALSE)
+    }
     levels(xNA) <- fct_levels
   }
   xNA
@@ -214,20 +225,22 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
 #' @param i Iterator. floor() will be used on x for odd i, ceiling() for even i
 
 .floor_ceiling <- function(x, i) {
-  if (i %% 2 == 1) return(ceiling(x))
+  if (i %% 2 == 1) {
+    return(ceiling(x))
+  }
   floor(x)
 }
 
 #' Formats a number to print as percentage
 #'
-#'Takes a number and returns it as a formatted string expressing the percentage
+#' Takes a number and returns it as a formatted string expressing the percentage
 #'
 #' @param x A number
 #' @param digits The number of digits after the percentage point. Defaults to 1. Trailing zeroes are shown as needed.
 #' @export
 
 p_pct <- function(x, digits = 1) {
-  paste0(format(round_(x*100, digits), nsmall = 2), "%")
+  paste0(format(round_(x * 100, digits), nsmall = 2), "%")
 }
 
 
@@ -248,10 +261,10 @@ round_df <- function(df, digits = 2) {
   (df)
 }
 
-#'Scales a vector and returns it without attributes
+#' Scales a vector and returns it without attributes
 #'
-#'The `base::scale()` function adds attributes to the output that can lead to
-#'problems later on. This function scales a vector and strips the attributes.
+#' The `base::scale()` function adds attributes to the output that can lead to
+#' problems later on. This function scales a vector and strips the attributes.
 #'
 #' @inheritParams base::scale
 #' @export
@@ -262,10 +275,10 @@ scale_blank <- function(x, center = TRUE, scale = TRUE) {
 
 
 
-#'Format p-value in line with APA standard (no leading 0)
+#' Format p-value in line with APA standard (no leading 0)
 #'
-#'Formats p-value in line with APA standard, returning it without leading 0 and
-#'as < .001 when it is that small.
+#' Formats p-value in line with APA standard, returning it without leading 0 and
+#' as < .001 when it is that small.
 #'
 #' @param p_value Numeric, or a vector of numbers
 #' @param sig_dig Number of signficant digits, defaults to 3
@@ -273,8 +286,10 @@ scale_blank <- function(x, center = TRUE, scale = TRUE) {
 
 fmt_p <- function(p_value, sig_dig = 3) {
   fmt <- paste0("%.", sig_dig, "f")
-  fmt_p <- function(x) paste0("= ", sprintf(fmt, x)) %>%
-  stringr::str_replace(" 0.", " .")
+  fmt_p <- function(x) {
+    paste0("= ", sprintf(fmt, x)) %>%
+      stringr::str_replace(" 0.", " .")
+  }
   exact <- ifelse(p_value < .001, FALSE, TRUE)
   exact[is.na(exact)] <- TRUE
   out <- p_value
@@ -285,7 +300,7 @@ fmt_p <- function(p_value, sig_dig = 3) {
 
 .fmt_pct <- function(x, digits = 1) {
   fmt <- paste0("%1.", digits, "f%%")
-  sprintf(fmt, x*100)
+  sprintf(fmt, x * 100)
 }
 
 
@@ -295,11 +310,11 @@ fmt_p <- function(p_value, sig_dig = 3) {
     stringr::str_replace("0.", ".")
 }
 
-#'Converts a tibble to tribble code
+#' Converts a tibble to tribble code
 #'
-#'Tribbles are an easy way to legibly input data, and therefore helpful for teaching and interactive work. This function takes
-#'a tibble and returns code that can recreate it. Note that this function converts
-#'"NA" to NA.
+#' Tribbles are an easy way to legibly input data, and therefore helpful for teaching and interactive work. This function takes
+#' a tibble and returns code that can recreate it. Note that this function converts
+#' "NA" to NA.
 #'
 #' @param x The tibble to be converted into tribble code
 #' @param show Logical. Print code (otherwise, returned - print with `cat()` to get linebreaks etc)
@@ -310,8 +325,8 @@ fmt_p <- function(p_value, sig_dig = 3) {
 
 to_tribble <- function(x, show = FALSE) {
   no_cols <- ncol(x)
-  #lengths <- purrr::map_int(x, ~max(nchar(.x)))
-  #if(sum(lengths)+no_cols*3) > 80) message("Some entries are too long for the tibble code to be well formatted")
+  # lengths <- purrr::map_int(x, ~max(nchar(.x)))
+  # if(sum(lengths)+no_cols*3) > 80) message("Some entries are too long for the tibble code to be well formatted")
   vars <- names(x)
   x %<>% dplyr::mutate_if(is.character, function(x) paste0('"', x, '"'))
 
@@ -331,7 +346,7 @@ to_tribble <- function(x, show = FALSE) {
 
   code %<>% stringr::str_replace_all('"NA"', "NA")
 
-  code %<>% substr(1, nchar(.)-2) %>% paste0("\n)\n")
+  code %<>% substr(1, nchar(.) - 2) %>% paste0("\n)\n")
   if (show) {
     cat(code)
     return(invisible(code))
@@ -345,10 +360,10 @@ to_tribble <- function(x, show = FALSE) {
 #' deprecated and should not be used. At present, I need it for compatibility.
 #' It will be removed in the future.
 #'
-#'@param large_factor The existing factor
-#'@param cats The levels to keep
-#'@param other The name of the new "other"-level
-#'@export
+#' @param large_factor The existing factor
+#' @param cats The levels to keep
+#' @param other The name of the new "other"-level
+#' @export
 
 simplify_factor <- function(large_factor, cats, other = "Other") {
   .Deprecated("fct_other in the forcats package")
@@ -375,13 +390,18 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
   .check_req_packages("survey")
 
   cmd <- paste(purrr::map(mean_vars, function(x) paste0("Mean_", x, " = survey_mean(", x, ")")),
-               collapse = ", ")
-  means <- eval(parse(text = paste0("df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
-                                    cmd, ")")))
-  if (!quietly)
-    means %>% knitr::kable(caption = tbl_title, digits = 2) %>%
-    kableExtra::kable_styling(full_width = F, position = "left") %>%
-    print()
+    collapse = ", "
+  )
+  means <- eval(parse(text = paste0(
+    "df %>% srvyr::group_by(", gr, ") %>% summarize(N = survey_total(na.rm=T), ",
+    cmd, ")"
+  )))
+  if (!quietly) {
+    means %>%
+      knitr::kable(caption = tbl_title, digits = 2) %>%
+      kableExtra::kable_styling(full_width = F, position = "left") %>%
+      print()
+  }
   return(means)
 }
 
@@ -398,55 +418,72 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
 #' @return A tiblle with means (M), standard deviations (SD) and weighted counts (N) per group
 #' @export
 
- wtd_group_means_mi <- function (mi_list, mean_var, gr, weights)
- {
-   if ("quosure" %in% class(weights)) {
-     fmla_weights <- as.formula(paste0("~`", dplyr::as_label(weights),
-                                       "`"))
-     fmla_gr <- as.formula(paste0("~`", dplyr::as_label(gr), "`"))
-     fmla_mean_var <- as.formula(paste0("~`", dplyr::as_label(mean_var),
-                                        "`"))
-   }
-   else {
-     fmla_weights <- as.formula(paste0("~`", substitute(weights),
-                                       "`"))
-     fmla_gr <- as.formula(paste0("~`", substitute(gr), "`"))
-     fmla_mean_var <- as.formula(paste0("~`", substitute(mean_var),
-                                        "`"))
-   }
-   imp_svy <- survey::svydesign(~1, weights = fmla_weights,
-                                data = mitools::imputationList(mi_list))
-   M <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
-                                                       fmla_gr, design = .design, FUN = survey::svymean)))
-   VAR <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
-                                                         fmla_gr, design = .design, FUN = survey::svyvar)))
-   TOT <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
-                                                         fmla_gr, design = .design, FUN = survey::svytotal)))
-   out <- tibble::tibble(level = names(M$coefficients), M = M$coefficients,
-                         SD = sqrt(VAR$coefficients), N = TOT$coefficients/.data$M,
-                         group_var = dplyr::as_label(rlang::enquo(gr)))
- }
+wtd_group_means_mi <- function(mi_list, mean_var, gr, weights) {
+  if ("quosure" %in% class(weights)) {
+    fmla_weights <- as.formula(paste0(
+      "~`", dplyr::as_label(weights),
+      "`"
+    ))
+    fmla_gr <- as.formula(paste0("~`", dplyr::as_label(gr), "`"))
+    fmla_mean_var <- as.formula(paste0(
+      "~`", dplyr::as_label(mean_var),
+      "`"
+    ))
+  }
+  else {
+    fmla_weights <- as.formula(paste0(
+      "~`", substitute(weights),
+      "`"
+    ))
+    fmla_gr <- as.formula(paste0("~`", substitute(gr), "`"))
+    fmla_mean_var <- as.formula(paste0(
+      "~`", substitute(mean_var),
+      "`"
+    ))
+  }
+  imp_svy <- survey::svydesign(~1,
+    weights = fmla_weights,
+    data = mitools::imputationList(mi_list)
+  )
+  M <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+    fmla_gr,
+    design = .design, FUN = survey::svymean
+  )))
+  VAR <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+    fmla_gr,
+    design = .design, FUN = survey::svyvar
+  )))
+  TOT <- mitools::MIcombine(with(imp_svy, survey::svyby(fmla_mean_var,
+    fmla_gr,
+    design = .design, FUN = survey::svytotal
+  )))
+  out <- tibble::tibble(
+    level = names(M$coefficients), M = M$coefficients,
+    SD = sqrt(VAR$coefficients), N = TOT$coefficients / .data$M,
+    group_var = dplyr::as_label(rlang::enquo(gr))
+  )
+}
 
- #' Get code to generate tibbles to rename categorical variables and their levels
- #'
- #' Renaming categorical variables and their levels, for instance for summary tables, can be fiddly. This
- #' function generates code in which only the new names need to be modified, and which can then be passed
- #' to either \code{\link{rename_cat_variables}} or directly to \code{\link{cat_var_table_mi}}
- #'
- #' Only categorical variables should be passed to the function if code for levels is
- #' requested. If a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
- #'
- #'
- #' @param dat A dataframe that contains the variables - only used to extract their possible levels.
- #' @param ... The variables to be included in the rename tribbles.
- #' @param show Logical - should the output be printed to the console. In any case, it is returned invisibly
- #' @param which Should tribble code be generated for variables (\code{"vars"}), levels (\code{"levels"}) or both (\code{"both"}) (default)
- #' @param max_levels The maximum number of levels before a variable is dropped from the levels_tribble. Defaults to 20
- #'
- #' @return Code to be edited and passed to tibble::tribble() to create var_names and level_names arguments for
- #' \code{\link{rename_cat_variables}} and \code{\link{cat_var_table_mi}}
- #'
- #' @export
+#' Get code to generate tibbles to rename categorical variables and their levels
+#'
+#' Renaming categorical variables and their levels, for instance for summary tables, can be fiddly. This
+#' function generates code in which only the new names need to be modified, and which can then be passed
+#' to either \code{\link{rename_cat_variables}} or directly to \code{\link{cat_var_table_mi}}
+#'
+#' Only categorical variables should be passed to the function if code for levels is
+#' requested. If a variable has more than 20 distinct values, it is dropped from the levels-tribble-code
+#'
+#'
+#' @param dat A dataframe that contains the variables - only used to extract their possible levels.
+#' @param ... The variables to be included in the rename tribbles.
+#' @param show Logical - should the output be printed to the console. In any case, it is returned invisibly
+#' @param which Should tribble code be generated for variables (\code{"vars"}), levels (\code{"levels"}) or both (\code{"both"}) (default)
+#' @param max_levels The maximum number of levels before a variable is dropped from the levels_tribble. Defaults to 20
+#'
+#' @return Code to be edited and passed to tibble::tribble() to create var_names and level_names arguments for
+#' \code{\link{rename_cat_variables}} and \code{\link{cat_var_table_mi}}
+#'
+#' @export
 
 get_rename_tribbles <- function(dat, ..., show = TRUE, which = c("both", "vars", "levels"), max_levels = 20) {
   vars <- rlang::enquos(...)
@@ -465,19 +502,20 @@ get_rename_tribbles <- function(dat, ..., show = TRUE, which = c("both", "vars",
         levels()
     }
     levels_list <- purrr::map(vars, get_levels, dat)
-    levels_list <- Filter(function(x) length(x)<=max_levels, levels_list)
-    if(length(levels_list)>=1) {
-        names(levels_list) <- vars_chr
+    levels_list <- Filter(function(x) length(x) <= max_levels, levels_list)
+    if (length(levels_list) >= 1) {
+      names(levels_list) <- vars_chr
 
-    mt <- function(x, name) {
-      tibble::tibble(var = name, level_old = x, level_new = x)
+      mt <- function(x, name) {
+        tibble::tibble(var = name, level_old = x, level_new = x)
+      }
+      levels_tribble <- purrr::lmap(levels_list, function(x) purrr::map(x, mt, names(x))) %>%
+        purrr::map_dfr(rbind) %>%
+        tibble::as_tibble() %>%
+        to_tribble(show = show)
+      out <- c(out, levels_tribble)
     }
-    levels_tribble <- purrr::lmap(levels_list, function(x) purrr::map(x, mt, names(x))) %>%
-      purrr::map_dfr(rbind) %>%
-      tibble::as_tibble() %>%
-      to_tribble(show = show)
-    out <- c(out, levels_tribble)
-  }}
+  }
 
   out
 }
@@ -563,7 +601,7 @@ tidy.exp <- function(x, ...) {
   class(x) <- class(x)[-1]
   out <- generics::tidy(x, ...)
   out$estimate <- exp(out$estimate)
-  if(!is.null(out$conf.high)) {
+  if (!is.null(out$conf.high)) {
     out$conf.high <- exp(out$conf.high)
     out$conf.low <- exp(out$conf.low)
   }
@@ -587,7 +625,10 @@ tidy.polr_p <- function(x, ...) {
   class(x)[1] <- "polr"
   out <- generics::tidy(x, ...)
   sig <- MASS::dropterm(x, test = "Chisq")
-  p <- sig %>% dplyr::select(.data$`Pr(Chi)`) %>% dplyr::pull() %>% .[-1]
+  p <- sig %>%
+    dplyr::select(.data$`Pr(Chi)`) %>%
+    dplyr::pull() %>%
+    .[-1]
 
   terms <- purrr::map(rownames(sig)[-1], function(x) out$term[stringr::str_detect(out$term, stringr::fixed(x))]) %>% unlist()
   out <- dplyr::left_join(out, tibble::tibble(term = terms, p.value = p), by = "term")
@@ -606,8 +647,8 @@ tidy.polr_p <- function(x, ...) {
 #' @source https://www.r-bloggers.com/copying-data-from-excel-to-r-and-back/
 
 
-clip_excel <- function(df,row_names=FALSE,col_names=TRUE,...) {
-  utils::write.table(df,"clipboard",sep="\t",row.names=row_names,col.names=col_names,...)
+clip_excel <- function(df, row_names = FALSE, col_names = TRUE, ...) {
+  utils::write.table(df, "clipboard", sep = "\t", row.names = row_names, col.names = col_names, ...)
 }
 
 
@@ -622,8 +663,8 @@ clip_excel <- function(df,row_names=FALSE,col_names=TRUE,...) {
 
 dump_to_clip <- function(objects) {
   .check_req_packages("clipr")
-  if(!is.character(objects)) stop("'objects' need to be a character vector with one or more R objects")
-  utils::capture.output(dump(objects, file="")) %>% clipr::write_clip()
+  if (!is.character(objects)) stop("'objects' need to be a character vector with one or more R objects")
+  utils::capture.output(dump(objects, file = "")) %>% clipr::write_clip()
 }
 
 
@@ -645,7 +686,8 @@ transforming_glue <- function(transformer) {
   function(..., .sep = "", .envir = parent.frame(), .open = "{", .close = "}",
            .na = "NA") {
     glue::glue(
-      ..., .sep = .sep, .envir = .envir, .open = .open, .close = .close,
+      ...,
+      .sep = .sep, .envir = .envir, .open = .open, .close = .close,
       .na = "NA",
       .transformer = transformer
     )
@@ -657,10 +699,10 @@ warn_null <- function(text, envir, val = "NULL", ...) {
   if (is.null(res)) {
     warning("glue item evaluates to NULL: ", text, call. = FALSE, immediate. = TRUE)
     val
-  }  else if (length(res)==0) {
+  } else if (length(res) == 0) {
     warning("glue item evaluates to length (0): ", text, call. = FALSE, immediate. = TRUE)
     val
-  }else {
+  } else {
     res
   }
 }
@@ -711,7 +753,7 @@ line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRU
   if (strings) {
     out <- paste0('c("', paste0(x, collapse = '", "'), '")')
   } else {
-    out <- paste0('c(', paste0(x, collapse = ', '), ')')
+    out <- paste0("c(", paste0(x, collapse = ", "), ")")
   }
   if (to_clip) clipr::write_clip(out)
   invisible(out)
