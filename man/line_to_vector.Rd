@@ -20,5 +20,5 @@ is read from the clipboard and a character vector returned
 }
 \examples{
 line_to_vector("a b c", to_clip = FALSE)
-line_to_vector("1 2 3", s = F, t = F)
+line_to_vector("1 2 3", s = FALSE, t = FALSE)
 }
