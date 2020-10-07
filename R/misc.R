@@ -281,7 +281,7 @@ scale_blank <- function(x, center = TRUE, scale = TRUE) {
 #' as < .001 when it is that small.
 #'
 #' @param p_value Numeric, or a vector of numbers
-#' @param sig_dig Number of signficant digits, defaults to 3
+#' @param sig_dig Number of significant digits, defaults to 3
 #' @export
 
 fmt_p <- function(p_value, sig_dig = 3) {
@@ -298,11 +298,23 @@ fmt_p <- function(p_value, sig_dig = 3) {
   out
 }
 
-.fmt_pct <- function(x, digits = 1) {
-  fmt <- paste0("%1.", digits, "f%%")
-  sprintf(fmt, x * 100)
+#' Format fraction as percentage string
+#'
+#' Formats fractions as percentages, i.e. multiplying them by 100 and adding '%'
+#'
+#' @param x Numeric, or a vector of numbers
+#' @param sig_dig Number of significant digits, defaults to 1
+#' @export
+
+fmt_pct <- function(x, sig_dig = 1) {
+  fmt <- paste0("%1.", sig_dig, "f%%")
+  out <- sprintf(fmt, x * 100)
+  names(out) <- names(x)
+  out
+}
 }
 
+.fmt_pct <- fmt_pct
 
 .fmt_cor <- function(cor_value, sig_dig = 2) {
   fmt <- paste0("%.", sig_dig, "f")
