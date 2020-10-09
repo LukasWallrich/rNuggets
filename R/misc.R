@@ -312,7 +312,6 @@ fmt_pct <- function(x, sig_dig = 1) {
   names(out) <- names(x)
   out
 }
-}
 
 .fmt_pct <- fmt_pct
 
