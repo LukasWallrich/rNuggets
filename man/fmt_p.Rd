@@ -9,7 +9,7 @@ fmt_p(p_value, sig_dig = 3)
 \arguments{
 \item{p_value}{Numeric, or a vector of numbers}
 
-\item{sig_dig}{Number of signficant digits, defaults to 3}
+\item{sig_dig}{Number of significant digits, defaults to 3}
 }
 \description{
 Formats p-value in line with APA standard, returning it without leading 0 and
