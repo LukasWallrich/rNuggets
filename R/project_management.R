@@ -277,3 +277,8 @@ add_package_snippets <- function() {
 
   return(invisible(added))
 }
+
+#Copy Rproj filepath to clipboard - e.g., to set up local links
+rproj_to_clip <- function() {
+  here::here(list.files(here::here(), pattern =  "[.]Rproj$")) %>% clipr::write_clip()
+}

@@ -771,3 +771,7 @@ line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRU
 }
 
 l2v <- line_to_vector
+
+rproj_to_clip <- function() {
+  here::here(list.files(here::here(), pattern =  "[.]Rproj$")) %>% clipr::write_clip()
+}
