@@ -282,3 +282,31 @@ add_package_snippets <- function() {
 rproj_to_clip <- function() {
   here::here(list.files(here::here(), pattern =  "[.]Rproj$")) %>% clipr::write_clip()
 }
+
+#' @title Save ggplot-graph and show in folder
+#'
+#' @description This wraps \code{ggsave} and opens the folder where the graph was saved in a Shell.
+#' From there, it can easily be dragged and dropped into the application where you want to use it.
+#' It also changes the default units from in to cm, and defaults to saving temporary png files.
+#'
+#' @param filename File name with path. If not provided, only a temporary file is saved
+#' @param unit Unit for width and height, if provided. Defaults to "cm", can also be "in" or "mm"
+#' @inheritParams ggplot2::ggsave
+#' @inheritDotParams ggplot2::ggsave
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' ggsave_show(here::here("mtcars.pdf"))
+#' }
+#' @source https://stackoverflow.com/a/12135823/10581449
+
+ggsave_show <- function(filename = tempfile("0_plot", fileext = ".png"), ..., device = "png",  units = "cm"){
+  ggplot2::ggsave(filename, units = units, device = device, ...)
+  if (.Platform['OS.type'] == "windows"){
+    shell.exec(dirname(filename))
+  } else {
+    system(paste(Sys.getenv("R_BROWSER"), dirname(filename)))
+  }
+}

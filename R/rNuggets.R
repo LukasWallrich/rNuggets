@@ -3,6 +3,17 @@
   packageStartupMessage("Note re rNuggets: Most functions in this package are alpha-versions - please treat results with care and report bugs.")
 }
 
+#' A set of helper functions for statistics and data analysis
+#'
+#' This package contains a diverse set of helper functions to support tasks that
+#' I frequently perform as part of my research in social psychology. They are
+#' primarily written for my own use, but might be helpful to others. Eventually,
+#' they might be split into a few focused packages that will be easier to grasp.
+#' @docType package
+#' @name datasummary
+
+"_PACKAGE"
+
 globalVariables(".")
 
 #' @importFrom magrittr %>%
