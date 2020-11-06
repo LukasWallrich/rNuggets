@@ -40,10 +40,7 @@ specifying dimensions in pixels.}
 (e.g. \code{\link[=png]{png()}}), or one of "eps", "ps", "tex" (pictex),
 "pdf", "jpeg", "tiff", "png", "bmp", "svg" or "wmf" (windows only).}
 
-\item{units}{Plot size in \code{units} ("in", "cm", or "mm").
-If not supplied, uses the size of current graphics device.}
-
-\item{unit}{Unit for width and height, if provided. Defaults to "cm", can also be "in" or "mm"}
+\item{units}{Unit for width and height, if provided. Defaults to "cm", can also be "in" or "mm"}
 }
 \description{
 This wraps \code{ggsave} and opens the folder where the graph was saved in a Shell.
