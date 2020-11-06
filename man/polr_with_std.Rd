@@ -28,10 +28,12 @@ polr_with_std(
 
 \item{conf_level}{Confidence level to use for confidence intervals, defaults to .95}
 
-\item{fmt}{string which specifies how numeric values will be rounded. This
-string is passed to the `sprintf` function. '\%.3f' will keep 3 digits after
-the decimal point with trailing zero. '\%.5f' will keep 5 digits. '\%.3e' will
-use exponential notation. See `?sprintf` for more options.}
+\item{fmt}{an integer, string, or function which determines how to format numeric values:
+\itemize{
+  \item integer: the number of digits to keep after the period (`format(round(x, fmt), nsmall=fmt)`)
+  \item character: string is passed to the `sprintf` function. '\%.3f' will keep 3 digits after the decimal point with trailing zero. '\%.5f' will keep 5 digits. '\%.3e' will use exponential notation. See `?sprintf` for more options.
+  \item function: a function which returns a formatted character string
+}}
 
 \item{statistic_vertical}{TRUE if statistics should be printed below
 estimates. FALSE if statistics should be printed beside estimates.}
@@ -60,7 +62,7 @@ in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.
 Coefficients that are omitted from this vector will be omitted from the
 table. The table will be ordered in the same order as this vector.}
     \item{\code{coef_omit}}{string regular expression. Omits all matching coefficients
-from the table (using `grepl`).}
+from the table (using `grepl(perl=TRUE)`).}
     \item{\code{coef_rename}}{named character vector. Values refer to the variable names
 that will appear in the table. Names refer to the original term names stored
 in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.}
@@ -68,12 +70,15 @@ in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.}
 `omit`. If `gof_map` is NULL, then `modelsummary` will use this data frame
 by default: `modelsummary::gof_map`}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
-the table (using `grepl`).}
+the table (using `grepl(perl=TRUE)`).}
     \item{\code{add_rows}}{a data.frame (or tibble) with the same number of columns as
 your main table. By default, rows are appended to the bottom of the table.
 You can define a "position" attribute of integers to set the row positions.
 See examples.}
     \item{\code{title}}{string}
+    \item{\code{align}}{A character string of length equal to the number of columns in
+the table.  "lcr" means that the first column will be left-aligned, the 2nd
+column center-aligned, and the 3rd column right-aligned.}
     \item{\code{estimate}}{character name of the estimate to display. Must be a column
 name in the data.frame produced by `tidy(model)`. In the vast majority of
 cases, the default value of this argument should not be changed.}
