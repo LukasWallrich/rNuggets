@@ -7,10 +7,12 @@
 #'
 #' This package contains a diverse set of helper functions to support tasks that
 #' I frequently perform as part of my research in social psychology. They are
-#' primarily written for my own use, but might be helpful to others. Eventually,
-#' they might be split into a few focused packages that will be easier to grasp.
+#' primarily written for my own use, but might be helpful to others. As they cover
+#' everything from statistical modeling, graphing and presentation to project management,
+#' the package has a huge list of dependencies. Eventually, this might be split
+#' into a few focused packages that will be more lightweight and easier to grasp.
 #' @docType package
-#' @name datasummary
+#' @name rNuggets
 
 "_PACKAGE"
 
