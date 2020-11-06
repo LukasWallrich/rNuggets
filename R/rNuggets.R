@@ -25,6 +25,7 @@ globalVariables(".")
 #' @importFrom generics glance
 #' @importFrom broom glance
 #' @importFrom broom tidy
+#' @importFrom here here
 #' @importFrom utils getFromNamespace
 #' @import checkmate
 #' @export

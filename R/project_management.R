@@ -290,7 +290,7 @@ rproj_to_clip <- function() {
 #' It also changes the default units from in to cm, and defaults to saving temporary png files.
 #'
 #' @param filename File name with path. If not provided, only a temporary file is saved
-#' @param unit Unit for width and height, if provided. Defaults to "cm", can also be "in" or "mm"
+#' @param units Unit for width and height, if provided. Defaults to "cm", can also be "in" or "mm"
 #' @inheritParams ggplot2::ggsave
 #' @inheritDotParams ggplot2::ggsave
 #'
