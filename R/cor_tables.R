@@ -178,7 +178,7 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
 #' for variables. If NULL, then the variables are not renamed.
 #' @inheritParams psych::corr.test
 #' @inheritDotParams psych::corr.test -y -minlength -ci
-#' @return A list including the correlation matrix, p-values, standard errors, confidence intervals and descriptives
+#' @return A list including the correlation matrix, p-values, standard errors, t-values, pairwise number of observations, confidence intervals and descriptives
 #' @source Adapted from
 #'  http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 #' @export
@@ -195,11 +195,19 @@ cor_matrix <- function(x,
   correlation_matrix <- psych::corr.test(x, method = method[1], adjust = adjust, ...)
   cors <- correlation_matrix$r # Matrix of correlation coeficients
   p.values <- correlation_matrix$p # Matrix of p-value
-  std.err <- correlation_matrix$se # Matrix of p-value
-  t.values <- correlation_matrix$t # Matrix of p-value
+  std.err <- correlation_matrix$se # Matrix of standard errors
+  t.values <- correlation_matrix$t # Matrix of t-values
+  n.matrix <- correlation_matrix$n # Matrix of pairwise counts
 
   # Copy (possibly) adjusted p-values into lower half that will be used by apa_cor_table()
   p.values[lower.tri(p.values)] <- t(p.values)[lower.tri(p.values)]
+
+  #Ensure that n is a named matrix (corr.test returns single number for complete data)
+  if(is.null(dim(n.matrix))){
+    n.out <- n.matrix
+    n.matrix <- cors
+    n.matrix[TRUE] <- n.out
+  }
 
   ci_low <- p.values
   ci_low[TRUE] <- NA
@@ -216,7 +224,7 @@ cor_matrix <- function(x,
     tibble::rownames_to_column("var") %>%
     dplyr::select(.data$var, M = .data$mean, SD = .data$sd)
 
-  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, ci.low = ci_low, ci.high = ci_high, desc = desc_stat)
+  corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, n = n.matrix, ci.low = ci_low, ci.high = ci_high, desc = desc_stat)
 
   if (!is.null(var_names)) {
     corM[1:6] <- purrr::map(corM[1:6], function(x) {
