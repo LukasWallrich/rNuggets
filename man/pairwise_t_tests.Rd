@@ -36,5 +36,7 @@ This runs pairwise independent-samples t-tests (assuming unequal variance by def
 and returns the results and effect sizes in a tidy dataframe. Beware: It will automatically omit missing values.
 }
 \examples{
+\dontrun{
 pairwise_t_tests(mtcars, wt, cyl)
+}
 }
