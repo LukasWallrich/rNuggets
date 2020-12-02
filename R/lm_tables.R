@@ -146,7 +146,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   code %<>% paste(row, sums, "</tr>", collapse = "")
 
   temp_file <- tempfile()
-  tab %>%
+    tab %>%
     htmltools::as.tags() %>%
     htmltools::save_html(temp_file)
   code <- readr::read_file(temp_file) %>% stringr::str_replace("</tbody>", paste(code, "</tbody>"))

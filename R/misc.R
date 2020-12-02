@@ -730,7 +730,7 @@ warn_null <- function(text, envir, val = "NULL", ...) {
 glue_warn <- transforming_glue(warn_null)
 
 
-#' Round function that return trailing zeroes
+#' Round function that returns trailing zeroes
 #' @param x Numeric vector to be rounded
 #' @param digits Number of significant digits
 #' @return Character vector of rounded values, with trailing zeroes as needed to show `digits` figures after the decimal point

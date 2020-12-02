@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{round_}
 \alias{round_}
-\title{Round function that return trailing zeroes}
+\title{Round function that returns trailing zeroes}
 \usage{
 round_(x, digits = 0)
 }
@@ -15,5 +15,5 @@ round_(x, digits = 0)
 Character vector of rounded values, with trailing zeroes as needed to show `digits` figures after the decimal point
 }
 \description{
-Round function that return trailing zeroes
+Round function that returns trailing zeroes
 }

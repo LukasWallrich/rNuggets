@@ -385,3 +385,60 @@ get_pairwise_letters <- function(tests,
 
   return(dat_letters)
 }
+
+#' Pairwise t-tests() returned in tidy dataframe
+#'
+#' This runs pairwise independent-samples t-tests (assuming unequal variance by default, but can be changed)
+#' and returns the results and effect sizes in a tidy dataframe. Beware: It will automatically omit missing values.
+#'
+#' @param df A dataframe containing the outcome and grouping variable
+#' @param outcome The outcome variable in dataframe
+#' @param groups The grouping variable (each distinct value will be treated as a level)
+#' @param p.adjust.method The method to adjust p-values for multiple comparison (see \code{\link[stats]{p.adjust}})
+#' @param conf_level confidence level of the interval.
+#' @param var_equal a logical variable indicating whether to treat the two variances as being equal. If TRUE then the pooled
+#' variance is used to estimate the variance otherwise the Welch (or Satterthwaite)
+#' approximation to the degrees of freedom is used.
+#' @return A tibble containing the results of the t-tests with one test per row, including a column (`apa`) formatted for reporting
+#' @examples
+#' pairwise_t_tests(mtcars, wt, cyl)
+#' @export
+
+pairwise_t_tests <- function(df, outcome, groups, p.adjust.method = p.adjust.methods, conf_level = .95, var_equal = FALSE) {
+  if(is.character(rlang::enexpr(outcome))) {
+    warning("literal string input will be deprecated across the package, please use raw variable names")
+    outcome <- rlang::enexpr(outcome)
+    groups <- rlang::enexpr(groups)
+  }
+
+
+
+  pairs <- df %>%
+    dplyr::select({{groups}}) %>%
+    dplyr::pull() %>%
+    unique() %>%
+    as.character() %>%
+    utils::combn(2) %>%
+    split(col(.))
+
+  fmla <- as.formula(paste(dplyr::as_label(rlang::enexpr(outcome)), "~", dplyr::as_label(rlang::enexpr(groups))))
+
+  out <- purrr::map_df(pairs, function(x) {
+    dat <- dplyr::filter(df, {{groups}} %in% x)
+    out <- stats::t.test(fmla, dat,
+                  var.equal = var_equal, conf.level = conf_level,  na.action = "na.omit") %>% broom::tidy()
+    desc <- dat %>% dplyr::arrange(dplyr::desc({{groups}} == x[1])) %>% dplyr::group_by({{groups}}) %>% dplyr::summarise(M = mean({{outcome}}, na.rm = TRUE), var = var({{outcome}}, na.rm = TRUE), .groups = "drop")
+    cohens_d <- (desc$M[1]-desc$M[2]) / sqrt((desc$var[1] + desc$var[2]) / 2)
+    out <- cbind(tibble::tibble(var_1 = x[1], var_2 = x[2], cohens_d = cohens_d), out) %>%
+      dplyr::select(var_1, var_2, mean_1 = estimate1, mean_2 = estimate2, mean_diff = estimate, conf_low = conf.low, conf_high = conf.high, t_value = statistic, df = parameter, p_value = p.value, cohens_d,  test = method)
+    })
+
+  out$p_value %<>% stats::p.adjust(p.adjust.method)
+  out$p_value_adjust <- p.adjust.method[1]
+
+  out$group_var <- dplyr::as_label(rlang::enexpr(groups))
+
+  out$apa <- paste0("t(", round(out$df), ") = ", round_(out$t_value, 2), ", p ", fmt_p(out$p_value), ", d = ", round_(out$cohens_d, 2))
+
+  out
+}

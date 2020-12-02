@@ -34,7 +34,7 @@ for variables. If NULL, then the variables are not renamed.}
   }}
 }
 \value{
-A list including the correlation matrix, p-values, standard errors, confidence intervals and descriptives
+A list including the correlation matrix, p-values, standard errors, t-values, pairwise number of observations, confidence intervals and descriptives
 }
 \description{
 Calculates the correlation matrix between the numeric variables in a given dataframe and
