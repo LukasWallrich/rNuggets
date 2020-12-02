@@ -401,7 +401,9 @@ get_pairwise_letters <- function(tests,
 #' approximation to the degrees of freedom is used.
 #' @return A tibble containing the results of the t-tests with one test per row, including a column (`apa`) formatted for reporting
 #' @examples
+#' \dontrun{
 #' pairwise_t_tests(mtcars, wt, cyl)
+#' }
 #' @export
 
 pairwise_t_tests <- function(df, outcome, groups, p.adjust.method = p.adjust.methods, conf_level = .95, var_equal = FALSE) {
@@ -410,8 +412,6 @@ pairwise_t_tests <- function(df, outcome, groups, p.adjust.method = p.adjust.met
     outcome <- rlang::enexpr(outcome)
     groups <- rlang::enexpr(groups)
   }
-
-
 
   pairs <- df %>%
     dplyr::select({{groups}}) %>%
