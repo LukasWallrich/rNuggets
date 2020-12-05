@@ -60,7 +60,7 @@ make_scale <- function(df, scale_items, scale_name, reverse = c(
                          "spearman_brown", "cron_alpha",
                          "r"
                        ), r_key = NULL, print_hist = TRUE, print_desc = TRUE, return_list = FALSE) {
-  if (!all(scale_items %in% names(df))) stop("Not all scale_items can be found in the dataset")
+  if (!all(scale_items %in% names(df))) stop("Not all scale_items can be found in the dataset. The following are missing: ", paste(setdiff(scale_items, names(df)), collapse = ", "), call. = FALSE)
 
   if (is.null(r_key)) r_key <- 0
   scale_vals <- df %>%
@@ -155,7 +155,10 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
                                "spearman_brown",
                                "cronbachs_alpha", "r"
                              ), ...) {
-  if (!is.null(reversed)) {
+  if (!all(unlist(items) %in% names(df))) stop("Not all items can be found in the dataset. The following are missing: ", paste(setdiff(unlist(items), names(df)), collapse = ", "), call. = FALSE)
+
+
+   if (!is.null(reversed)) {
     scales_rev <- intersect(names(items), names(reversed))
     if (length(scales_rev) > 0) {
       print(paste0(
