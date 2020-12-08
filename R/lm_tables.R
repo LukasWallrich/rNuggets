@@ -11,12 +11,13 @@
 #' @param filename the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)
 #' @param model_names If several pairs of models are to be plotted side by side, indicate the label for each *pair* here
 #' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
+#' @param R2_change Logical. Report R2 change and F-test to compare models. Only implemented for comparing two pairs of models.
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(NULL), ...) {
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr"))
 
 
@@ -28,6 +29,11 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   if (!is.null(model_names) & !length(model_names) == length(mod)) {
     stop("Length of model names needs to be the same as length of model")
   }
+
+  if (R2_change == TRUE & !length(mod) == 2) {
+    stop("R2 change can only be included in tables with exactly two pairs of models")
+  }
+
 
   if (!("list" %in% class(mod))) mod <- list(mod)
   if (!("list" %in% class(std_mod))) std_mod <- list(std_mod)
@@ -144,6 +150,23 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   }), collapse = " ")
 
   code %<>% paste(row, sums, "</tr>", collapse = "")
+
+  if (R2_change == TRUE) {
+
+
+    delta_R2 <- purrr::map_chr(gof, function(x) x %>% dplyr::filter(term == "R<sup>2</sup>") %>% dplyr::pull(value)) %>% as.numeric() %>% diff() %>% .fmt_cor()
+
+    x <- anova(mod[[1]], mod[[2]])
+    F_test <- glue_warn("<em>F</em>({x$Res.Df[2]}, {x$Df[2]}) = {x$F[2] %>% round_(2)}, <em>p</em> {x$`Pr(>F)`[2] %>% fmt_p()}")
+
+    row <- glue_warn('<tr>
+    <td class="gt_row gt_left" rowspan="1" colspan="1"><em>Change</em></td>
+    <td class="gt_row gt_center" rowspan="1" colspan="4">&Delta;<em>R</em><sup>2</sup> =
+                     {delta_R2}, {F_test} </td></tr>')
+
+    code %<>% paste(row, collapse = "")
+
+    }
 
   temp_file <- tempfile()
     tab %>%
