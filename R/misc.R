@@ -735,7 +735,7 @@ glue_warn <- transforming_glue(warn_null)
 #' @param digits Number of significant digits
 #' @return Character vector of rounded values, with trailing zeroes as needed to show `digits` figures after the decimal point
 #' @export
-round_ <- function(x, digits = 0) {
+round_ <- function(x, digits = 2) {
   checkmate::assert_numeric(x)
   checkmate::assert_integerish(digits)
   fmt <- paste0("%.", digits, "f")
