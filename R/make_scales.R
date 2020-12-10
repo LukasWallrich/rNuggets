@@ -149,6 +149,8 @@ make_scale <- function(df, scale_items, scale_name, reverse = c(
 #'   each vector contains the items to be reverse-coded for that scale
 #' @inheritParams make_scale
 #' @inheritDotParams make_scale print_desc print_hist
+#' @return A list of two dataframes: scale values (`scores`) and
+#' descriptive statistics for each scale (`descriptives`)
 #' @export
 
 make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability = c(
