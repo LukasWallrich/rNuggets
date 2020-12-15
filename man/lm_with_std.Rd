@@ -13,6 +13,7 @@ lm_with_std(
   filename = NULL,
   model_names = NULL,
   show_nimp = FALSE,
+  R2_change = FALSE,
   notes = list(NULL),
   ...
 )
@@ -32,14 +33,15 @@ created with \code{\link{lm_std}} (or a list of such models)}
   \item function: a function which returns a formatted character string
 }}
 
-\item{statistic_vertical}{TRUE if statistics should be printed below
-estimates. FALSE if statistics should be printed beside estimates.}
+\item{statistic_vertical}{deprecated argument. Supply a vector of strings or `glue` strings to the `estimate` instead.}
 
 \item{filename}{the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)}
 
 \item{model_names}{If several pairs of models are to be plotted side by side, indicate the label for each *pair* here}
 
 \item{show_nimp}{Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic}
+
+\item{R2_change}{Logical. Report R2 change and F-test to compare models. Only implemented for comparing two pairs of models.}
 
 \item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
 
@@ -64,9 +66,14 @@ that will appear in the table. Names refer to the original term names stored
 in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.}
     \item{\code{gof_map}}{data.frame with four columns: `raw`, `clean`, `fmt`, and
 `omit`. If `gof_map` is NULL, then `modelsummary` will use this data frame
-by default: `modelsummary::gof_map`}
+by default: `modelsummary::gof_map` By default, all the statistics produced
+by `broom::glance` will be included unless they are omitted explicitly in
+`gof_map`.}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `grepl(perl=TRUE)`).}
+    \item{\code{estimate}}{character name of the estimate to display. Must be a column
+name in the data.frame produced by `tidy(model)`. In the vast majority of
+cases, the default value of this argument should not be changed.}
     \item{\code{add_rows}}{a data.frame (or tibble) with the same number of columns as
 your main table. By default, rows are appended to the bottom of the table.
 You can define a "position" attribute of integers to set the row positions.
@@ -75,9 +82,6 @@ See examples.}
     \item{\code{align}}{A character string of length equal to the number of columns in
 the table.  "lcr" means that the first column will be left-aligned, the 2nd
 column center-aligned, and the 3rd column right-aligned.}
-    \item{\code{estimate}}{character name of the estimate to display. Must be a column
-name in the data.frame produced by `tidy(model)`. In the vast majority of
-cases, the default value of this argument should not be changed.}
   }}
 }
 \description{

@@ -32,6 +32,10 @@ and Pearson's "r" are also supported.}
     \item{\code{print_desc}}{Logical. Should descriptives for scales be printed?}
   }}
 }
+\value{
+A list of two dataframes: scale values (`scores`) and
+descriptive statistics for each scale (`descriptives`)
+}
 \description{
 This function creates multiple scales, returns descriptives and supports
 reverse-coding of items.
