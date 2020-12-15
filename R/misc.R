@@ -744,7 +744,7 @@ round_ <- function(x, digits = 2) {
 
 #' Turn line of items separated by spaces into c() command
 #'
-#' This takes a line of items separated by spaces and returns a c()
+#' This takes a line of items separated by spaces, tabs or newlines and returns a c()
 #' vector command - with the items quoted or not. By default, the line
 #' is read from the clipboard and a character vector returned
 #'
@@ -760,14 +760,14 @@ round_ <- function(x, digits = 2) {
 
 line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE) {
   assert_character(x)
-  x <- strsplit(x, " ") %>% unlist()
+  x <- strsplit(x, " |\\n|\\t") %>% unlist()
   if (strings) {
     out <- paste0('c("', paste0(x, collapse = '", "'), '")')
   } else {
     out <- paste0("c(", paste0(x, collapse = ", "), ")")
   }
   if (to_clip) clipr::write_clip(out)
-  invisible(out)
+  out
 }
 
 l2v <- line_to_vector
