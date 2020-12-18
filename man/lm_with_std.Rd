@@ -15,6 +15,7 @@ lm_with_std(
   show_nimp = FALSE,
   R2_change = FALSE,
   notes = list(NULL),
+  apa_style = TRUE,
   ...
 )
 }
@@ -44,6 +45,8 @@ created with \code{\link{lm_std}} (or a list of such models)}
 \item{R2_change}{Logical. Report R2 change and F-test to compare models. Only implemented for comparing two pairs of models.}
 
 \item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
+
+\item{apa_style}{Logical, should APA-style formatting be applied}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
