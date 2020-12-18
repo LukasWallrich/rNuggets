@@ -4,7 +4,7 @@
 \alias{round_}
 \title{Round function that returns trailing zeroes}
 \usage{
-round_(x, digits = 0)
+round_(x, digits = 2)
 }
 \arguments{
 \item{x}{Numeric vector to be rounded}

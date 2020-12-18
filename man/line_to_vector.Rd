@@ -14,7 +14,7 @@ line_to_vector(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE)
 \item{to_clip}{Should result be written to clipboard?}
 }
 \description{
-This takes a line of items separated by spaces and returns a c()
+This takes a line of items separated by spaces, tabs or newlines and returns a c()
 vector command - with the items quoted or not. By default, the line
 is read from the clipboard and a character vector returned
 }
