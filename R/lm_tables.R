@@ -13,11 +13,12 @@
 #' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
 #' @param R2_change Logical. Report R2 change and F-test to compare models. Only implemented for comparing two pairs of models.
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
+#' @param apa_style Logical, should APA-style formatting be applied
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), ...) {
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), apa_style = TRUE, ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr"))
 
 
@@ -106,6 +107,8 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
     gt::cols_align("left", columns = 1)
+
+  if (apa_style) tab <- tab %>% gt_apa_style()
 
   for (i in seq_along(notes)) {
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
@@ -261,11 +264,12 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
 #' @param show_nimp Logical. If mira objects are passed, this determines whether the number of imputations will be reported as a model statistic
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. A note is also added
 #' stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.
+#' @param apa_style Logical, should APA-style formatting be applied
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), ...) {
+polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), apa_style = TRUE, ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr", "pscl"))
 
   #TK: add polr_std function and show this note only when that function was used.
@@ -360,6 +364,8 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
     gt::cols_align("left", columns = 1)
+
+  if (apa_style) tab <- tab %>% gt_apa_style()
 
   for (i in seq_along(notes)) {
     tab <- tab %>% gt::tab_source_note(gt::md(notes[[i]]))
@@ -490,4 +496,37 @@ glance.mira <- function(x, ...) {
 tidy.rN_std <- function(x, ...) {
   class(x) <- class(x)[class(x) != "rN_std"]
   generics::tidy(x, ...)
+}
+
+#' Helper function to style gt-table in APA style
+#' This function takes a `gt` table object and changes font-type, borders etc
+#' to align with APA style.
+#' @param gt_table A gt-table
+#' @source Created by Philip Parker, https://gist.github.com/pdparker/1b61b6d36d09cb295bf286a931990159
+#' @export
+
+
+gt_apa_style <- function(gt_table) {
+  gt_table %>%
+    gt::opt_table_lines(extent = "none") %>%
+    gt::tab_options(
+      heading.border.bottom.width = 2,
+      heading.border.bottom.color = "black",
+      heading.border.bottom.style = "solid",
+      table.border.top.color = "white",
+      table_body.hlines.color = "white",
+      table_body.border.top.color = "black",
+      table_body.border.top.style = "solid",
+      table_body.border.top.width = 1,
+      heading.title.font.size = 12,
+      table.font.size = 12,
+      heading.subtitle.font.size = 12,
+      table_body.border.bottom.color = "black",
+      table_body.border.bottom.width = 1,
+      table_body.border.bottom.style = "solid",
+      column_labels.border.bottom.color = "black",
+      column_labels.border.bottom.style = "solid",
+      column_labels.border.bottom.width = 1
+    ) %>%
+    gt::opt_table_font(font = "times")
 }

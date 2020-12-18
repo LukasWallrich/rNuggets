@@ -16,6 +16,7 @@
 #' @inheritParams sigstars
 #' @param add_title Should title be added to table? Set to TRUE for default title or to character for custom title
 #' @param extras Tibble of additional columns to be added after the descriptives column - needs to be sorted in the same order as the `desc` element in the cor_matrix
+#' @param apa_style Logical, should APA-style formatting be applied
 #' @source Based on the apaTables \code{apa.cor.table()} function, but adapted to
 #' accept weighted correlation matrices and work with the `gt` package instead. Code for calculation
 #' of confidence intervals adapted from https://medium.com/@shandou/how-to-compute-confidence-interval-for-pearsons-r-a-brief-guide-951445b9cb2d`
@@ -25,7 +26,7 @@
 #' @export
 
 apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"), n = NULL, filename = NULL,
-                          notes = list(NULL), stars = NULL, add_title = FALSE, extras = NULL) {
+                          notes = list(NULL), stars = NULL, add_title = FALSE, extras = NULL, apa_style = TRUE) {
   if (add_title) add_title <- "Means, standard deviations, and correlations with confidence intervals"
 
   assert_tibble(extras, null.ok = TRUE)
@@ -141,6 +142,8 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
   tab <- cells_df %>%
     gt::gt() %>%
     gt::fmt_markdown(columns = gt::everything())
+
+  if (apa_style) tab <- tab %>% gt_apa_style()
 
   notes %<>% c("*M* and *SD* are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation.")
 
