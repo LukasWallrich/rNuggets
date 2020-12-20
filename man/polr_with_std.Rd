@@ -16,6 +16,7 @@ polr_with_std(
   model_names = NULL,
   show_nimp = FALSE,
   notes = list(),
+  apa_style = TRUE,
   ...
 )
 }
@@ -45,6 +46,8 @@ polr_with_std(
 
 \item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. A note is also added
 stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.}
+
+\item{apa_style}{Logical, should APA-style formatting be applied}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}

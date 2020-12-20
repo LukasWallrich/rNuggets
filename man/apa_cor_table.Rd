@@ -17,7 +17,8 @@ apa_cor_table(
   notes = list(NULL),
   stars = NULL,
   add_title = FALSE,
-  extras = NULL
+  extras = NULL,
+  apa_style = TRUE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ be calulcated using z-transformations}
 \item{add_title}{Should title be added to table? Set to TRUE for default title or to character for custom title}
 
 \item{extras}{Tibble of additional columns to be added after the descriptives column - needs to be sorted in the same order as the `desc` element in the cor_matrix}
+
+\item{apa_style}{Logical, should APA-style formatting be applied}
 }
 \value{
 A table that can be printed in the RStudio console to be shown in the
