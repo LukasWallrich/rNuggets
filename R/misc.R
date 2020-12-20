@@ -772,4 +772,17 @@ line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRU
 
 l2v <- line_to_vector
 
+#' Calculate share of NA-values in vector
+#'
+#' Returns share of NA values in vector (count of NAs / length of vector)
+#'
+#' @param x Vector
+#' @param round Number of digits to round result to
+#' @examples
+#' x <- c(NA, 1, 2)
+#' na_share(x)
+#' @export
 
+na_share <- function(x, round = 2) {
+  (sum(is.na(x)) / length(x)) %>% round(round)
+}
