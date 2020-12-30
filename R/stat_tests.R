@@ -104,7 +104,7 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
   x
 }
 
-#' lm() with standardised continuous variables - no data argument
+#' lm() with standardised continuous variables
 #'
 #' This runs lm() after standardising all continuous variables, while leaving
 #' factors intact.
@@ -123,7 +123,7 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' one option is `QuantPsyc::lm.beta()`
 #' @export
 
-lm_std <- function(formula, weights = NULL, rename_std = FALSE, data = NULL, ...) {
+lm_std <- function(formula, data = NULL, weights = NULL, rename_std = FALSE, ...) {
   parent <- parent.frame()
   here <- environment()
   vars <- all.vars(formula)
@@ -133,6 +133,10 @@ lm_std <- function(formula, weights = NULL, rename_std = FALSE, data = NULL, ...
     on.exit(detach("rN_lm_std_df"))
   }
   vars_num <- vars[purrr::map_lgl(vars, ~ is.numeric(get(.x, parent)))]
+
+  vars_dummies <- vars_num[purrr::map_lgl(vars_num, ~ dplyr::n_distinct(get(.x, parent)) < 3)]
+
+  if(length(vars_dummies)>0) warning("The following variables have less than three distinct values but are of type numeric: ", paste0(vars_dummies, collapse = ", ") ,". Check whether they should not be factors instead. As it stands, they are standardised, which is typically not recommended.")
 
   if (rename_std) {
     vars_num_sc <- paste0(vars_num, "_sd")
