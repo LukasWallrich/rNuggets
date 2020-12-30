@@ -774,7 +774,8 @@ l2v <- line_to_vector
 
 #' Calculate share of NA-values in vector
 #'
-#' Returns share of NA values in vector (count of NAs / length of vector)
+#' Returns share of NA values in vector by wrapping `sum(is.na(x)) / length(x)`
+#' and rounding the result
 #'
 #' @param x Vector
 #' @param round Number of digits to round result to
