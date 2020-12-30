@@ -425,6 +425,13 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   }
 }
 
+## TK - replace by modelgenerics once it is on CRAN
+#' @importFrom broom glance
+#' @importFrom broom tidy
+#' @export
+broom::glance
+broom::tidy
+
 #' Tidy  multiple imputation models created with `mice`
 #'
 #' @param x A `mira` object containing multiple models based on `mice` imputations.
@@ -447,7 +454,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 #'      \item conf.low (if called with conf.int = TRUE)
 #'      \item conf.high (if called with conf.int = TRUE)
 #' }
-#'
+#'@export
 tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
   out <- summary(mice::pool(x, ...), type = "all", conf.int = conf.int, conf.level = conf.level) %>%
     dplyr::mutate(term = as.character(.data$term)) %>%
@@ -476,7 +483,7 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
 #' mod <- with(tmp, lm(Ozone ~ Solar.R + Wind))
 #' glance(mod)
 #' }
-#'
+#' @export
 glance.mira <- function(x, ...) {
   out <- tibble::tibble("nimp" = length(x$analyses))
   out$nobs <- tryCatch(stats::nobs(x$analyses[[1]]), error = function(e) NULL)
