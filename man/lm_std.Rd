@@ -2,15 +2,21 @@
 % Please edit documentation in R/stat_tests.R
 \name{lm_std}
 \alias{lm_std}
-\title{lm() with standardised continuous variables - no data argument}
+\title{lm() with standardised continuous variables}
 \usage{
-lm_std(formula, weights = NULL, rename_std = FALSE, data = NULL, ...)
+lm_std(formula, data = NULL, weights = NULL, rename_std = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class \code{"\link[stats]{formula}"} (or one that
     can be coerced to that class): a symbolic description of the
     model to be fitted.  The details of model specification are given
     under \sQuote{Details}.}
+
+\item{data}{an optional data frame, list or environment (or object
+    coercible by \code{\link{as.data.frame}} to a data frame) containing
+    the variables in the model.  If not found in \code{data}, the
+    variables are taken from \code{environment(formula)},
+    typically the environment from which \code{lm} is called.}
 
 \item{weights}{an optional vector of weights to be used in the fitting
     process.  Should be \code{NULL} or a numeric vector.
@@ -20,12 +26,6 @@ lm_std(formula, weights = NULL, rename_std = FALSE, data = NULL, ...)
 
 \item{rename_std}{Logical. Should standardised variables be indicated by _sd
 suffix}
-
-\item{data}{an optional data frame, list or environment (or object
-    coercible by \code{\link{as.data.frame}} to a data frame) containing
-    the variables in the model.  If not found in \code{data}, the
-    variables are taken from \code{environment(formula)},
-    typically the environment from which \code{lm} is called.}
 
 \item{...}{
   Arguments passed on to \code{\link[stats:lm]{stats::lm}}
