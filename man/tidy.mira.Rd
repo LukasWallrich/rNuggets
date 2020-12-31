@@ -16,7 +16,7 @@
 \item{...}{extra arguments (not used)}
 }
 \description{
-Tidy  multiple imputation models created with `mice`
+Note that the `mice` authors prefer to tidy `mipo` rather than `mira` objects and have now included `tidy.mipo` and `glance.mipo` into their package. The `mira` functions here are mostly retained for compatibility with my earlier code.
 }
 \note{
 Available stats in result:

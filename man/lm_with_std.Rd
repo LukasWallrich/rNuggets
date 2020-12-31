@@ -16,6 +16,7 @@ lm_with_std(
   R2_change = FALSE,
   notes = list(NULL),
   apa_style = TRUE,
+  stars = std_stars_pad,
   ...
 )
 }
@@ -34,7 +35,7 @@ created with \code{\link{lm_std}} (or a list of such models)}
   \item function: a function which returns a formatted character string
 }}
 
-\item{statistic_vertical}{deprecated argument. Supply a vector of strings or `glue` strings to the `estimate` instead.}
+\item{statistic_vertical}{Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout}
 
 \item{filename}{the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)}
 
@@ -47,6 +48,8 @@ created with \code{\link{lm_std}} (or a list of such models)}
 \item{notes}{List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.}
 
 \item{apa_style}{Logical, should APA-style formatting be applied}
+
+\item{stars}{Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
