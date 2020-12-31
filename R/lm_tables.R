@@ -14,11 +14,12 @@
 #' @param R2_change Logical. Report R2 change and F-test to compare models. Only implemented for comparing two pairs of models.
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @param apa_style Logical, should APA-style formatting be applied
+#' @param statistic_vertical Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), apa_style = TRUE, ...) {
+lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), apa_style = TRUE, stars = std_stars_pad, ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr"))
 
 
@@ -76,7 +77,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   for (i in seq_len(length(mod))) {
     mod_tidy[[i]] <- tidy(mod[[i]])
-    SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")", sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE))
+    SEs[[i]] <- paste0("(", sprintf(fmt, mod_tidy[[i]]$std.error), ")")
     names(SEs[[i]]) <- mod_tidy[[i]]$term
 
     std_mod_tidy[[i]] <- tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
@@ -102,11 +103,23 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
   notes <- Filter(Negate(is.null), notes)
 
-  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
+if (statistic_vertical) {
+  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, rep(c(
+    "{estimate} {stars}", "{estimate}"), length(mod)), fmt = fmt, gof_omit = ".*", ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
     gt::cols_align("left", columns = 1)
+} else {
+  tab <- modelsummary::msummary(mods, output = "gt", statistic = NULL, estimate = rep(c(
+    "{estimate} ({std.error}){stars}",
+    "{estimate} [{conf.low}, {conf.high}]"), length(mod)), fmt = fmt, gof_omit = ".*", stars = std_stars_pad,...) %>%
+    gt::fmt_markdown(columns = dplyr::everything()) %>%
+    gt::cols_label(.list = col_labels) %>%
+    gt::cols_align("right", dplyr::everything()) %>%
+    gt::cols_align("left", columns = 1) %>%
+    gt:::dt_source_notes_set("") #Remove std star note
+}
 
   if (apa_style) tab <- tab %>% gt_apa_style()
 
