@@ -112,6 +112,7 @@ gcd.hf <- function(long1, lat1, long2, lat2) {
 }
 
 std_stars <- c(`&dagger;` = .1, `*` = 0.05, `**` = 0.01, `***` = 0.001)
+std_stars_pad <- c(`&dagger;&nbsp;&nbsp;` = .1, `*&nbsp;&nbsp;` = 0.05, `**&nbsp;` = 0.01, `***` = 0.001)
 
 
 #' Identify rows of dataframe with observations in certain distance from point

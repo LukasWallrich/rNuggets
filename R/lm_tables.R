@@ -15,6 +15,7 @@
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. If the std models were run with a helper function in this package, a note regarding the standardisation is also automatically added.
 #' @param apa_style Logical, should APA-style formatting be applied
 #' @param statistic_vertical Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout
+#' @param stars Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
@@ -105,15 +106,16 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
 
 if (statistic_vertical) {
   tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, rep(c(
-    "{estimate} {stars}", "{estimate}"), length(mod)), fmt = fmt, gof_omit = ".*", ...) %>%
+    "{estimate} {stars}", "{estimate}"), length(mod)), fmt = fmt, gof_omit = ".*", stars = stars, ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
-    gt::cols_align("left", columns = 1)
+    gt::cols_align("left", columns = 1) %>%
+    gt:::dt_source_notes_set("") #Remove std star note
 } else {
   tab <- modelsummary::msummary(mods, output = "gt", statistic = NULL, estimate = rep(c(
     "{estimate} ({std.error}){stars}",
-    "{estimate} [{conf.low}, {conf.high}]"), length(mod)), fmt = fmt, gof_omit = ".*", stars = std_stars_pad,...) %>%
+    "{estimate} [{conf.low}, {conf.high}]"), length(mod)), fmt = fmt, gof_omit = ".*", stars = stars,...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
@@ -278,11 +280,13 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
 #' @param notes List of notes to append to bottom of table. An explanation of significance stars is automatically added. A note is also added
 #' stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.
 #' @param apa_style Logical, should APA-style formatting be applied
+#' @param stars Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.
+#' @param statistic_vertical Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout
 #' @inheritParams modelsummary::modelsummary
 #' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
 #' @export
 
-polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), apa_style = TRUE, ...) {
+polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), apa_style = TRUE, stars = std_stars_pad, ...) {
   .check_req_packages(c("modelsummary", "gt", "htmltools", "readr", "pscl"))
 
   #TK: add polr_std function and show this note only when that function was used.
@@ -347,15 +351,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
   stat_list <- list()
 
   for (i in seq_len(length(mod))) {
-    mod_tidy[[i]] <- generics::tidy(mod[[i]], conf.int = TRUE, conf.level = conf_level)
-    CIs[[i]] <- paste0(sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE), "[", sprintf(fmt, mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, mod_tidy[[i]]$conf.high), "] ")
-    names(CIs[[i]]) <- mod_tidy[[i]]$term
-
-    std_mod_tidy[[i]] <- generics::tidy(std_mod[[i]], conf.int = TRUE, conf.level = conf_level)
-    CIs_std[[i]] <- paste0(sigstars(mod_tidy[[i]]$p.value, pad_html = TRUE), "[", sprintf(fmt, std_mod_tidy[[i]]$conf.low), ", ", sprintf(fmt, std_mod_tidy[[i]]$conf.high), "] ")
-    names(CIs_std[[i]]) <- std_mod_tidy[[i]]$term
-
-    mods[[i * 2 - 1]] <- mod[[i]]
+     mods[[i * 2 - 1]] <- mod[[i]]
     stat_list[[i * 2 - 1]] <- CIs[[i]]
     mods[[i * 2]] <- std_mod[[i]]
     stat_list[[i * 2]] <- CIs_std[[i]]
@@ -371,13 +367,21 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   notes %<>% c(.make_stars_note())
 
-
-  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, statistic_vertical = statistic_vertical, fmt = fmt, gof_omit = ".*", ...) %>%
+if (statistic_vertical) {
+  tab <- modelsummary::msummary(mods, output = "gt", estimate = "{estimate} {stars}", statistic = "[{conf.low}, {conf.high}]", fmt = fmt, gof_omit = ".*", stars = stars, ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>%
     gt::cols_align("right", dplyr::everything()) %>%
-    gt::cols_align("left", columns = 1)
-
+    gt::cols_align("left", columns = 1) %>%
+    gt:::dt_source_notes_set("") #Remove std star note
+} else {
+  tab <- modelsummary::msummary(mods, output = "gt", statistic = NULL, estimate = "{estimate} {stars} [{conf.low}, {conf.high}]", fmt = fmt, gof_omit = ".*", stars = stars,...) %>%
+    gt::fmt_markdown(columns = dplyr::everything()) %>%
+    gt::cols_label(.list = col_labels) %>%
+    gt::cols_align("right", dplyr::everything()) %>%
+    gt::cols_align("left", columns = 1) %>%
+    gt:::dt_source_notes_set("") #Remove std star note
+}
   if (apa_style) tab <- tab %>% gt_apa_style()
 
   for (i in seq_along(notes)) {
@@ -447,6 +451,8 @@ broom::tidy
 
 #' Tidy  multiple imputation models created with `mice`
 #'
+#' Note that the `mice` authors prefer to tidy `mipo` rather than `mira` objects and have now included `tidy.mipo` and `glance.mipo` into their package. The `mira` functions here are mostly retained for compatibility with my earlier code.
+#'
 #' @param x A `mira` object containing multiple models based on `mice` imputations.
 #' @param conf.int Logical. Should confidence intervals be returned. Defaults to true.
 #' @param conf.level Confidence level for intervals. Defaults to .95
@@ -479,6 +485,8 @@ tidy.mira <- function(x, conf.int = TRUE, conf.level = .95, ...) {
 }
 
 #' Glance a multiple imputation `mice` pooled object
+#'
+#' Note that the `mice` authors prefer to tidy `mipo` rather than `mira` objects and have now included `tidy.mipo` and `glance.mipo` into their package. The `mira` functions here are mostly retained for compatibility with my earlier code.
 #'
 #' @param x An object with multiply-imputed models from `mice` (class: `mira`)
 #' @param ... extra arguments (not used)
