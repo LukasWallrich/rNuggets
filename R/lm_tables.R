@@ -96,7 +96,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   col_labels <- rep(list(gt::md("*<center>B (SE)</center>*"), gt::md("*<center>&beta; [95% CI]</center>*")), times = length(mod)) %>% stats::setNames(names(mods))
 
 
-  if ("rN_std" %in% class(std_mod[[1]]) | ("mira" %in% class(std_mod[[1]]) & "rN_std" %in% class(std_mod[[1]][[1]]))) {
+  if ("rN_std" %in% class(std_mod[[1]]) | ("mira" %in% class(std_mod[[1]]) & "rN_std" %in% class(std_mod[[1]]$analyses[[1]]))) {
     notes %<>% c("Given that dummy variables lose their interpretability when standardised (Fox, 2015), &beta; for dummy variables are semi-standardised, indicating the impact of that dummy on the standardized outcome variable.")
   }
 
@@ -352,9 +352,7 @@ polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f
 
   for (i in seq_len(length(mod))) {
      mods[[i * 2 - 1]] <- mod[[i]]
-    stat_list[[i * 2 - 1]] <- CIs[[i]]
     mods[[i * 2]] <- std_mod[[i]]
-    stat_list[[i * 2]] <- CIs_std[[i]]
   }
 
   names(mods) <- paste0("Model", seq_len(length(mods)))
