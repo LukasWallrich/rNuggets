@@ -56,7 +56,7 @@
 plot_mediation <- function(IV, DV, Ms, df, digits = 2, coef_offset = length(Ms), filename = NULL, ind_p_values = FALSE) {
   .check_req_packages(c("glue", "DiagrammeR"))
 
-
+  checkmate::assert_numeric(df$est, any.missing = FALSE)
 
   stylec <- ifelse(df$pvalue[df$type == "direct"] < .05, "solid", "dashed")
 
