@@ -15,7 +15,7 @@
 a tibble with one row
 }
 \description{
-Glance a multiple imputation `mice` pooled object
+Note that the `mice` authors prefer to tidy `mipo` rather than `mira` objects and have now included `tidy.mipo` and `glance.mipo` into their package. The `mira` functions here are mostly retained for compatibility with my earlier code.
 }
 \note{
 If x contains `lm` models, R2 is included in the output

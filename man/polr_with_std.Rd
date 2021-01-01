@@ -17,6 +17,7 @@ polr_with_std(
   show_nimp = FALSE,
   notes = list(),
   apa_style = TRUE,
+  stars = std_stars_pad,
   ...
 )
 }
@@ -36,7 +37,7 @@ polr_with_std(
   \item function: a function which returns a formatted character string
 }}
 
-\item{statistic_vertical}{deprecated argument. Supply a vector of strings or `glue` strings to the `estimate` instead.}
+\item{statistic_vertical}{Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout}
 
 \item{filename}{the file name to create on disk. Include '.html' extension to best preserve formatting (see gt::gtsave for details)}
 
@@ -48,6 +49,8 @@ polr_with_std(
 stating that dummy variables were not scaled in standardization. If you approached standardisation differently, that should be removed.}
 
 \item{apa_style}{Logical, should APA-style formatting be applied}
+
+\item{stars}{Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.}
 
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
