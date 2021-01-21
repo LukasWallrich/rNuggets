@@ -762,7 +762,9 @@ round_ <- function(x, digits = 2) {
 line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE) {
   assert_character(x)
   x <- strsplit(x, " |\\n|\\t") %>% unlist()
+  x <- x[!x==""]
   if (strings) {
+
     out <- paste0('c("', paste0(x, collapse = '", "'), '")')
   } else {
     out <- paste0("c(", paste0(x, collapse = ", "), ")")
