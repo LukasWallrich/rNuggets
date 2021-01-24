@@ -438,7 +438,7 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
 #' that number is used as the maximum number of unique values for which a histogram is used.
 #' @param hist_align_y Should histograms use the same y-axis, so that bin heights are comparable? Defaults to FALSE
 #' @param plot_theme Additional theme_ commands to be added to each plot
-#'
+#' @export
 #' @example
 #' \dontrun{
 #' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))}
@@ -498,6 +498,7 @@ plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histo
 #' @param col_index The index of the column in gt_table that is to be overwritten with the plots
 #'
 #' @example
+#' @export
 #' \dontrun {
 #' var_names <- c(wt = "Weight", am = "Transmission", mpg = "Consumption (mpg)", gear = "Gears")
 #' cor_table <- cor_matrix(mtcars, var_names) %>% apa_cor_table(extras = tibble::tibble(Distributions = c(1:length(var_names))))
