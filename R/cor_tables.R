@@ -47,7 +47,7 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
     sep = ""
   )
   if (!is.null(cor_matrix[["ci.low"]]) & "given" %in% ci) {
-    message("Confidence intervals are extracted from correlation matrix")
+    message("Confidence intervals are extracted from the correlation matrix")
     get_cor.ci.low <- function(cor_matrix, cor.r, cor.se, i, j, df) {
       if (!is.null(cor_matrix[["ci.low"]])) {
         return(cor_matrix[["ci.low"]][i, j])
@@ -127,7 +127,7 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
       output_descriptives, cor_cells
     )
   } else {
-    message("Note that ordering of 'extras' argument is not checked - ensure that it matches 'desc' in the correlation matrix.")
+    message("Note that the ordering of the 'extras' argument is not checked - ensure that it matches 'desc' in the correlation matrix.")
     cells <- cbind(
       matrix(output_variable_names, ncol = 1),
       output_descriptives, extras, cor_cells,
@@ -161,6 +161,8 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
   }
 
   tab <- tab %>% gt::cols_label(desc = gt::md("*M (SD)*"))
+  #TK - add md formatting to extras column titles
+
   if (!is.null(filename)) {
     gt::gtsave(tab, filename)
   }
@@ -178,7 +180,7 @@ apa_cor_table <- function(cor_matrix, ci = c("given", "z_transform", "simple_SE"
 #'
 #' @param x Dataframe of variables that can be coerced to numeric.
 #' @param var_names A named character vector with the names that should be displayed
-#' for variables. If NULL, then the variables are not renamed.
+#' for variables. If NULL, then the variables are not renamed. If names are provided, only the variables included in this vector are retained.
 #' @inheritParams psych::corr.test
 #' @inheritDotParams psych::corr.test -y -minlength -ci
 #' @return A list including the correlation matrix, p-values, standard errors, t-values, pairwise number of observations, confidence intervals and descriptives
@@ -192,7 +194,10 @@ cor_matrix <- function(x,
                        method = c("pearson", "spearman", "kendall"),
                        adjust = "none",
                        ...) {
+
   x %<>% dplyr::select_if(is.numeric)
+
+  if(!is.null(var_names)) x <- x[names(var_names)]
 
   # Compute correlation matrix
   correlation_matrix <- psych::corr.test(x, method = method[1], adjust = adjust, ...)
@@ -260,9 +265,31 @@ cor_matrix <- function(x,
 #' and standard deviations of the variables.
 #' @export
 #'
+#' @example
+#' if (requireNamespace("survey")) {
+#' library(survey)
+#' data(api)
+# Create survey design object
+#' dstrat <- apistrat %>% as_survey_design(1, strata = stype, fpc = fpc, weight = pw)
+#'
+#'var_names <- c(meals = "Share subsidized meals", ell = "English language learners", growth = "Performance Change")
+#'
+#' # Print correlation matrix
+#' survey_cor_matrix(dstrat, var_names)
+#' }
 
 survey_cor_matrix <- function(svy_df, var_names) {
   .check_req_packages(c("jtools", "survey", "srvyr", "weights"))
+
+  assert_class(svy_df, "survey.design")
+
+  if(!inherits(svy_df, "tbl_svy")) svy_df %<>% srvyr::as_survey(svy_df)
+
+  svy_df %<>%
+    srvyr::select_if(is.numeric)
+
+  if(!is.null(var_names))  svy_df %<>%
+    srvyr::select(dplyr::one_of(names(var_names)))
 
   cor_matrix <- jtools::svycor(~., svy_df, na.rm = TRUE, sig.stats = TRUE)
   cor_matrix$desc <- svy_df %>%
@@ -291,7 +318,7 @@ survey_cor_matrix <- function(svy_df, var_names) {
     cor_matrix$desc$var %<>% stringr::str_replace_all(var_names)
     cor_matrix$desc <- cor_matrix$desc[match(used_vars, cor_matrix$desc$var), ]
   }
-
+  class(cor_matrix) <- "list"
   cor_matrix
 }
 
@@ -396,3 +423,97 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
 .wtd_cor_test_lm <- function(x, y, wt, ...) {
   lm(scale(y) ~ scale(x), weights = wt)
 }
+
+#' Create distribution charts to show in descriptive table
+#'
+#' Particularly in exploratory data analysis, it can be instructive to see histograms
+#' or density charts.
+#'
+#' @param x A dataframe - if var_names is NULL, all numeric variables in x will be used, otherwise those included in var_names will be selected
+#' @param var_names A named character vector with the names that should be displayed
+#' for variables. If NULL, then the variables are not renamed. Particularly important
+#' when output is to be combined with a correlation matrix, e.g., from \code{cor_matrix()}
+#' @param plot_type Type of plot that should be produced - `histogram` or `density` plot. If `auto`,
+#' histograms are produced for variables that take fewer than 10 unique values, density plots for others. If a number is provided,
+#' that number is used as the maximum number of unique values for which a histogram is used.
+#' @param hist_align_y Should histograms use the same y-axis, so that bin heights are comparable? Defaults to FALSE
+#' @param plot_theme Additional theme_ commands to be added to each plot
+#'
+#' @example
+#' \dontrun{
+#' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))}
+#' }
+
+plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histogram", "density"), hist_align_height = FALSE, plot_theme = NULL) {
+  x %<>% dplyr::select_if(is.numeric)
+
+  if (!is.null(var_names)) x <- x[names(var_names)]
+
+  plot_hist <- (
+    if (is.numeric(plot_type)) {
+      purrr::map_lgl(x, ~ (unique(.x) %>% length()) <= plot_type)
+    } else {
+      switch(plot_type[1],
+        auto = purrr::map_lgl(x, ~ (unique(.x) %>% length()) < 10),
+        histogram = rep(TRUE, ncol(x)),
+        density = rep(FALSE, ncol(x)),
+        stop('chart type needs to be one of "auto", "histogram" or "density" or a number')
+      )
+    })
+
+  if (is.null(var_names)) var_names <- names(x)
+  names(var_names) <- names(x)
+  plots <- purrr::map2(names(var_names), plot_hist, function(var_name, plot_hist) {
+    out <- ggplot2::ggplot(x, ggplot2::aes_string(var_name))
+    if (plot_hist) {
+      return(out + ggplot2::geom_histogram(bins = (x[[var_name]] %>% unique() %>% length()), col = "white", size = 3) + ggplot2::scale_x_continuous(breaks = (x[[var_name]] %>% unique())))
+    }
+    out + ggplot2::geom_density(fill = "grey", outline.type = "full")
+  })
+
+  if (hist_align_height) {
+    ymax <- purrr::map_dbl(plots, ~ ggplot2::layer_scales(.x) %>%
+      extract2("y") %>%
+      extract2("range") %>%
+      extract2("range") %>%
+      extract(2))
+
+    if (any(plot_hist)) {
+      hist_max <- max(ymax[plot_hist])
+      plots[plot_hist] <- purrr::map(plots[plot_hist], ~ .x + ggplot2::ylim(0, hist_max))
+    }
+  }
+  plots <- purrr::map(plots, ~ .x + ggplot2::theme_classic() + ggplot2::theme(axis.title = ggplot2::element_blank(), axis.text.y = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(), axis.line = ggplot2::element_blank()))
+  if (!is.null(plot_theme)) plots <- purrr::map(plots, ~ .x + plot_theme)
+  names(plots) <- var_names
+  plots
+}
+
+#' Add plots into gt table column
+#'
+#' This function takes a list of ggplot2 plots and adds them into a gt table column.
+#'
+#' @param gt_table A gt table to add the plots into
+#' @param plots A list of ggplot2 plots, typically with the same length as the number of rows in gt_table
+#' @param col_index The index of the column in gt_table that is to be overwritten with the plots
+#'
+#' @example
+#' \dontrun {
+#' var_names <- c(wt = "Weight", am = "Transmission", mpg = "Consumption (mpg)", gear = "Gears")
+#' cor_table <- cor_matrix(mtcars, var_names) %>% apa_cor_table(extras = tibble::tibble(Distributions = c(1:length(var_names))))
+#' large_text <- ggplot2::theme(axis.text.x = ggplot2::element_text(size=40))
+#' distr_plots <- plot_distributions(mtcars, var_names, plot_theme = large_text)
+#' gt_add_plots(cor_table, distr_plots, 3)
+#' }
+
+gt_add_plots <- function(gt_table, plots, col_index) {
+  purrr::walk(1:length(plots), function(x) {
+    gt_table <<- gt::text_transform(gt_table, gt::cells_body(col_index,x), fn = function(y) {
+      plots[[x]] %>%
+        gt::ggplot_image(height = gt::px(50))
+    })
+  }
+    )
+  gt_table
+}
+
