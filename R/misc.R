@@ -232,17 +232,6 @@ cut_p <- function(x, p, ties.method = "random", fct_levels = NULL) {
   floor(x)
 }
 
-#' Formats a number to print as percentage
-#'
-#' Takes a number and returns it as a formatted string expressing the percentage
-#'
-#' @param x A number
-#' @param digits The number of digits after the percentage point. Defaults to 1. Trailing zeroes are shown as needed.
-#' @export
-
-p_pct <- function(x, digits = 1) {
-  paste0(format(round_(x * 100, digits), nsmall = 2), "%")
-}
 
 
 #' Round all numeric columns in dataframe
@@ -297,6 +286,29 @@ fmt_p <- function(p_value, sig_dig = 3) {
   out[exact] <- purrr::map_chr(out[exact], fmt_p)
   out[!exact] <- "< .001"
   out
+}
+
+#' Formats a number to print as percentage
+#'
+#' Takes a number and returns it as a formatted string expressing the percentage
+#'
+#' @param x A number
+#' @param digits The number of digits after the percentage point. Defaults to 1. Trailing zeroes are shown as needed.
+#' @name p_pct-deprecated
+#' @usage p_pct(x, digits)
+#' @seealso \code{\link{rNuggets-deprecated}}
+#' @keywords internal
+NULL
+
+#' @rdname rNuggets-deprecated
+#' @section \code{p_pct}:
+#' For \code{p_pct}, use \code{\link{fmt_pct}}.
+#'
+#' @export
+
+p_pct <- function(x, digits = 1) {
+  .Deprecated(fmt_pct)
+  fmt_pct(x, digits)
 }
 
 #' Format fraction as percentage string
@@ -375,6 +387,16 @@ to_tribble <- function(x, show = FALSE) {
 #' @param large_factor The existing factor
 #' @param cats The levels to keep
 #' @param other The name of the new "other"-level
+#' @name simplify_factor-deprecated
+#' @usage simplify_factor(large_factor, cats, other)
+#' @seealso \code{\link{rNuggets-deprecated}}
+#' @keywords internal
+NULL
+
+#' @rdname rNuggets-deprecated
+#' @section \code{simplify_factor}:
+#' For \code{simplify_factor}, use \code{\link{forcats::fct_other}}.
+#'
 #' @export
 
 simplify_factor <- function(large_factor, cats, other = "Other") {
@@ -394,12 +416,13 @@ simplify_factor <- function(large_factor, cats, other = "Other") {
 #' @param gr Character. The name of the grouping variable in df.
 #' @param mean_vars Character vector. Names of one or more variables in df to calculate means for.
 #' @param tbl_title Character. Title for summary table to be printed.
-#' @param quietly Logical. Calculate means without displaying them?
+#' @param quietly Logical. Calculate means without displaying them. If they are to be displayed, the gt package needs to be installed.
 #' @return Dataframe with group counts and means
 #' @export
 
-svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
+svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = TRUE) {
   .check_req_packages("survey")
+  if(!quietly) .check_req_packages("gt")
 
   cmd <- paste(purrr::map(mean_vars, function(x) paste0("Mean_", x, " = survey_mean(", x, ")")),
     collapse = ", "
@@ -410,8 +433,9 @@ svy_group_means <- function(df, gr, mean_vars, tbl_title, quietly = T) {
   )))
   if (!quietly) {
     means %>%
-      knitr::kable(caption = tbl_title, digits = 2) %>%
-      kableExtra::kable_styling(full_width = F, position = "left") %>%
+      gt::gt() %>%
+      gt::tab_header(title = tbl_title) %>%
+      gt::fmt_number(gt::everything()) %>%
       print()
   }
   return(means)

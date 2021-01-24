@@ -24,7 +24,6 @@ Imports:
     stringr,
     tidyr,
     knitr,
-    kableExtra,
     generics, 
     broom,
     glue,
