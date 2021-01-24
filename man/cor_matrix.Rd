@@ -20,7 +20,7 @@ cor_matrix(
 \item{x}{Dataframe of variables that can be coerced to numeric.}
 
 \item{var_names}{A named character vector with the names that should be displayed
-for variables. If NULL, then the variables are not renamed.}
+for variables. If NULL, then the variables are not renamed. If names are provided, only the variables included in this vector are retained.}
 
 \item{method}{method="pearson" is the default value.  The alternatives to be passed to cor are "spearman" and "kendall"}
 

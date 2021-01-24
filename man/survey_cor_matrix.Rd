@@ -23,3 +23,15 @@ This function wraps jtools::svycor() so that it works in a srvyr-pipeline,
 runs bootstrapped significance-tests and calculates weighted summary
 statistics. Only numeric variables are included in the result.
 }
+\examples{
+if (requireNamespace("survey")) {
+library(survey)
+data(api)
+dstrat <- apistrat \%>\% as_survey_design(1, strata = stype, fpc = fpc, weight = pw)
+
+var_names <- c(meals = "Share subsidized meals", ell = "English language learners", growth = "Performance Change")
+
+# Print correlation matrix
+survey_cor_matrix(dstrat, var_names)
+}
+}
