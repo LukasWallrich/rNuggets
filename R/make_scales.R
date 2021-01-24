@@ -121,7 +121,7 @@ make_scale <- function(df, scale_items, scale_name, reverse = c(
     }
   }
   if (print_hist) {
-    cbind(scale_vals, Scale = alpha_obj$scores) %>%
+    (cbind(scale_vals, Scale = alpha_obj$scores) %>%
       tidyr::gather(
         key = "category", value = "resp",
         factor_key = TRUE
@@ -129,8 +129,8 @@ make_scale <- function(df, scale_items, scale_name, reverse = c(
       ggplot2::ggplot(ggplot2::aes(x = .data$resp)) +
       ggplot2::geom_histogram(binwidth = 0.5) +
       ggplot2::facet_wrap(~ .data$category) +
-      ggplot2::ggtitle(paste0("Histogram for ", scale_name)) %>%
-      print()
+      ggplot2::ggtitle(paste0("Histogram for ", scale_name))) %>%
+      print() #Remember: %>% has higher precedence than +
   }
   if (return_list) {
     return(list(scores = alpha_obj$scores, descriptives = descriptives))
