@@ -17,7 +17,7 @@
 #' @param statistic_vertical Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout
 #' @param stars Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.
 #' @inheritParams modelsummary::modelsummary
-#' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
+#' @inheritDotParams modelsummary::modelsummary -models -statistic -conf_level -stars -vcov
 #' @export
 
 lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, R2_change = FALSE, notes = list(NULL), apa_style = TRUE, stars = std_stars_pad, ...) {
@@ -105,7 +105,7 @@ lm_with_std <- function(mod, std_mod, conf_level = .95, fmt = "%.2f", statistic_
   notes <- Filter(Negate(is.null), notes)
 
 if (statistic_vertical) {
-  tab <- modelsummary::msummary(mods, output = "gt", statistic_override = stat_list, rep(c(
+  tab <- modelsummary::msummary(mods, output = "gt", vcov = stat_list, rep(c(
     "{estimate} {stars}", "{estimate}"), length(mod)), fmt = fmt, gof_omit = ".*", stars = stars, ...) %>%
     gt::fmt_markdown(columns = dplyr::everything()) %>%
     gt::cols_label(.list = col_labels) %>%
