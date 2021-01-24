@@ -235,15 +235,14 @@ cor_matrix <- function(x,
   corM <- list(cors = cors, std.err = std.err, p.values = p.values, t.values = t.values, n = n.matrix, ci.low = ci_low, ci.high = ci_high, desc = desc_stat)
 
   if (!is.null(var_names)) {
-    corM[1:6] <- purrr::map(corM[1:6], function(x) {
-      rownames(x) <- rownames(x) %>% stringr::str_replace_all(var_names)
-      colnames(x) <- colnames(x) %>% stringr::str_replace_all(var_names)
+    corM[1:7] <- purrr::map(corM[1:7], function(x) {
+      rownames(x) <- var_names[rownames(x)]
+      colnames(x) <- var_names[colnames(x)]
       x
     })
     used_vars <- intersect(var_names, rownames(corM[[1]]))
-    corM[1:6] <- purrr::map(corM[1:6], function(x) x[used_vars, used_vars])
-    rownames(corM$desc) <- rownames(corM$desc) %>% stringr::str_replace_all(var_names)
-    corM$desc$var %<>% stringr::str_replace_all(var_names)
+    corM[1:7] <- purrr::map(corM[1:7], function(x) x[used_vars, used_vars])
+    corM$desc$var <- var_names[corM$desc$var]
     corM$desc <- corM$desc[match(corM$desc$var, used_vars), ]
   }
 
@@ -265,7 +264,7 @@ cor_matrix <- function(x,
 #' and standard deviations of the variables.
 #' @export
 #'
-#' @example
+#' @examples
 #' if (requireNamespace("survey")) {
 #' library(survey)
 #' data(api)
@@ -439,9 +438,9 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
 #' @param hist_align_y Should histograms use the same y-axis, so that bin heights are comparable? Defaults to FALSE
 #' @param plot_theme Additional theme_ commands to be added to each plot
 #' @export
-#' @example
+#' @examples
 #' \dontrun{
-#' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))}
+#' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))
 #' }
 
 plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histogram", "density"), hist_align_height = FALSE, plot_theme = NULL) {
@@ -497,8 +496,8 @@ plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histo
 #' @param plots A list of ggplot2 plots, typically with the same length as the number of rows in gt_table
 #' @param col_index The index of the column in gt_table that is to be overwritten with the plots
 #'
-#' @example
 #' @export
+#' @examples
 #' \dontrun {
 #' var_names <- c(wt = "Weight", am = "Transmission", mpg = "Consumption (mpg)", gear = "Gears")
 #' cor_table <- cor_matrix(mtcars, var_names) %>% apa_cor_table(extras = tibble::tibble(Distributions = c(1:length(var_names))))

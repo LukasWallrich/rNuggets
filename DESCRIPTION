@@ -1,6 +1,6 @@
 Package: rNuggets
 Title: Useful Helper Functions for (Academic) Data Analysis
-Version: 0.2.1.0006
+Version: 0.2.1.0007
 Authors@R: person("Lukas", "Wallrich", email = "lukas.wallrich@gmail.com",
                   role = c("aut", "cre"))
 Description: A set of functions that I have written to facilitate my personal 
