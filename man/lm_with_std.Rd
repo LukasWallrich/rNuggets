@@ -28,11 +28,11 @@ created with \code{\link{lm_std}} (or a list of such models)}
 
 \item{conf_level}{Confidence level to use for confidence intervals, defaults to .95}
 
-\item{fmt}{an integer, string, or function which determines how to format numeric values:
+\item{fmt}{determines how to format numeric values
 \itemize{
-  \item integer: the number of digits to keep after the period (`format(round(x, fmt), nsmall=fmt)`)
-  \item character: string is passed to the `sprintf` function. '\%.3f' will keep 3 digits after the decimal point with trailing zero. '\%.5f' will keep 5 digits. '\%.3e' will use exponential notation. See `?sprintf` for more options.
-  \item function: a function which returns a formatted character string
+  \item integer: the number of digits to keep after the period `format(round(x, fmt), nsmall=fmt)`
+  \item character: passed to the `sprintf` function (e.g., '\%.3f' keeps 3 digits with trailing zero). See `?sprintf`
+  \item function: returns a formatted character string.
 }}
 
 \item{statistic_vertical}{Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout}
@@ -54,11 +54,19 @@ created with \code{\link{lm_std}} (or a list of such models)}
 \item{...}{
   Arguments passed on to \code{\link[modelsummary:modelsummary]{modelsummary::modelsummary}}
   \describe{
-    \item{\code{output}}{filename or object type (string)
+    \item{\code{output}}{filename or object type (character string)
 \itemize{
   \item Supported filename extensions: .html, .tex, .md, .txt, .png, .jpg.
   \item Supported object types: "default", "html", "markdown", "latex", "data.frame", "gt", "kableExtra", "huxtable", "flextable".
-  \item When a file name is supplied to the `output` argument, the table is written immediately to file. If you want to customize your table by post-processing it with functions provided by the `gt` or `kableExtra` packages, you need to choose a different output format (e.g., "gt", "latex", "html", "markdown"), and you need to save the table after post-processing using the `gt::gtsave`, `kableExtra::save_kable`, or `cat` functions.
+  \item Warning: the `output` argument \emph{cannot} be used when customizing tables with external packages. See the 'Details' section below.
+}}
+    \item{\code{estimate}}{string or `glue` string of the estimate to display (or a
+vector with one string per model). Valid entries include any column name of
+the data.frame produced by `get_estimates(model)`. Examples:
+\itemize{
+  \item "estimate"
+  \item "{estimate} ({std.error}){stars}"
+  \item "{estimate} [{conf.low}, {conf.high}]"
 }}
     \item{\code{coef_map}}{named character vector. Values refer to the variable names
 that will appear in the table. Names refer to the original term names stored
@@ -66,28 +74,25 @@ in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.
 Coefficients that are omitted from this vector will be omitted from the
 table. The table will be ordered in the same order as this vector.}
     \item{\code{coef_omit}}{string regular expression. Omits all matching coefficients
-from the table (using `grepl(perl=TRUE)`).}
+from the table using `grepl(perl=TRUE)`.}
     \item{\code{coef_rename}}{named character vector. Values refer to the variable names
 that will appear in the table. Names refer to the original term names stored
 in the model object, e.g. c("hp:mpg"="hp X mpg") for an interaction term.}
-    \item{\code{gof_map}}{data.frame with four columns: `raw`, `clean`, `fmt`, and
-`omit`. If `gof_map` is NULL, then `modelsummary` will use this data frame
-by default: `modelsummary::gof_map` By default, all the statistics produced
-by `broom::glance` will be included unless they are omitted explicitly in
-`gof_map`.}
+    \item{\code{gof_map}}{\itemize{
+  \item NULL (default): the `modelsummary::gof_map` dictionary is used for formatting, and all unknown statistic are included.
+  \item data.frame with 3 columns named "raw", "clean", "fmt". Unknown statistics are omitted. See the 'Examples' section below.
+  \item list of lists, each of which includes 3 elements named "raw", "clean", "fmt". Unknown statistics are omitted. See the 'Examples section below'.
+}}
     \item{\code{gof_omit}}{string regular expression. Omits all matching gof statistics from
 the table (using `grepl(perl=TRUE)`).}
-    \item{\code{estimate}}{character name of the estimate to display. Must be a column
-name in the data.frame produced by `tidy(model)`. In the vast majority of
-cases, the default value of this argument should not be changed.}
     \item{\code{add_rows}}{a data.frame (or tibble) with the same number of columns as
 your main table. By default, rows are appended to the bottom of the table.
 You can define a "position" attribute of integers to set the row positions.
-See examples.}
-    \item{\code{title}}{string}
+See Examples section below.}
     \item{\code{align}}{A character string of length equal to the number of columns in
 the table.  "lcr" means that the first column will be left-aligned, the 2nd
 column center-aligned, and the 3rd column right-aligned.}
+    \item{\code{title}}{string}
   }}
 }
 \description{
