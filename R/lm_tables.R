@@ -283,7 +283,7 @@ mira.lm_F_test <- function(mod, return_list = FALSE) {
 #' @param stars Named vector of significance stars and their thresholds, check `rNuggets:::std_stars_pad` for default.
 #' @param statistic_vertical Should standard errors and CIs be shown below coefficients? Defaults to horizontal layout
 #' @inheritParams modelsummary::modelsummary
-#' @inheritDotParams modelsummary::modelsummary -models -statistic -statistic_override -conf_level -stars
+#' @inheritDotParams modelsummary::modelsummary -models -statistic -conf_level -stars
 #' @export
 
 polr_with_std <- function(mod, std_mod, OR = TRUE, conf_level = .95, fmt = "%.2f", statistic_vertical = FALSE, filename = NULL, model_names = NULL, show_nimp = FALSE, notes = list(), apa_style = TRUE, stars = std_stars_pad, ...) {
