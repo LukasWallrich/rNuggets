@@ -25,13 +25,12 @@ globalVariables(".")
 #' @importFrom stats as.formula cor.test sd t.test lm p.adjust.methods
 #' @importFrom generics tidy
 #' @importFrom generics glance
-#' @importFrom broom glance
-#' @importFrom broom tidy
 #' @importFrom here here
 #' @importFrom utils getFromNamespace
 #' @import checkmate
 #' @export
 generics::tidy
+generics::glance
 #'
 #'
 "_PACKAGE"

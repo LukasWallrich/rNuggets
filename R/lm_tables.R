@@ -440,12 +440,11 @@ if (statistic_vertical) {
   }
 }
 
-## TK - replace by modelgenerics once it is on CRAN
-#' @importFrom broom glance
-#' @importFrom broom tidy
+#' @importFrom generics glance
+#' @importFrom generics tidy
 #' @export
-broom::glance
-broom::tidy
+generics::glance
+generics::tidy
 
 #' Tidy  multiple imputation models created with `mice`
 #'
