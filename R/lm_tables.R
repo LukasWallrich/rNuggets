@@ -172,9 +172,9 @@ if (statistic_vertical) {
   if (R2_change == TRUE) {
 
 
-    delta_R2 <- purrr::map_chr(gof, function(x) x %>% dplyr::filter(term == "R<sup>2</sup>") %>% dplyr::pull(value)) %>% as.numeric() %>% diff() %>% .fmt_cor()
+    delta_R2 <- purrr::map_chr(gof, function(x) x %>% dplyr::filter(.data$term == "R<sup>2</sup>") %>% dplyr::pull(.data$value)) %>% as.numeric() %>% diff() %>% .fmt_cor()
 
-    x <- anova(mod[[1]], mod[[2]])
+    x <- stats::anova(mod[[1]], mod[[2]])
     F_test <- glue_warn("<em>F</em>({x$Res.Df[2]}, {x$Df[2]}) = {x$F[2] %>% round_(2)}, <em>p</em> {x$`Pr(>F)`[2] %>% fmt_p()}")
 
     row <- glue_warn('<tr>

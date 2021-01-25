@@ -62,7 +62,7 @@ make_scale <- function(df, scale_items, scale_name, reverse = c(
                        ), r_key = NULL, print_hist = TRUE, print_desc = TRUE, return_list = FALSE) {
   if (!all(scale_items %in% names(df))) stop("Not all scale_items can be found in the dataset. The following are missing: ", paste(setdiff(scale_items, names(df)), collapse = ", "), call. = FALSE)
 
-  if (df %>% dplyr::select(any_of(scale_items)) %>% {all(sapply(., checkmate::allMissing))}) stop("All variables for scale ", scale_name, " only contain missing values.", call. = FALSE)
+  if (df %>% dplyr::select(dplyr::any_of(scale_items)) %>% {all(sapply(., checkmate::allMissing))}) stop("All variables for scale ", scale_name, " only contain missing values.", call. = FALSE)
 
   assert_choice(reverse, c("auto", "none", "spec"))
 

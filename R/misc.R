@@ -380,7 +380,7 @@ to_tribble <- function(x, show = FALSE) {
 
 #' Collapse factor levels into "Other"
 #'
-#' This function duplicates \code{forcats::fct_other}. It is therefore
+#' This function duplicates [forcats::fct_other()]. It is therefore
 #' deprecated and should not be used. At present, I need it for compatibility.
 #' It will be removed in the future.
 #'

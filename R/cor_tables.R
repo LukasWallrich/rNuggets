@@ -265,16 +265,20 @@ cor_matrix <- function(x,
 #' @export
 #'
 #' @examples
-#' if (requireNamespace("survey")) {
+#' \dontrun{
+#' if (requireNamespace("survey") & requireNamespace("srvyr")) {
 #' library(survey)
+#' library(srvyr)
 #' data(api)
 # Create survey design object
 #' dstrat <- apistrat %>% as_survey_design(1, strata = stype, fpc = fpc, weight = pw)
 #'
-#'var_names <- c(meals = "Share subsidized meals", ell = "English language learners", growth = "Performance Change")
+#'var_names <- c(meals = "Share subsidized meals", ell = "English language learners",
+#'               growth = "Performance Change")
 #'
 #' # Print correlation matrix
 #' survey_cor_matrix(dstrat, var_names)
+#' }
 #' }
 
 survey_cor_matrix <- function(svy_df, var_names) {
@@ -440,10 +444,11 @@ wtd_cor_matrix_mi <- function(mi_list, weights, var_names = NULL) {
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))
+#' plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency",
+#'                    am = "Transmission", gear = "Gears"))
 #' }
 
-plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histogram", "density"), hist_align_height = FALSE, plot_theme = NULL) {
+plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histogram", "density"), hist_align_y = FALSE, plot_theme = NULL) {
   x %<>% dplyr::select_if(is.numeric)
 
   if (!is.null(var_names)) x <- x[names(var_names)]
@@ -470,7 +475,7 @@ plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histo
     out + ggplot2::geom_density(fill = "grey", outline.type = "full")
   })
 
-  if (hist_align_height) {
+  if (hist_align_y) {
     ymax <- purrr::map_dbl(plots, ~ ggplot2::layer_scales(.x) %>%
       extract2("y") %>%
       extract2("range") %>%
@@ -498,9 +503,10 @@ plot_distributions <- function(x, var_names = NULL, plot_type = c("auto", "histo
 #'
 #' @export
 #' @examples
-#' \dontrun {
+#' \dontrun{
 #' var_names <- c(wt = "Weight", am = "Transmission", mpg = "Consumption (mpg)", gear = "Gears")
-#' cor_table <- cor_matrix(mtcars, var_names) %>% apa_cor_table(extras = tibble::tibble(Distributions = c(1:length(var_names))))
+#' cor_table <- cor_matrix(mtcars, var_names) %>%
+#'   apa_cor_table(extras = tibble::tibble(Distributions = c(1:length(var_names))))
 #' large_text <- ggplot2::theme(axis.text.x = ggplot2::element_text(size=40))
 #' distr_plots <- plot_distributions(mtcars, var_names, plot_theme = large_text)
 #' gt_add_plots(cor_table, distr_plots, 3)
