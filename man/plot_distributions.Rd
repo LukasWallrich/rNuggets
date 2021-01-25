@@ -8,7 +8,7 @@ plot_distributions(
   x,
   var_names = NULL,
   plot_type = c("auto", "histogram", "density"),
-  hist_align_height = FALSE,
+  hist_align_y = FALSE,
   plot_theme = NULL
 )
 }
@@ -23,9 +23,9 @@ when output is to be combined with a correlation matrix, e.g., from \code{cor_ma
 histograms are produced for variables that take fewer than 10 unique values, density plots for others. If a number is provided,
 that number is used as the maximum number of unique values for which a histogram is used.}
 
-\item{plot_theme}{Additional theme_ commands to be added to each plot}
-
 \item{hist_align_y}{Should histograms use the same y-axis, so that bin heights are comparable? Defaults to FALSE}
+
+\item{plot_theme}{Additional theme_ commands to be added to each plot}
 }
 \description{
 Particularly in exploratory data analysis, it can be instructive to see histograms
@@ -33,6 +33,7 @@ or density charts.
 }
 \examples{
 \dontrun{
-plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency", am = "Transmission", gear = "Gears"))
+plot_distributions(mtcars, var_names = c(wt = "Weight", mpg = "Efficiency",
+                   am = "Transmission", gear = "Gears"))
 }
 }

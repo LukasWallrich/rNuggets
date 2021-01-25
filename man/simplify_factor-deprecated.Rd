@@ -14,7 +14,7 @@ simplify_factor(large_factor, cats, other)
 \item{other}{The name of the new "other"-level}
 }
 \description{
-This function duplicates \code{forcats::fct_other}. It is therefore
+This function duplicates [forcats::fct_other()]. It is therefore
 deprecated and should not be used. At present, I need it for compatibility.
 It will be removed in the future.
 }
