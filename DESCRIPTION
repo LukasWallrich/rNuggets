@@ -19,7 +19,6 @@ Imports:
     dplyr,
     ggplot2,
     psych,
-    data.table,
     rlang,
     stringr,
     tidyr,
