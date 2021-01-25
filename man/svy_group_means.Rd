@@ -4,7 +4,7 @@
 \alias{svy_group_means}
 \title{Show group counts and group means in srvyr data}
 \usage{
-svy_group_means(df, gr, mean_vars, tbl_title, quietly = T)
+svy_group_means(df, gr, mean_vars, tbl_title, quietly = TRUE)
 }
 \arguments{
 \item{df}{A srvyr survey object}
@@ -15,7 +15,7 @@ svy_group_means(df, gr, mean_vars, tbl_title, quietly = T)
 
 \item{tbl_title}{Character. Title for summary table to be printed.}
 
-\item{quietly}{Logical. Calculate means without displaying them?}
+\item{quietly}{Logical. Calculate means without displaying them. If they are to be displayed, the gt package needs to be installed.}
 }
 \value{
 Dataframe with group counts and means
