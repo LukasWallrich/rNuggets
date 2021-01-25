@@ -395,7 +395,7 @@ NULL
 
 #' @rdname rNuggets-deprecated
 #' @section \code{simplify_factor}:
-#' For \code{simplify_factor}, use \code{\link{forcats::fct_other}}.
+#' For \code{simplify_factor}, use [forcats::fct_other()].
 #'
 #' @export
 
