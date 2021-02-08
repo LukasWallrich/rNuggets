@@ -23,7 +23,7 @@ For \code{p_pct}, use \code{\link{fmt_pct}}.
 
 \section{\code{simplify_factor}}{
 
-For \code{simplify_factor}, use \code{\link{forcats::fct_other}}.
+For \code{simplify_factor}, use [forcats::fct_other()].
 }
 
 \keyword{internal}
