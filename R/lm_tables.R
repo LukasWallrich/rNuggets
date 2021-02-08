@@ -513,6 +513,7 @@ glance.mira <- function(x, ...) {
 }
 
 #' Helper function to enable tidy.lm to be used on lm_std() models
+#'
 #' Strips rN_std class and calls tidy() again
 #' @param x An object with class rN_std
 #' @param ... arguments passed on to tidy method
@@ -524,15 +525,18 @@ tidy.rN_std <- function(x, ...) {
 }
 
 #' Helper function to style gt-table in APA style
+#'
 #' This function takes a `gt` table object and changes font-type, borders etc
 #' to align with APA style.
+#'
 #' @param gt_table A gt-table
-#' @source Created by Philip Parker, https://gist.github.com/pdparker/1b61b6d36d09cb295bf286a931990159
+#' @param fmt_labels_md Should row and column labels be formatted with markdown/HTML (Defaults to TRUE)
+#' @source Created by Philip Parker, https://gist.github.com/pdparker/1b61b6d36d09cb295bf286a931990159. Slightly expanded here.
 #' @export
 
 
-gt_apa_style <- function(gt_table) {
-  gt_table %>%
+gt_apa_style <- function(gt_table, fmt_labels_md = TRUE) {
+  out <- gt_table %>%
     gt::opt_table_lines(extent = "none") %>%
     gt::tab_options(
       heading.border.bottom.width = 2,
@@ -554,4 +558,28 @@ gt_apa_style <- function(gt_table) {
       column_labels.border.bottom.width = 1
     ) %>%
     gt::opt_table_font(font = "times")
+
+  if (fmt_labels_md) out <- fmt_labels_md(out)
+  out
+}
+
+#' A convenience function to render markdown to html in row and column labels
+#'
+#' @param tab a `gt` table object
+#' @param position character string determines wither row, column or both
+#'   labels should be rendered.
+#' @note This function only works for HTML output, since the `gt` render tools
+#' are less developed for LaTeX and RTF output.
+#' @source Developed with Vincent Arel-Bundock and first included in `modelsummary`-package
+
+fmt_labels_md <- function(tab, position = c('both', 'row', 'column')) {
+  out <- tab
+  if (match.arg(position) %in% c('both', 'row')) {
+    out <- gt::fmt_markdown(out, columns = 1)
+  }
+  if (match.arg(position) %in% c('both', 'column')) {
+    f <- function(x) stats::setNames(lapply(names(x$`_data`), gt::md), names(x$`_data`))
+    out <- gt::cols_label(out, .list = f(out))
+  }
+  return(out)
 }

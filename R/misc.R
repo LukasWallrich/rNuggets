@@ -699,6 +699,7 @@ clip_excel <- function(df, row_names = FALSE, col_names = TRUE, ...) {
 
 dump_to_clip <- function(objects) {
   .check_req_packages("clipr")
+  if (!interactive()) stop("Clipboard access only supported in interactive sessions")
   if (!is.character(objects)) stop("'objects' need to be a character vector with one or more R objects")
   utils::capture.output(dump(objects, file = "")) %>% clipr::write_clip()
 }
@@ -783,7 +784,7 @@ round_ <- function(x, digits = 2) {
 
 
 
-line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = TRUE) {
+line_to_vector <- function(x = clipr::read_clip(), strings = TRUE, to_clip = interactive()) {
   assert_character(x)
   x <- strsplit(x, " |\\n|\\t") %>% unlist()
   x <- x[!x==""]
