@@ -285,6 +285,7 @@ fmt_p <- function(p_value, sig_dig = 3) {
   out <- p_value
   out[exact] <- purrr::map_chr(out[exact], fmt_p)
   out[!exact] <- "< .001"
+  attributes(out) <- attributes(p_value)
   out
 }
 
@@ -322,7 +323,7 @@ p_pct <- function(x, digits = 1) {
 fmt_pct <- function(x, sig_dig = 1) {
   fmt <- paste0("%1.", sig_dig, "f%%")
   out <- sprintf(fmt, x * 100)
-  names(out) <- names(x)
+  attributes(out) <- attributes(x)
   out
 }
 
@@ -330,8 +331,10 @@ fmt_pct <- function(x, sig_dig = 1) {
 
 .fmt_cor <- function(cor_value, sig_dig = 2) {
   fmt <- paste0("%.", sig_dig, "f")
-  sprintf(fmt, cor_value) %>%
+  out <- sprintf(fmt, cor_value) %>%
     stringr::str_replace("0.", ".")
+  attributes(out) <- attributes(cor_value)
+  out
 }
 
 #' Converts a tibble to tribble code
@@ -762,10 +765,13 @@ glue_warn <- transforming_glue(warn_null)
 #' @return Character vector of rounded values, with trailing zeroes as needed to show `digits` figures after the decimal point
 #' @export
 round_ <- function(x, digits = 2) {
+
   checkmate::assert_numeric(x)
   checkmate::assert_integerish(digits)
   fmt <- paste0("%.", digits, "f")
-  sprintf(fmt, x)
+  out <- sprintf(fmt, x)
+  attributes(out) <- attributes(x)
+  out
 }
 
 #' Turn line of items separated by spaces into c() command
