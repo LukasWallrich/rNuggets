@@ -124,6 +124,9 @@ svy_pairwise.t.test <- function(df, dv, iv, cats, ...) {
 #' @export
 
 lm_std <- function(formula, data = NULL, weights = NULL, rename_std = FALSE, ...) {
+
+  if (any(stringr::str_detect(as.character(formula), "factor\\("))) stop("Functions in the formula are applied after standardising - thus factor() needs to be used before lm_std() is called")
+
   parent <- parent.frame()
   here <- environment()
   vars <- all.vars(formula)
