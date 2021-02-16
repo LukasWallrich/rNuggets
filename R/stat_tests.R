@@ -412,7 +412,7 @@ get_pairwise_letters <- function(tests,
 
 pairwise_t_tests <- function(df, outcome, groups, p.adjust.method = p.adjust.methods, conf_level = .95, var_equal = FALSE) {
   if(is.character(rlang::enexpr(outcome))) {
-    warning("literal string input will be deprecated across the package, please use raw variable names")
+    warning("literal string input will eventually be deprecated across the package, please use raw variable names")
     outcome <- rlang::enexpr(outcome)
     groups <- rlang::enexpr(groups)
   }

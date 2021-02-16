@@ -308,7 +308,7 @@ NULL
 #' @export
 
 p_pct <- function(x, digits = 1) {
-  .Deprecated(fmt_pct)
+  .Deprecated("fmt_pct")
   fmt_pct(x, digits)
 }
 
@@ -403,7 +403,7 @@ NULL
 #' @export
 
 simplify_factor <- function(large_factor, cats, other = "Other") {
-  .Deprecated("fct_other in the forcats package")
+  .Deprecated("forcats::fct_other")
   cats %<>% c(NA)
   levels(large_factor) <- c(levels(large_factor), other)
   large_factor[!(large_factor %in% cats)] <- other
