@@ -196,7 +196,7 @@ make_mult_scales <- function(df, items, reversed = NULL, two_items_reliability =
 
     scales_n_rev_values <- purrr::map2(items[scales_n_rev], scales_n_rev, make_scale,
       df = df,
-      return_list = T, reverse = "none", two_items_reliability, ...
+      return_list = T, reverse = "none", two_items_reliability = two_items_reliability, ...
     ) %>% purrr::transpose()
   }
 
