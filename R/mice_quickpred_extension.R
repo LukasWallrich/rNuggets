@@ -38,9 +38,10 @@ quickpred_ext <- function(data, mincor = 0.1, minpuc = 0, include = "", exclude 
   chr <- names(data)[sapply(data, is.character)]
   chr_which <- NULL
 
-  if (length(chr) > 0) {
+  if (length(setdiff(chr, exclude))>0) {
+    chr_incl <- setdiff(chr, exclude)
     message(paste0(
-      "Data contains character variable(s): ", paste(chr, collapse = " "),
+      "Data contains character variable(s): ", paste(chr_incl, collapse = " "),
       ". These will not be used as predictors."
     ))
     chr_which <- which(names(data) %in% chr)
@@ -49,9 +50,10 @@ quickpred_ext <- function(data, mincor = 0.1, minpuc = 0, include = "", exclude 
   fct <- names(data)[sapply(data, nlevels) > 2]
   fct_which <- NULL
 
-  if (length(fct) > 0) {
+  if (length(setdiff(fct, exclude)) > 0) {
+    fct_incl <- setdiff(fct, exclude)
     message(paste0(
-      "Data contains factor variable(s) with more than 2 levels: ", paste(fct, collapse = " "),
+      "Data contains factor variable(s) with more than 2 levels: ", paste(fct_incl, collapse = " "),
       ". mincor argument will be tested for each level."
     ))
     fct_which <- which(names(data) %in% fct)
